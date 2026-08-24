@@ -1,13 +1,14 @@
-# CACHE BUST: 2026-08-24-15-30 - Force new Docker image
-# Complete Railway rebuild - different base image approach
-FROM python:3.12-slim-bookworm AS base
+# RAILWAY_CACHE_BUST_2026_08_24_15_35 - Force completely new build
+# Railway cache bust - use different Python version
+FROM python:3.11-slim-bookworm
 
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     PORT=8080 \
     DJANGO_SETTINGS_MODULE=dalal_project.settings \
     USE_WEBSOCKETS=false \
-    PYTHONPATH=/app
+    PYTHONPATH=/app \
+    RAILWAY_CACHE_BUST=2026_08_24_15_35
 
 WORKDIR /app
 
@@ -20,7 +21,7 @@ COPY requirements.txt .
 RUN pip install --upgrade pip && \
     pip install -r requirements.txt
 
-# Copy files in completely different order
+# Copy all application files
 COPY dalal_project /app/dalal_project/
 COPY properties /app/properties/
 COPY templates /app/templates/
@@ -29,9 +30,8 @@ COPY run_server.py /app/
 COPY entrypoint.sh /app/
 COPY nixpacks.toml /app/
 COPY railway.toml /app/
-COPY railway.json /app/
 
-# Create all directories
+# Create required directories
 RUN mkdir -p /app/static /app/staticfiles /app/logs /app/media /app/locale
 
 # Copy locale if exists

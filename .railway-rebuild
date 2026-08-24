@@ -1,2 +1,2 @@
-# CACHE BUST: 2026-08-24-15-30 - Force new Docker image with different base
-# Complete Railway rebuild
+# RAILWAY_CACHE_BUST_2026_08_24_15_35 - Force new Python version (3.11)
+# Completely different base image to bypass cache
