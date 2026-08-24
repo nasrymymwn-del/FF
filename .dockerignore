@@ -80,3 +80,8 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+
+# Additional directories (keep these for deployment)
+# assets
+# staticfiles
+# staticfiles

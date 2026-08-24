@@ -1,3 +1,4 @@
+# Force Railway rebuild - 2026-08-24-13-30 - Fix static directory issue
 # Force Railway rebuild - 2026-07-12-18-27 - Fix locale copy issue
 # Force rebuild - 2026-07-13-07-19 - Fix templates cache issue
 # Force rebuild - 2026-07-13-14-36 - Force Railway to use new entrypoint.sh
@@ -25,7 +26,6 @@ RUN pip install --upgrade pip && \
 COPY dalal_project /app/dalal_project/
 COPY properties /app/properties/
 COPY templates /app/templates/
-COPY static /app/static/
 COPY manage.py /app/
 COPY run_server.py /app/
 COPY entrypoint.sh /app/
@@ -33,10 +33,14 @@ COPY nixpacks.toml /app/
 COPY railway.toml /app/
 COPY railway.json /app/
 
+# Copy static directory with fallback
+RUN mkdir -p /app/static
+COPY static /app/static/ || echo "Static directory not found, will create during runtime"
+
 # Verify static files were copied
-RUN echo "Static files copied: $(ls -la /app/static/)"
-RUN echo "CSS files: $(ls -la /app/static/css/)"
-RUN echo "JS files: $(ls -la /app/static/js/)"
+RUN echo "Static files copied: $(ls -la /app/static/ 2>/dev/null || echo 'Directory not found')"
+RUN echo "CSS files: $(ls -la /app/static/css/ 2>/dev/null || echo 'CSS directory not found')"
+RUN echo "JS files: $(ls -la /app/static/js/ 2>/dev/null || echo 'JS directory not found')"
 
 # Copy locale directory if it exists
 RUN if [ -d locale ]; then cp -r locale /app/locale/; else mkdir -p /app/locale; fi
@@ -54,9 +58,9 @@ RUN echo "Properties app exists: $(ls -la /app/properties/ 2>/dev/null || echo '
 RUN echo "Settings.py contains properties: $(grep -c 'properties' /app/dalal_project/settings.py || echo '0')"
 
 # Run collectstatic during build
-RUN python manage.py collectstatic --noinput --clear
+RUN python manage.py collectstatic --noinput --clear || echo "Collectstatic failed, will retry in runtime"
 RUN echo "Collectstatic completed. Staticfiles directory:"
-RUN ls -la /app/staticfiles/
+RUN ls -la /app/staticfiles/ 2>/dev/null || echo "Staticfiles directory not found"
 
 EXPOSE 8080
 

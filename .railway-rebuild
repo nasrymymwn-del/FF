@@ -1,2 +1,2 @@
-Force rebuild - dashboard UnboundLocalError fix
-Force rebuild - 2026-07-12-17-13 - Switch to DOCKER builder
+# Force Railway rebuild - Fix static directory issue
+# Rebuild time: 2026-08-24-13-30
