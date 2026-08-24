@@ -1,15 +1,9 @@
-# Force Railway rebuild - 2026-08-24-14-40 - Remove static copy line
-# Force Railway rebuild - 2026-08-24-13-30 - Fix static directory issue
-# Force Railway rebuild - 2026-07-12-18-27 - Fix locale copy issue
-# Force rebuild - 2026-07-13-07-19 - Fix templates cache issue
-# Force rebuild - 2026-07-13-14-36 - Force Railway to use new entrypoint.sh
-FROM python:3.12-slim-bookworm
+# Force Railway rebuild - 2026-08-24-15-00 - Complete rebuild with different structure
+# Railway cache bust - new approach
+FROM python:3.12-slim-bookworm AS builder
 
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
-    PORT=8080 \
-    DJANGO_SETTINGS_MODULE=dalal_project.settings \
-    USE_WEBSOCKETS=false \
     PYTHONPATH=/app
 
 WORKDIR /app
@@ -23,7 +17,6 @@ COPY requirements.txt .
 RUN pip install --upgrade pip && \
     pip install -r requirements.txt
 
-# Explicitly copy all important directories
 COPY dalal_project /app/dalal_project/
 COPY properties /app/properties/
 COPY templates /app/templates/
@@ -34,7 +27,7 @@ COPY nixpacks.toml /app/
 COPY railway.toml /app/
 COPY railway.json /app/
 
-# Create static directory during build
+# Create static directory
 RUN mkdir -p /app/static
 
 # Copy locale directory if it exists
@@ -42,20 +35,19 @@ RUN if [ -d locale ]; then cp -r locale /app/locale/; else mkdir -p /app/locale;
 
 RUN mkdir -p /app/logs /app/media /app/staticfiles
 
-# Check if properties app was copied successfully
-RUN if [ ! -d /app/properties ]; then echo "ERROR: Properties app not copied to container"; exit 1; fi
-RUN echo "Properties app exists in container: $(ls -la /app/properties/)"
+# Final stage
+FROM python:3.12-slim-bookworm
 
-# Check if settings.py was copied successfully
-RUN if [ ! -f /app/dalal_project/settings.py ]; then echo "ERROR: settings.py not found"; exit 1; fi
-RUN echo "Settings.py exists: $(ls -la /app/dalal_project/settings.py)"
-RUN echo "Properties app exists: $(ls -la /app/properties/ 2>/dev/null || echo 'NOT FOUND')"
-RUN echo "Settings.py contains properties: $(grep -c 'properties' /app/dalal_project/settings.py || echo '0')"
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PORT=8080 \
+    DJANGO_SETTINGS_MODULE=dalal_project.settings \
+    USE_WEBSOCKETS=false \
+    PYTHONPATH=/app
 
-# Run collectstatic during build
-RUN python manage.py collectstatic --noinput --clear || echo "Collectstatic failed, will retry in runtime"
-RUN echo "Collectstatic completed. Staticfiles directory:"
-RUN ls -la /app/staticfiles/ 2>/dev/null || echo "Staticfiles directory not found"
+WORKDIR /app
+
+COPY --from=builder /app /app
 
 EXPOSE 8080
 
