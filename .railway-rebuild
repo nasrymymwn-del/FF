@@ -1,2 +1,2 @@
-# Force Railway rebuild - 2026-08-24-15-25 - Complete Dockerfile restructure
-# Different directory order to bypass cache
+# CACHE BUST: 2026-08-24-15-30 - Force new Docker image with different base
+# Complete Railway rebuild

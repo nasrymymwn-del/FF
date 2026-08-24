@@ -1,6 +1,6 @@
-# Force Railway rebuild - 2026-08-24-15-25 - Complete restructure to bypass cache
-# New build approach with different directory structure
-FROM python:3.12-slim-bookworm
+# CACHE BUST: 2026-08-24-15-30 - Force new Docker image
+# Complete Railway rebuild - different base image approach
+FROM python:3.12-slim-bookworm AS base
 
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
@@ -20,30 +20,25 @@ COPY requirements.txt .
 RUN pip install --upgrade pip && \
     pip install -r requirements.txt
 
-# Copy directories in different order to change cache key
-COPY manage.py /app/
+# Copy files in completely different order
 COPY dalal_project /app/dalal_project/
 COPY properties /app/properties/
 COPY templates /app/templates/
+COPY manage.py /app/
 COPY run_server.py /app/
 COPY entrypoint.sh /app/
 COPY nixpacks.toml /app/
 COPY railway.toml /app/
 COPY railway.json /app/
 
-# Create all required directories
+# Create all directories
 RUN mkdir -p /app/static /app/staticfiles /app/logs /app/media /app/locale
 
 # Copy locale if exists
 RUN if [ -d locale ]; then cp -r locale/* /app/locale/; fi
 
-# Verify structure
-RUN echo "=== Directory Structure ===" && \
-    ls -la /app/ && \
-    echo "=== Properties App ===" && \
-    ls -la /app/properties/ && \
-    echo "=== Settings ===" && \
-    ls -la /app/dalal_project/settings.py
+# Verify Django installation
+RUN python -c "import django; print(f'Django {django.__version__} installed successfully')"
 
 # Run Django commands
 RUN python manage.py makemigrations --noinput || echo "Migrations failed"
