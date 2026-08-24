@@ -1,2 +1,2 @@
-# Force Railway rebuild - 2026-08-24-15-05 - Change builder to NIXPACKS
-# Complete cache bypass by changing build system
+# Force Railway rebuild - 2026-08-24-15-25 - Complete Dockerfile restructure
+# Different directory order to bypass cache

@@ -1,6 +1,6 @@
-# Force Railway rebuild - 2026-08-24-15-05 - Change builder to force cache clear
+# Force Railway rebuild - 2026-08-24-15-25 - Back to DOCKERFILE with different cache key
 [build]
-builder = "NIXPACKS"
+builder = "DOCKERFILE"
 
 [deploy]
 startCommand = "python run_server.py"
@@ -18,4 +18,4 @@ DJANGO_SETTINGS_MODULE = "dalal_project.settings"
 ALLOW_SQLITE_FALLBACK = "False"
 GUNICORN_WORKERS = "2"
 GUNICORN_TIMEOUT = "120"
-FORCE_SETTINGS_RELOAD = "2026-08-24-15-05"
+FORCE_SETTINGS_RELOAD = "2026-08-24-15-25"
