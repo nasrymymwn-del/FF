@@ -1,2 +1,2 @@
-# Force Railway rebuild - 2026-08-24-15-00 - Multi-stage build approach
-# Complete cache bypass
+# Force Railway rebuild - 2026-08-24-15-05 - Change builder to NIXPACKS
+# Complete cache bypass by changing build system

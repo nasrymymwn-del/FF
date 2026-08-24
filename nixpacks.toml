@@ -1,3 +1,4 @@
+# Force Railway rebuild - 2026-08-24-15-05 - Fix static files handling
 [phases.setup]
 nixPkgs = ["python312", "gcc", "pkg-config", "postgresql"]
 
@@ -6,22 +7,22 @@ cmds = [
     "pip install --upgrade pip",
     "pip install -r requirements.txt",
     "echo '=== Checking and preparing static files ==='",
-    "echo 'Checking if static directory exists:'",
-    "ls -la static/ || echo 'static directory not found'",
+    "echo 'Creating static directory if not exists:'",
+    "mkdir -p static staticfiles logs media",
     "echo '=== Running Django commands ==='",
     "python manage.py makemigrations --noinput",
     "python manage.py migrate --noinput",
     "python manage.py collectstatic --noinput --clear",
     "echo '=== Checking staticfiles after collectstatic ==='",
-    "ls -la staticfiles/"
+    "ls -la staticfiles/",
 ]
 
 [phases.start]
 cmd = "python run_server.py"
 
 [static]
-# Copy static files to be served by Railway
-include = ["static/**"]
+# Handle static files properly - use templates directory as fallback
+include = ["templates/**", "static/**", "staticfiles/**"]
 
 [variables]
 DEBUG = "False"
