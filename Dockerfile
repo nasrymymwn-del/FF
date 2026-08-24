@@ -1,3 +1,4 @@
+# Force Railway rebuild - 2026-08-24-14-40 - Remove static copy line
 # Force Railway rebuild - 2026-08-24-13-30 - Fix static directory issue
 # Force Railway rebuild - 2026-07-12-18-27 - Fix locale copy issue
 # Force rebuild - 2026-07-13-07-19 - Fix templates cache issue
@@ -33,14 +34,8 @@ COPY nixpacks.toml /app/
 COPY railway.toml /app/
 COPY railway.json /app/
 
-# Copy static directory with fallback
+# Create static directory during build
 RUN mkdir -p /app/static
-COPY static /app/static/ || echo "Static directory not found, will create during runtime"
-
-# Verify static files were copied
-RUN echo "Static files copied: $(ls -la /app/static/ 2>/dev/null || echo 'Directory not found')"
-RUN echo "CSS files: $(ls -la /app/static/css/ 2>/dev/null || echo 'CSS directory not found')"
-RUN echo "JS files: $(ls -la /app/static/js/ 2>/dev/null || echo 'JS directory not found')"
 
 # Copy locale directory if it exists
 RUN if [ -d locale ]; then cp -r locale /app/locale/; else mkdir -p /app/locale; fi

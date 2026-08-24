@@ -1,2 +1,2 @@
-# Force Railway rebuild - 2026-08-24-14-35 - Complete cache clear
-# Fix static directory cache issue
+# Force Railway rebuild - 2026-08-24-14-50 - Remove static copy line
+# Fix build cache issue
