@@ -457,6 +457,10 @@ CSRF_USE_SESSIONS = False
 CSRF_COOKIE_AGE = 3600 * 24 * 7  # 7 days
 SESSION_COOKIE_AGE = 3600 * 24 * 7
 
+# Use cache-based sessions to avoid django_session table issues
+SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
+SESSION_CACHE_ALIAS = 'sessions'
+
 # --- File Upload Security ---
 DATA_UPLOAD_MAX_MEMORY_SIZE = 15 * 1024 * 1024   # 15MB (for property images/videos)
 FILE_UPLOAD_MAX_MEMORY_SIZE = 15 * 1024 * 1024   # 15MB
