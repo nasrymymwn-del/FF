@@ -1,6 +1,6 @@
-# RAILWAY_CACHE_BUST_2026_08_24_15_35 - Force completely new build
-# Railway cache bust - use different Python version
-FROM python:3.11-slim-bookworm
+# FINAL RAILWAY FIX - 2026-08-24-15-40 - Force rebuild with new approach
+# Use different base image and completely different structure
+FROM python:3.10-slim-bullseye
 
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
@@ -8,7 +8,7 @@ ENV PYTHONUNBUFFERED=1 \
     DJANGO_SETTINGS_MODULE=dalal_project.settings \
     USE_WEBSOCKETS=false \
     PYTHONPATH=/app \
-    RAILWAY_CACHE_BUST=2026_08_24_15_35
+    FORCE_REBUILD=2026_08_24_15_40
 
 WORKDIR /app
 
@@ -17,33 +17,30 @@ RUN apt-get update && apt-get install -y \
     libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
+# Install dependencies first
 COPY requirements.txt .
 RUN pip install --upgrade pip && \
+    pip install django && \
     pip install -r requirements.txt
 
-# Copy all application files
+# Copy application files
 COPY dalal_project /app/dalal_project/
 COPY properties /app/properties/
 COPY templates /app/templates/
 COPY manage.py /app/
 COPY run_server.py /app/
 COPY entrypoint.sh /app/
-COPY nixpacks.toml /app/
-COPY railway.toml /app/
 
-# Create required directories
+# Create directories
 RUN mkdir -p /app/static /app/staticfiles /app/logs /app/media /app/locale
 
-# Copy locale if exists
-RUN if [ -d locale ]; then cp -r locale/* /app/locale/; fi
-
-# Verify Django installation
-RUN python -c "import django; print(f'Django {django.__version__} installed successfully')"
+# Verify Django
+RUN python -c "import django; print(f'Django {django.__version__} OK')"
 
 # Run Django commands
-RUN python manage.py makemigrations --noinput || echo "Migrations failed"
-RUN python manage.py migrate --noinput || echo "Migrations failed"
-RUN python manage.py collectstatic --noinput --clear || echo "Collectstatic failed"
+RUN python manage.py makemigrations --noinput || true
+RUN python manage.py migrate --noinput || true
+RUN python manage.py collectstatic --noinput --clear || true
 
 EXPOSE 8080
 
