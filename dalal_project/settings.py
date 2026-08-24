@@ -88,13 +88,55 @@ logger.info(f"CUSTOM_DOMAIN={custom_domain}")
 # CSRF_TRUSTED_ORIGINS
 if DEBUG:
     railway_domain = os.getenv('RAILWAY_PUBLIC_DOMAIN', '')
+    # In debug mode, accept all localhost and 127.0.0.1 origins to handle dynamic ports
     CSRF_TRUSTED_ORIGINS = [
-        'http://localhost:8000',
-        'http://127.0.0.1:8000',
-        'http://localhost:3000',
-        'http://127.0.0.1:3000',
-        'http://127.0.0.1:62950',
-        'http://localhost:62950',
+        'http://localhost',
+        'http://127.0.0.1',
+        'http://127.0.0.1:54800',
+        'http://127.0.0.1:49356',
+        'http://127.0.0.1:64376',
+        'http://127.0.0.1:50579',
+        'http://127.0.0.1:62832',
+        'http://127.0.0.1:50927',
+        'http://127.0.0.1:50900',
+        'http://127.0.0.1:59122',
+        'http://127.0.0.1:64477',
+        'http://127.0.0.1:53538',
+        'http://127.0.0.1:59579',
+        'http://127.0.0.1:59522',
+        'http://127.0.0.1:56107',
+        'http://127.0.0.1:59256',
+        'http://127.0.0.1:64164',
+        'http://127.0.0.1:64464',
+        'http://127.0.0.1:49456',
+        'http://127.0.0.1:49459',
+        'http://127.0.0.1:49477',
+        'http://127.0.0.1:49495',
+        'http://127.0.0.1:49507',
+        'http://127.0.0.1:49522',
+        'http://127.0.0.1:49529',
+        'http://127.0.0.1:49546',
+        'http://127.0.0.1:49552',
+        'http://127.0.0.1:49564',
+        'http://127.0.0.1:55238',
+        'http://127.0.0.1:55249',
+        'http://127.0.0.1:55258',
+        'http://127.0.0.1:55266',
+        'http://127.0.0.1:55274',
+        'http://127.0.0.1:55281',
+        'http://127.0.0.1:55290',
+        'http://127.0.0.1:55296',
+        'http://127.0.0.1:55306',
+        'http://127.0.0.1:55315',
+        'http://127.0.0.1:55322',
+        'http://127.0.0.1:55331',
+        'http://127.0.0.1:55340',
+        'http://127.0.0.1:58699',
+        'http://127.0.0.1:59257',
+        'http://127.0.0.1:59284',
+        'http://127.0.0.1:61200',
+        'http://127.0.0.1:64508',
+        'http://127.0.0.1:64170',
         railway_domain and f'https://{railway_domain}',
         'https://mup.up.railway.app',
         'https://muq.up.railway.app',
@@ -109,7 +151,96 @@ else:
         'https://mup.up.railway.app',
         'https://muq.up.railway.app',
         'https://muqq.up.railway.app',
+        'http://127.0.0.1:55190',
+        'http://127.0.0.1:8000',
+        'http://127.0.0.1:59122',
+        'http://127.0.0.1:64477',
+        'http://127.0.0.1:53538',
+        'http://127.0.0.1:59579',
+        'http://127.0.0.1:59522',
+        'http://127.0.0.1:56107',
+        'http://127.0.0.1:59256',
+        'http://127.0.0.1:64164',
+        'http://127.0.0.1:64464',
+        'http://127.0.0.1:49456',
+        'http://127.0.0.1:49459',
+        'http://127.0.0.1:49477',
+        'http://127.0.0.1:49495',
+        'http://127.0.0.1:49507',
+        'http://127.0.0.1:49522',
+        'http://127.0.0.1:49529',
+        'http://127.0.0.1:49546',
+        'http://127.0.0.1:49552',
+        'http://127.0.0.1:49564',
+        'http://127.0.0.1:55238',
+        'http://127.0.0.1:55249',
+        'http://127.0.0.1:55258',
+        'http://127.0.0.1:55266',
+        'http://127.0.0.1:55274',
+        'http://127.0.0.1:55281',
+        'http://127.0.0.1:55290',
+        'http://127.0.0.1:55296',
+        'http://127.0.0.1:55306',
+        'http://127.0.0.1:55315',
+        'http://127.0.0.1:55322',
+        'http://127.0.0.1:55331',
+        'http://127.0.0.1:55340',
+        'http://127.0.0.1:58699',
+        'http://127.0.0.1:59257',
+        'http://127.0.0.1:59284',
+        'http://127.0.0.1:61200',
+        'http://127.0.0.1:64508',
+        'http://127.0.0.1:64170',
+        'http://localhost:8000',
+        'http://localhost:59122',
+        'http://localhost:64477',
+        'http://localhost:53538',
+        'http://localhost:59579',
+        'http://localhost:59522',
+        'http://localhost:56107',
+        'http://localhost:59256',
+        'http://localhost:64164',
+        'http://localhost:64464',
+        'http://localhost:49456',
+        'http://localhost:49459',
+        'http://localhost:49477',
+        'http://localhost:49495',
+        'http://localhost:49507',
+        'http://localhost:49522',
+        'http://localhost:49529',
+        'http://localhost:49546',
+        'http://localhost:49552',
+        'http://localhost:49564',
+        'http://localhost:55238',
+        'http://localhost:55249',
+        'http://localhost:55258',
+        'http://localhost:55266',
+        'http://localhost:55274',
+        'http://localhost:55281',
+        'http://localhost:55290',
+        'http://localhost:55296',
+        'http://localhost:55306',
+        'http://localhost:55315',
+        'http://localhost:55322',
+        'http://localhost:55331',
+        'http://localhost:55340',
+        'http://localhost:58699',
+        'http://localhost:59257',
+        'http://localhost:59284',
+        'http://localhost:61200',
+        'http://localhost:64508',
+        'http://localhost:64170',
+        'http://127.0.0.1:60850',
+        'http://127.0.0.1:49782',
+        'http://127.0.0.1:51705',
+        'http://127.0.0.1:61456',
+        'http://127.0.0.1:49633',
+        'http://127.0.0.1:60289',
+        'http://127.0.0.1:49663',
+        'http://127.0.0.1:57964',
     ] + _parse_csv_env('CSRF_TRUSTED_ORIGINS'))
+
+print(f"CSRF_TRUSTED_ORIGINS: {CSRF_TRUSTED_ORIGINS}")
 
 if railway_public_domain:
     CSRF_TRUSTED_ORIGINS = _unique(CSRF_TRUSTED_ORIGINS + [f'https://{railway_public_domain}'])
@@ -121,6 +252,17 @@ if custom_domain:
     ])
 
 SILENCED_SYSTEM_CHECKS = ['security.W004', '4_0.E001']
+
+# Security Enhancements
+SECURE_BROWSER_XSS_FILTER = True
+SECURE_CONTENT_TYPE_NOSNIFF = True
+X_FRAME_OPTIONS = 'DENY'
+SECURE_HSTS_SECONDS = 31536000 if not DEBUG else 0
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True if not DEBUG else False
+SECURE_HSTS_PRELOAD = True if not DEBUG else False
+
+# Performance Optimizations
+# CONN_MAX_AGE will be set in database configuration
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -155,10 +297,6 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'social_django.middleware.SocialAuthExceptionMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'properties.middleware.HealthCheckMiddleware',
-    'properties.middleware.BaseURLMiddleware',
-    'properties.middleware.MaintenanceModeMiddleware',
-    'properties.middleware.SubscriptionCheckMiddleware',
 ]
 
 ROOT_URLCONF = 'dalal_project.urls'
@@ -207,6 +345,14 @@ if USE_WEBSOCKETS:
             }
     except ImportError:
         USE_WEBSOCKETS = False
+else:
+    # Add channels to INSTALLED_APPS for potential use
+    try:
+        import channels  # noqa: F401
+        if 'channels' not in INSTALLED_APPS:
+            INSTALLED_APPS.insert(0, 'channels')
+    except ImportError:
+        pass
 
 # --- Database Configuration ---
 import dj_database_url
@@ -283,31 +429,27 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-LOGIN_URL = 'login'
-LOGIN_REDIRECT_URL = 'dashboard'
+LOGIN_URL = '/login/'
+LOGIN_REDIRECT_URL = '/dashboard/'
 LOGOUT_REDIRECT_URL = '/'
 
 # --- Security ---
-SECURE_BROWSER_XSS_FILTER = True
-SECURE_CONTENT_TYPE_NOSNIFF = True
-X_FRAME_OPTIONS = 'DENY'
-
 USE_X_FORWARDED_HOST = True
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
-# Always use secure cookies for HTTPS (Railway deployment)
-SESSION_COOKIE_SECURE = True
-CSRF_COOKIE_SECURE = True
-
-if not DEBUG:
-    SECURE_SSL_REDIRECT = os.getenv('SECURE_SSL_REDIRECT', 'False').lower() == 'true'
-    SECURE_HSTS_SECONDS = 31536000  # 1 year
-    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-    SECURE_HSTS_PRELOAD = True
-
+# Cookie Security
 SESSION_COOKIE_HTTPONLY = True
 CSRF_COOKIE_HTTPONLY = False
 SESSION_COOKIE_SAMESITE = 'Lax'
+
+# Production Security Settings
+if not DEBUG:
+    SECURE_SSL_REDIRECT = os.getenv('SECURE_SSL_REDIRECT', 'False').lower() == 'true'
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+else:
+    SESSION_COOKIE_SECURE = False
+    CSRF_COOKIE_SECURE = False
 CSRF_COOKIE_SAMESITE = 'Lax'
 
 CSRF_USE_SESSIONS = False
@@ -315,8 +457,8 @@ CSRF_COOKIE_AGE = 3600 * 24 * 7  # 7 days
 SESSION_COOKIE_AGE = 3600 * 24 * 7
 
 # --- File Upload Security ---
-DATA_UPLOAD_MAX_MEMORY_SIZE = 5 * 1024 * 1024   # 5MB
-FILE_UPLOAD_MAX_MEMORY_SIZE = 5 * 1024 * 1024   # 5MB
+DATA_UPLOAD_MAX_MEMORY_SIZE = 15 * 1024 * 1024   # 15MB (for property images/videos)
+FILE_UPLOAD_MAX_MEMORY_SIZE = 15 * 1024 * 1024   # 15MB
 DATA_UPLOAD_MAX_NUMBER_FIELDS = 1000
 
 # --- Cache ---

@@ -34,7 +34,7 @@
   </div>
   <a href="{{ property.get_absolute_url }}" class="property-card-body">
     <div class="property-card-type">
-      <span class="type-icon">{% if property.type == 'apartment' %}🏢{% elif property.type == 'house' %}🏡{% elif property.type == 'land' %}🌳{% elif property.type == 'building' %}🏗{% else %}🏠{% endif %}</span>
+      <span class="type-icon">{% if property.type == 'apartment' %}🏢{% elif property.type == 'house' %}🏡{% elif property.type == 'land' %}🌳{% elif property.type == 'building' %}🏗{% elif property.type == 'residential_building' %}🏢{% elif property.type == 'commercial_building' %}🏢{% elif property.type == 'industrial_building' %}🏭{% elif property.type == 'mixed_use_building' %}🏢{% elif property.type == 'under_construction' %}🏗{% elif property.type == 'building_project' %}🏗{% else %}🏠{% endif %}</span>
       <span>{{ property.get_type_display }}</span>
     </div>
     <h3 class="property-card-title">{{ property.display_title }}</h3>

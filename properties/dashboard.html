@@ -19,7 +19,6 @@
 
 {% block dashboard_actions %}
 <a href="{% url 'dynamic_add_property' %}" class="btn btn-primary btn-sm">➕ إضافة عقار</a>
-<a href="{% url 'building_request_create' %}" class="btn btn-primary btn-sm">🏗️ طلب بناء</a>
 <a href="{% url 'subscription_renewal_request' %}" class="btn btn-warning btn-sm">🔄 تجديد اشتراك</a>
 <a href="{% url 'broker_messages' %}" class="btn btn-outline btn-sm">💬 الرسائل</a>
 <a href="{% url 'properties_map' %}" class="btn btn-outline btn-sm">🗺️ الخريطة</a>
@@ -468,6 +467,301 @@
       gap: 8px;
     }
   }
+
+  /* Broker Management Styles */
+  .broker-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .broker-stat-card {
+    background: var(--bg-secondary, #1a1a1a);
+    border: 1px solid var(--border-color, #333);
+    border-radius: 12px;
+    padding: 1.5rem;
+    text-align: center;
+    transition: all 0.3s ease;
+  }
+
+  .broker-stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  }
+
+  .broker-stat-icon {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .broker-stat-value {
+    font-size: 2rem;
+    font-weight: bold;
+    color: var(--primary-color, #0d9488);
+  }
+
+  .broker-stat-label {
+    color: var(--text-muted, #888);
+    font-size: 0.9rem;
+  }
+
+  .broker-filter-bar {
+    display: flex;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .broker-search-input {
+    flex: 1;
+    min-width: 200px;
+    padding: 0.75rem 1rem;
+    background: var(--bg-secondary, #1a1a1a);
+    border: 1px solid var(--border-color, #333);
+    border-radius: 8px;
+    color: var(--text-primary, #fff);
+  }
+
+  .broker-filter-select {
+    padding: 0.75rem 1rem;
+    background: var(--bg-secondary, #1a1a1a);
+    border: 1px solid var(--border-color, #333);
+    border-radius: 8px;
+    color: var(--text-primary, #fff);
+    min-width: 150px;
+  }
+
+  .broker-filter-btn {
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 600;
+  }
+
+  .broker-actions-bar {
+    display: flex;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .broker-table-wrap {
+    overflow-x: auto;
+    border-radius: 12px;
+    border: 1px solid var(--border-color, #333);
+  }
+
+  .broker-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .broker-table th {
+    background: var(--bg-secondary, #1a1a1a);
+    padding: 1rem;
+    text-align: right;
+    font-weight: 600;
+    color: var(--text-primary, #fff);
+    border-bottom: 1px solid var(--border-color, #333);
+  }
+
+  .broker-table td {
+    padding: 1rem;
+    border-bottom: 1px solid var(--border-color, #333);
+    color: var(--text-primary, #fff);
+  }
+
+  .broker-row:hover {
+    background: var(--bg-hover, #2a2a2a);
+  }
+
+  .broker-name-cell {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .broker-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: var(--bg-tertiary, #333);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  .broker-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .broker-info {
+    flex: 1;
+  }
+
+  .broker-name {
+    font-weight: 600;
+    color: var(--text-primary, #fff);
+  }
+
+  .broker-email {
+    font-size: 0.85rem;
+    color: var(--text-muted, #888);
+  }
+
+  .role-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+
+  .role-main {
+    background: var(--primary-color, #0d9488);
+    color: #fff;
+  }
+
+  .role-sub {
+    background: var(--warning-color, #f97316);
+    color: #fff;
+  }
+
+  .role-admin {
+    background: var(--danger-color, #ef4444);
+    color: #fff;
+  }
+
+  .property-count {
+    font-weight: bold;
+    color: var(--primary-color, #0d9488);
+  }
+
+  .rating-display {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .rating-stars {
+    color: var(--warning-color, #f97316);
+  }
+
+  .rating-value {
+    color: var(--text-muted, #888);
+    font-size: 0.85rem;
+  }
+
+  .subscription-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    background: var(--success-color, #10b981);
+    color: #fff;
+  }
+
+  .last-activity {
+    font-size: 0.85rem;
+    color: var(--text-muted, #888);
+  }
+
+  .action-buttons {
+    display: flex;
+    gap: 0.25rem;
+  }
+
+  .bulk-actions-bar {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: var(--bg-secondary, #1a1a1a);
+    border: 1px solid var(--border-color, #333);
+    border-radius: 12px;
+    margin-top: 1rem;
+  }
+
+  .selected-count {
+    color: var(--text-primary, #fff);
+    font-weight: 600;
+  }
+
+  .selected-count span {
+    color: var(--primary-color, #0d9488);
+    font-size: 1.2rem;
+  }
+
+  .broker-charts-section {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin-top: 2rem;
+  }
+
+  .broker-chart-card {
+    background: var(--bg-secondary, #1a1a1a);
+    border: 1px solid var(--border-color, #333);
+    border-radius: 12px;
+    padding: 1.5rem;
+  }
+
+  .broker-chart-card h3 {
+    color: var(--text-primary, #fff);
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 2rem;
+  }
+
+  .empty-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+  }
+
+  .empty-text {
+    color: var(--text-muted, #888);
+    margin-bottom: 1rem;
+  }
+
+  /* Badges */
+  .badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+
+  .badge-success {
+    background: var(--success-color, #10b981);
+    color: #fff;
+  }
+
+  .badge-warning {
+    background: var(--warning-color, #f97316);
+    color: #fff;
+  }
+
+  .badge-danger {
+    background: var(--danger-color, #ef4444);
+    color: #fff;
+  }
+
+  .badge-info {
+    background: var(--info-color, #3b82f6);
+    color: #fff;
+  }
+
+  .badge-secondary {
+    background: var(--text-muted, #888);
+    color: #fff;
+  }
 </style>
 {% endblock %}
 
@@ -632,10 +926,6 @@
     <a href="{% url 'my_channel' %}" class="tab-btn" style="text-decoration: none; display: inline-flex; align-items: center; gap: 8px; padding: 12px 20px; background: transparent; border: none; color: var(--text-light); cursor: pointer; border-radius: var(--radius); transition: all 0.3s ease;">
       <span class="tab-icon">📺</span>
       <span>قناتي</span>
-    </a>
-    <a href="{% url 'broker_building_requests' %}" class="tab-btn" style="text-decoration: none; display: inline-flex; align-items: center; gap: 8px; padding: 12px 20px; background: transparent; border: none; color: var(--text-light); cursor: pointer; border-radius: var(--radius); transition: all 0.3s ease;">
-      <span class="tab-icon">🏗️</span>
-      <span>طلبات البناء</span>
     </a>
     <a href="{% url 'broker_auctions' %}" class="tab-btn" style="text-decoration: none; display: inline-flex; align-items: center; gap: 8px; padding: 12px 20px; background: transparent; border: none; color: var(--text-light); cursor: pointer; border-radius: var(--radius); transition: all 0.3s ease;">
       <span class="tab-icon">🔨</span>
@@ -896,41 +1186,6 @@
     </div>
   </div>
 
-  <div id="panel-building-requests" class="panel">
-    <div class="panel-header">
-      <div class="panel-badge">
-        <span class="badge-icon">🏗️</span>
-        <span>طلبات البناء</span>
-      </div>
-      <h2>إدارة طلبات البناء</h2>
-    </div>
-    <div class="table-wrap">
-      <table class="data-table">
-        <thead>
-          <tr><th>الاسم</th><th>المنطقة</th><th>نوع الطلب</th><th>الحالة</th><th>تاريخ الإنشاء</th><th>إجراءات</th></tr>
-        </thead>
-        <tbody>
-          {% for request in building_requests_list %}
-          <tr>
-            <td>{{ request.owner_name }}</td>
-            <td>{{ request.owner_district }}</td>
-            <td>{{ request.get_request_type_display }}</td>
-            <td>
-              {% if request.status == 'pending' %}قيد المراجعة{% elif request.status == 'active' %}نشط{% elif request.status == 'in_progress' %}قيد التنفيذ{% elif request.status == 'completed' %}مكتمل{% else %}ملغي{% endif %}
-            </td>
-            <td>{{ request.created_at|date:"Y-m-d H:i" }}</td>
-            <td>
-              <a href="{% url 'building_request_detail' request.id %}" target="_blank" class="btn btn-sm btn-outline">عرض</a>
-            </td>
-          </tr>
-          {% empty %}
-          <tr><td colspan="6" style="text-align:center">لا توجد طلبات بناء</td></tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-  </div>
-
   <div id="panel-financial" class="panel">
     <div class="panel-header">
       <div class="panel-badge">
@@ -1043,35 +1298,194 @@
   <div id="panel-brokers" class="panel">
     <div class="panel-header">
       <div class="panel-badge"><span class="badge-icon">👥</span><span>الدلالين</span></div>
-      <h2>إدارة الدلالين</h2>
+      <h2>إدارة الدلالين المتقدمة</h2>
     </div>
-    <div style="margin-bottom:1rem">
+    
+    <!-- إحصائيات الدلالين -->
+    <div class="broker-stats-grid">
+      <div class="broker-stat-card">
+        <div class="broker-stat-icon">👥</div>
+        <div class="broker-stat-value">{{ managed_brokers|length }}</div>
+        <div class="broker-stat-label">إجمالي الدلالين</div>
+      </div>
+      <div class="broker-stat-card">
+        <div class="broker-stat-icon">✅</div>
+        <div class="broker-stat-value">{% if brokers_stats.active %}{{ brokers_stats.active }}{% else %}0{% endif %}</div>
+        <div class="broker-stat-label">دلالين نشطين</div>
+      </div>
+      <div class="broker-stat-card">
+        <div class="broker-stat-icon">✓</div>
+        <div class="broker-stat-value">{% if brokers_stats.verified %}{{ brokers_stats.verified }}{% else %}0{% endif %}</div>
+        <div class="broker-stat-label">دلالين موثقين</div>
+      </div>
+      <div class="broker-stat-card">
+        <div class="broker-stat-icon">🏠</div>
+        <div class="broker-stat-value">{{ total_properties_count|default:0 }}</div>
+        <div class="broker-stat-label">إجمالي العقارات</div>
+      </div>
+    </div>
+    
+    <!-- شريط البحث والتصفية -->
+    <div class="broker-filter-bar">
+      <input type="text" id="brokerSearch" placeholder="🔍 بحث عن دلال..." class="broker-search-input">
+      <select id="brokerRoleFilter" class="broker-filter-select">
+        <option value="all">كل الأدوار</option>
+        <option value="main">دلال رئيسي</option>
+        <option value="sub">دلال فرعي</option>
+        <option value="admin">مدير النظام</option>
+      </select>
+      <select id="brokerStatusFilter" class="broker-filter-select">
+        <option value="all">كل الحالات</option>
+        <option value="active">نشط</option>
+        <option value="inactive">غير نشط</option>
+      </select>
+      <select id="brokerVerifiedFilter" class="broker-filter-select">
+        <option value="all">الكل</option>
+        <option value="verified">موثق</option>
+        <option value="unverified">غير موثق</option>
+      </select>
+      <button class="btn btn-primary broker-filter-btn" onclick="filterBrokers()">تطبيق</button>
+      <button class="btn btn-outline broker-filter-btn" onclick="resetBrokerFilters()">إعادة تعيين</button>
+    </div>
+    
+    <!-- أزرار الإجراءات -->
+    <div class="broker-actions-bar">
       <a href="{% url 'broker_create' %}" class="btn btn-primary">➕ إنشاء دلال جديد</a>
       <a href="{% url 'broker_list' %}" class="btn btn-outline">عرض الكل</a>
       <a href="{% url 'join_requests_list' %}" class="btn btn-outline">طلبات الانضمام {% if stats.pending_join_requests %}({{ stats.pending_join_requests }}){% endif %}</a>
       <a href="{% url 'office_panel' %}" class="btn btn-outline">المكتب العقاري</a>
+      <button class="btn btn-info" onclick="exportBrokers()">📥 تصدير الدلالين</button>
     </div>
-    <div class="table-wrap">
-      <table class="data-table">
+    
+    <!-- جدول الدلالين المحسن -->
+    <div class="table-wrap broker-table-wrap">
+      <table class="data-table broker-table">
         <thead>
-          <tr><th>الاسم</th><th>الدور</th><th>الهاتف</th><th>العقارات</th><th>موثق</th><th>الحالة</th><th></th></tr>
-        </thead>
-        <tbody>
-          {% for b in managed_brokers %}
           <tr>
-            <td>{{ b.display_name }}</td>
-            <td>{{ b.get_role_display }}</td>
+            <th>
+              <input type="checkbox" id="selectAllBrokers" onchange="toggleAllBrokers()">
+            </th>
+            <th>الاسم</th>
+            <th>الدور</th>
+            <th>الهاتف</th>
+            <th>المحافظة</th>
+            <th>العقارات</th>
+            <th>التقييم</th>
+            <th>موثق</th>
+            <th>الحالة</th>
+            <th>الاشتراك</th>
+            <th>آخر نشاط</th>
+            <th>إجراءات</th>
+          </tr>
+        </thead>
+        <tbody id="brokersTableBody">
+          {% for b in managed_brokers %}
+          <tr class="broker-row" data-broker-id="{{ b.id }}" data-name="{{ b.display_name }}" data-role="{{ b.role }}" data-status="{% if b.is_active %}active{% else %}inactive{% endif %}" data-verified="{% if b.is_verified %}verified{% else %}unverified{% endif %}">
+            <td>
+              <input type="checkbox" class="broker-checkbox" value="{{ b.id }}">
+            </td>
+            <td>
+              <div class="broker-name-cell">
+                <div class="broker-avatar">
+                  {% if b.profile_image %}
+                    <img src="{{ b.profile_image.url }}" alt="{{ b.display_name }}">
+                  {% else %}
+                    <span>👤</span>
+                  {% endif %}
+                </div>
+                <div class="broker-info">
+                  <div class="broker-name">{{ b.display_name }}</div>
+                  <div class="broker-email">{{ b.user.email|default:"--" }}</div>
+                </div>
+              </div>
+            </td>
+            <td>
+              <span class="role-badge role-{{ b.role }}">{{ b.get_role_display }}</span>
+            </td>
             <td>{{ b.phone }}</td>
-            <td>{{ b.property_count }}</td>
-            <td>{% if b.is_verified %}✅{% else %}—{% endif %}</td>
-            <td>{% if b.is_active %}نشط{% else %}موقوف{% endif %}</td>
-            <td><a href="{% url 'broker_edit' b.id %}" class="btn btn-sm btn-outline">تعديل</a></td>
+            <td>{{ b.governorate|default:"--" }}</td>
+            <td>
+              <span class="property-count">{{ b.property_count|default:0 }}</span>
+            </td>
+            <td>
+              <div class="rating-display">
+                <span class="rating-value">({{ b.performance_rating|default:0 }}/5)</span>
+              </div>
+            </td>
+            <td>
+              {% if b.is_verified %}
+                <span class="badge badge-success">✅ موثق</span>
+              {% else %}
+                <span class="badge badge-secondary">غير موثق</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if b.is_active %}
+                <span class="badge badge-success">نشط</span>
+              {% else %}
+                <span class="badge badge-danger">موقوف</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if b.subscription_plan %}
+                <span class="subscription-badge">{{ b.subscription_plan.name }}</span>
+              {% else %}
+                <span class="badge badge-secondary">بدون اشتراك</span>
+              {% endif %}
+            </td>
+            <td>
+              <span class="last-activity">{{ b.user.last_login|timesince|default:"--" }}</span>
+            </td>
+            <td>
+              <div class="action-buttons">
+                <a href="{% url 'broker_edit' b.id %}" class="btn btn-sm btn-primary" title="تعديل">✏️</a>
+                {% if b.user.username %}
+                <a href="{% url 'broker_profile' b.user.username %}" class="btn btn-sm btn-info" title="الملف الشخصي">👤</a>
+                {% endif %}
+                <button class="btn btn-sm btn-warning" onclick="toggleBrokerStatus({{ b.id }})" title="تغيير الحالة">🔄</button>
+                <button class="btn btn-sm btn-success" onclick="verifyBroker({{ b.id }})" title="توثيق">✓</button>
+                <button class="btn btn-sm btn-danger" onclick="deleteBroker({{ b.id }})" title="حذف">🗑️</button>
+              </div>
+            </td>
           </tr>
           {% empty %}
-          <tr><td colspan="7" style="text-align:center">لا يوجد دلالين</td></tr>
+          <tr>
+            <td colspan="13" style="text-align:center; padding: 2rem;">
+              <div class="empty-state">
+                <div class="empty-icon">👥</div>
+                <div class="empty-text">لا يوجد دلالين</div>
+                <a href="{% url 'broker_create' %}" class="btn btn-primary">إنشاء دلال جديد</a>
+              </div>
+            </td>
+          </tr>
           {% endfor %}
         </tbody>
       </table>
+    </div>
+    
+    <!-- إجراءات جماعية -->
+    <div class="bulk-actions-bar" id="bulkActionsBar" style="display: none;">
+      <span class="selected-count">تم تحديد <span id="selectedCount">0</span> دلال</span>
+      <button class="btn btn-success" onclick="bulkVerify()">✅ توثيق الكل</button>
+      <button class="btn btn-warning" onclick="bulkActivate()">🔄 تفعيل الكل</button>
+      <button class="btn btn-danger" onclick="bulkDeactivate()">⏸️ تعطيل الكل</button>
+      <button class="btn btn-primary" onclick="bulkExport()">📥 تصدير المحدد</button>
+    </div>
+    
+    <!-- رسوم بيانية للدلالين -->
+    <div class="broker-charts-section">
+      <div class="broker-chart-card">
+        <h3>📊 توزيع الدلالين حسب الدور</h3>
+        <canvas id="brokerRoleChart"></canvas>
+      </div>
+      <div class="broker-chart-card">
+        <h3>📈 نمو الدلالين</h3>
+        <canvas id="brokerGrowthChart"></canvas>
+      </div>
+      <div class="broker-chart-card">
+        <h3>🏠 أداء الدلالين</h3>
+        <canvas id="brokerPerformanceChart"></canvas>
+      </div>
     </div>
   </div>
   {% endif %}
@@ -3585,10 +3999,70 @@ document.addEventListener('DOMContentLoaded', function() {
     setInterval(updateSubscriptionTimer, 1000);
   }
 
-  // Subscription Request Management
-  function approveRequest(requestId) {
-    if (confirm('هل تريد الموافقة على هذا الطلب؟')) {
-      fetch(`/api/subscription-request/${requestId}/approve/`, {
+  // Broker Management Functions
+  function filterBrokers() {
+    const search = document.getElementById('brokerSearch').value.toLowerCase();
+    const role = document.getElementById('brokerRoleFilter').value;
+    const status = document.getElementById('brokerStatusFilter').value;
+    const verified = document.getElementById('brokerVerifiedFilter').value;
+    
+    const rows = document.querySelectorAll('.broker-row');
+    rows.forEach(row => {
+      const name = row.dataset.name.toLowerCase();
+      const rowRole = row.dataset.role;
+      const rowStatus = row.dataset.status;
+      const rowVerified = row.dataset.verified;
+      
+      let show = true;
+      
+      if (search && !name.includes(search)) show = false;
+      if (role !== 'all' && rowRole !== role) show = false;
+      if (status !== 'all' && rowStatus !== status) show = false;
+      if (verified !== 'all' && rowVerified !== verified) show = false;
+      
+      row.style.display = show ? '' : 'none';
+    });
+  }
+  
+  function resetBrokerFilters() {
+    document.getElementById('brokerSearch').value = '';
+    document.getElementById('brokerRoleFilter').value = 'all';
+    document.getElementById('brokerStatusFilter').value = 'all';
+    document.getElementById('brokerVerifiedFilter').value = 'all';
+    
+    const rows = document.querySelectorAll('.broker-row');
+    rows.forEach(row => {
+      row.style.display = '';
+    });
+  }
+  
+  function toggleAllBrokers() {
+    const selectAll = document.getElementById('selectAllBrokers');
+    const checkboxes = document.querySelectorAll('.broker-checkbox');
+    
+    checkboxes.forEach(checkbox => {
+      checkbox.checked = selectAll.checked;
+    });
+    
+    updateBulkActions();
+  }
+  
+  function updateBulkActions() {
+    const checkboxes = document.querySelectorAll('.broker-checkbox:checked');
+    const bulkActionsBar = document.getElementById('bulkActionsBar');
+    const selectedCount = document.getElementById('selectedCount');
+    
+    if (checkboxes.length > 0) {
+      bulkActionsBar.style.display = 'flex';
+      selectedCount.textContent = checkboxes.length;
+    } else {
+      bulkActionsBar.style.display = 'none';
+    }
+  }
+  
+  function toggleBrokerStatus(brokerId) {
+    if (confirm('هل تريد تغيير حالة هذا الدلال؟')) {
+      fetch(`/api/brokers/${brokerId}/toggle-status/`, {
         method: 'POST',
         headers: {
           'X-CSRFToken': getCSRFToken(),
@@ -3597,7 +4071,7 @@ document.addEventListener('DOMContentLoaded', function() {
       }).then(response => response.json())
       .then(data => {
         if (data.success) {
-          alert('تمت الموافقة على الطلب بنجاح');
+          alert('تم تغيير الحالة بنجاح');
           location.reload();
         } else {
           alert('حدث خطأ: ' + (data.error || 'غير معروف'));
@@ -3608,7 +4082,319 @@ document.addEventListener('DOMContentLoaded', function() {
       });
     }
   }
-
+  
+  function verifyBroker(brokerId) {
+    if (confirm('هل تريد توثيق هذا الدلال؟')) {
+      fetch(`/api/brokers/${brokerId}/verify/`, {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': getCSRFToken(),
+          'Content-Type': 'application/json'
+        }
+      }).then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          alert('تم التوثيق بنجاح');
+          location.reload();
+        } else {
+          alert('حدث خطأ: ' + (data.error || 'غير معروف'));
+        }
+      }).catch(error => {
+        console.error('Error:', error);
+        alert('حدث خطأ في الاتصال');
+      });
+    }
+  }
+  
+  function deleteBroker(brokerId) {
+    if (confirm('هل أنت متأكد من حذف هذا الدلال؟ لا يمكن التراجع عن هذا الإجراء.')) {
+      fetch(`/api/brokers/${brokerId}/delete/`, {
+        method: 'DELETE',
+        headers: {
+          'X-CSRFToken': getCSRFToken(),
+          'Content-Type': 'application/json'
+        }
+      }).then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          alert('تم الحذف بنجاح');
+          location.reload();
+        } else {
+          alert('حدث خطأ: ' + (data.error || 'غير معروف'));
+        }
+      }).catch(error => {
+        console.error('Error:', error);
+        alert('حدث خطأ في الاتصال');
+      });
+    }
+  }
+  
+  function bulkVerify() {
+    const checkboxes = document.querySelectorAll('.broker-checkbox:checked');
+    const brokerIds = Array.from(checkboxes).map(cb => cb.value);
+    
+    if (brokerIds.length === 0) {
+      alert('يرجى تحديد دلال واحد على الأقل');
+      return;
+    }
+    
+    if (confirm(`هل تريد توثيق ${brokerIds.length} دلال؟`)) {
+      fetch('/api/brokers/bulk-verify/', {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': getCSRFToken(),
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ broker_ids: brokerIds })
+      }).then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          alert('تم التوثيق الجماعي بنجاح');
+          location.reload();
+        } else {
+          alert('حدث خطأ: ' + (data.error || 'غير معروف'));
+        }
+      }).catch(error => {
+        console.error('Error:', error);
+        alert('حدث خطأ في الاتصال');
+      });
+    }
+  }
+  
+  function bulkActivate() {
+    const checkboxes = document.querySelectorAll('.broker-checkbox:checked');
+    const brokerIds = Array.from(checkboxes).map(cb => cb.value);
+    
+    if (brokerIds.length === 0) {
+      alert('يرجى تحديد دلال واحد على الأقل');
+      return;
+    }
+    
+    if (confirm(`هل تريد تفعيل ${brokerIds.length} دلال؟`)) {
+      fetch('/api/brokers/bulk-activate/', {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': getCSRFToken(),
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ broker_ids: brokerIds })
+      }).then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          alert('تم التفعيل الجماعي بنجاح');
+          location.reload();
+        } else {
+          alert('حدث خطأ: ' + (data.error || 'غير معروف'));
+        }
+      }).catch(error => {
+        console.error('Error:', error);
+        alert('حدث خطأ في الاتصال');
+      });
+    }
+  }
+  
+  function bulkDeactivate() {
+    const checkboxes = document.querySelectorAll('.broker-checkbox:checked');
+    const brokerIds = Array.from(checkboxes).map(cb => cb.value);
+    
+    if (brokerIds.length === 0) {
+      alert('يرجى تحديد دلال واحد على الأقل');
+      return;
+    }
+    
+    if (confirm(`هل تريد تعطيل ${brokerIds.length} دلال؟`)) {
+      fetch('/api/brokers/bulk-deactivate/', {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': getCSRFToken(),
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ broker_ids: brokerIds })
+      }).then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          alert('تم التعطيل الجماعي بنجاح');
+          location.reload();
+        } else {
+          alert('حدث خطأ: ' + (data.error || 'غير معروف'));
+        }
+      }).catch(error => {
+        console.error('Error:', error);
+        alert('حدث خطأ في الاتصال');
+      });
+    }
+  }
+  
+  function exportBrokers() {
+    const brokers = [];
+    document.querySelectorAll('.broker-row').forEach(row => {
+      const name = row.dataset.name;
+      const role = row.dataset.role;
+      const status = row.dataset.status;
+      const verified = row.dataset.verified;
+      brokers.push({ name, role, status, verified });
+    });
+    
+    const dataStr = JSON.stringify(brokers, null, 2);
+    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(dataBlob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'brokers_export.json';
+    link.click();
+    URL.revokeObjectURL(url);
+  }
+  
+  function bulkExport() {
+    const checkboxes = document.querySelectorAll('.broker-checkbox:checked');
+    const selectedBrokers = [];
+    
+    checkboxes.forEach(checkbox => {
+      const row = checkbox.closest('.broker-row');
+      selectedBrokers.push({
+        id: checkbox.value,
+        name: row.dataset.name,
+        role: row.dataset.role,
+        status: row.dataset.status,
+        verified: row.dataset.verified
+      });
+    });
+    
+    const dataStr = JSON.stringify(selectedBrokers, null, 2);
+    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(dataBlob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'selected_brokers_export.json';
+    link.click();
+    URL.revokeObjectURL(url);
+  }
+  
+  // Initialize broker charts
+  function initBrokerCharts() {
+    // Broker Role Distribution Chart
+    const roleCtx = document.getElementById('brokerRoleChart');
+    if (roleCtx) {
+      const roleData = {
+        main: {{ brokers_stats.by_role.main|default:0 }},
+        sub: {{ brokers_stats.by_role.sub|default:0 }},
+        admin: {{ brokers_stats.by_role.admin|default:0 }}
+      };
+      
+      // Ensure all values are numbers
+      roleData.main = parseInt(roleData.main) || 0;
+      roleData.sub = parseInt(roleData.sub) || 0;
+      roleData.admin = parseInt(roleData.admin) || 0;
+      
+      new Chart(roleCtx, {
+        type: 'doughnut',
+        data: {
+          labels: ['دلال رئيسي', 'دلال فرعي', 'مدير النظام'],
+          datasets: [{
+            data: [roleData.main, roleData.sub, roleData.admin],
+            backgroundColor: ['#0d9488', '#f97316', '#ef4444']
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: {
+              position: 'bottom',
+              labels: { color: '#fff' }
+            }
+          }
+        }
+      });
+    }
+    
+    // Broker Growth Chart
+    const growthCtx = document.getElementById('brokerGrowthChart');
+    if (growthCtx) {
+      // Mock data for growth (should be replaced with real data)
+      const months = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو'];
+      const currentCount = parseInt({{ managed_brokers|length }}) || 0;
+      const growthData = [5, 8, 12, 15, 20, currentCount];
+      
+      new Chart(growthCtx, {
+        type: 'line',
+        data: {
+          labels: months,
+          datasets: [{
+            label: 'نمو الدلالين',
+            data: growthData,
+            borderColor: '#0d9488',
+            backgroundColor: 'rgba(13, 148, 136, 0.1)',
+            fill: true,
+            tension: 0.4
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: {
+              position: 'bottom',
+              labels: { color: '#fff' }
+            }
+          },
+          scales: {
+            y: {
+              ticks: { color: '#fff' },
+              grid: { color: 'rgba(255, 255, 255, 0.1)' }
+            },
+            x: {
+              ticks: { color: '#fff' },
+              grid: { color: 'rgba(255, 255, 255, 0.1)' }
+            }
+          }
+        }
+      });
+    }
+    
+    // Broker Performance Chart
+    const performanceCtx = document.getElementById('brokerPerformanceChart');
+    if (performanceCtx) {
+      // Mock data for performance (should be replaced with real data)
+      const brokerNames = [];
+      const propertyCounts = [];
+      
+      {% for b in managed_brokers|slice:":5" %}
+      brokerNames.push('{{ b.display_name|escapejs }}');
+      propertyCounts.push(parseInt({{ b.property_count|default:0 }}) || 0);
+      {% endfor %}
+      
+      new Chart(performanceCtx, {
+        type: 'bar',
+        data: {
+          labels: brokerNames,
+          datasets: [{
+            label: 'عدد العقارات',
+            data: propertyCounts,
+            backgroundColor: '#10b981'
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: {
+              position: 'bottom',
+              labels: { color: '#fff' }
+            }
+          },
+          scales: {
+            y: {
+              ticks: { color: '#fff' },
+              grid: { color: 'rgba(255, 255, 255, 0.1)' }
+            },
+            x: {
+              ticks: { color: '#fff' },
+              grid: { color: 'rgba(255, 255, 255, 0.1)' }
+            }
+          }
+        }
+      });
+    }
+  }
+  
   // Property Type Categories
   const propertyTypesByCategory = {
     inside_iraq: [
@@ -3649,9 +4435,22 @@ document.addEventListener('DOMContentLoaded', function() {
       { value: 'tourism_house', label: 'بيت سياحي' },
     ],
   };
-
-  // Category button click handler
+  
+  // Initialize charts when page loads
   document.addEventListener('DOMContentLoaded', function() {
+    initBrokerCharts();
+    
+    // Add event listeners for checkboxes
+    document.querySelectorAll('.broker-checkbox').forEach(checkbox => {
+      checkbox.addEventListener('change', updateBulkActions);
+    });
+    
+    // Add event listener for search input
+    if (document.getElementById('brokerSearch')) {
+      document.getElementById('brokerSearch').addEventListener('input', filterBrokers);
+    }
+    
+    // Property Type Categories
     const categoryButtons = document.querySelectorAll('.category-btn');
     const typeSelect = document.getElementById('property_type_select');
     
@@ -3689,6 +4488,29 @@ document.addEventListener('DOMContentLoaded', function() {
       });
     }
   });
+  
+  function approveRequest(requestId) {
+    if (confirm('هل تريد الموافقة على هذا الطلب؟')) {
+      fetch(`/api/subscription-request/${requestId}/approve/`, {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': getCSRFToken(),
+          'Content-Type': 'application/json'
+        }
+      }).then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          alert('تمت الموافقة على الطلب بنجاح');
+          location.reload();
+        } else {
+          alert('حدث خطأ: ' + (data.error || 'غير معروف'));
+        }
+      }).catch(error => {
+        console.error('Error:', error);
+        alert('حدث خطأ في الاتصال');
+      });
+    }
+  }
 
 </script>
 {% endblock %}

@@ -34,7 +34,7 @@
 
   .quick-access-buttons {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
     gap: 1rem;
     margin-top: 2rem;
   }
@@ -49,6 +49,7 @@
     font-weight: 600;
     transition: all 0.3s ease;
     border: 2px solid transparent;
+    font-size: 0.9rem;
   }
 
   .quick-btn:hover {
@@ -86,6 +87,26 @@
     border-color: #38ef7d;
   }
 
+  .hotel-iraq-btn {
+    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    color: white;
+    border-color: #11998e;
+  }
+
+  .hotel-iraq-btn:hover {
+    border-color: #38ef7d;
+  }
+
+  .hotel-world-btn {
+    background: linear-gradient(135deg, #0c4a6e 0%, #0369a1 100%);
+    color: white;
+    border-color: #0c4a6e;
+  }
+
+  .hotel-world-btn:hover {
+    border-color: #0369a1;
+  }
+
   .resort-btn {
     background: linear-gradient(135deg, #ee0979 0%, #ff6a00 100%);
     color: white;
@@ -94,6 +115,76 @@
 
   .resort-btn:hover {
     border-color: #ff6a00;
+  }
+
+  .resort-iraq-btn {
+    background: linear-gradient(135deg, #ee0979 0%, #ff6a00 100%);
+    color: white;
+    border-color: #ee0979;
+  }
+
+  .resort-iraq-btn:hover {
+    border-color: #ff6a00;
+  }
+
+  .resort-world-btn {
+    background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);
+    color: white;
+    border-color: #9b59b6;
+  }
+
+  .resort-world-btn:hover {
+    border-color: #8e44ad;
+  }
+
+  .travel-btn {
+    background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+    color: white;
+    border-color: #3498db;
+  }
+
+  .travel-btn:hover {
+    border-color: #2980b9;
+  }
+
+  .job-btn {
+    background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+    color: white;
+    border-color: #e74c3c;
+  }
+
+  .job-btn:hover {
+    border-color: #c0392b;
+  }
+
+  .building-btn {
+    background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+    color: white;
+    border-color: #f39c12;
+  }
+
+  .building-btn:hover {
+    border-color: #e67e22;
+  }
+
+  .service-btn {
+    background: linear-gradient(135deg, #1abc9c 0%, #16a085 100%);
+    color: white;
+    border-color: #1abc9c;
+  }
+
+  .service-btn:hover {
+    border-color: #16a085;
+  }
+
+  .auction-btn {
+    background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);
+    color: white;
+    border-color: #9b59b6;
+  }
+
+  .auction-btn:hover {
+    border-color: #8e44ad;
   }
 
   .btn-icon {
@@ -546,13 +637,41 @@
           <span class="btn-icon">🏠</span>
           <span class="btn-text">عقارات داخل العراق</span>
         </a>
-        <a href="{% url 'unified_search' %}?category=hotel" class="quick-btn hotel-btn">
-          <span class="btn-icon">🏨</span>
-          <span class="btn-text">فنادق</span>
+        <a href="{% url 'unified_search' %}?category=hotel_iraq" class="quick-btn hotel-iraq-btn">
+          <span class="btn-icon">🏨🇮🇶</span>
+          <span class="btn-text">فنادق داخل العراق</span>
         </a>
-        <a href="{% url 'unified_search' %}?category=resort" class="quick-btn resort-btn">
-          <span class="btn-icon">🏖️</span>
-          <span class="btn-text">منتجعات</span>
+        <a href="{% url 'unified_search' %}?category=hotel_world" class="quick-btn hotel-world-btn">
+          <span class="btn-icon">🏨🌍</span>
+          <span class="btn-text">فنادق خارج العراق</span>
+        </a>
+        <a href="{% url 'unified_search' %}?category=resort_iraq" class="quick-btn resort-iraq-btn">
+          <span class="btn-icon">�️🇮🇶</span>
+          <span class="btn-text">منتجعات داخل العراق</span>
+        </a>
+        <a href="{% url 'unified_search' %}?category=resort_world" class="quick-btn resort-world-btn">
+          <span class="btn-icon">🏝️🌍</span>
+          <span class="btn-text">منتجعات خارج العراق</span>
+        </a>
+        <a href="/travel-companies/" class="quick-btn travel-btn">
+          <span class="btn-icon">✈️</span>
+          <span class="btn-text">نشر شركة سفر</span>
+        </a>
+        <a href="/jobs/post/" class="quick-btn job-btn">
+          <span class="btn-icon">➕</span>
+          <span class="btn-text">نشر وظيفة</span>
+        </a>
+        <a href="/advertisements/create/" class="quick-btn building-btn">
+          <span class="btn-icon">🏗️</span>
+          <span class="btn-text">نشر طلب بناء</span>
+        </a>
+        <a href="{% url 'unified_search' %}?category=service" class="quick-btn service-btn">
+          <span class="btn-icon">🔧</span>
+          <span class="btn-text">نشر خدمة</span>
+        </a>
+        <a href="{% url 'unified_search' %}?category=auction" class="quick-btn auction-btn">
+          <span class="btn-icon">🔨</span>
+          <span class="btn-text">نشر مزاد</span>
         </a>
       </div>
     </div>
@@ -572,6 +691,10 @@
             <option value="property_outside" {% if category == 'property_outside' %}selected{% endif %}>عقار خارج العراق</option>
             <option value="hotel" {% if category == 'hotel' %}selected{% endif %}>فندق</option>
             <option value="resort" {% if category == 'resort' %}selected{% endif %}>منتجع</option>
+            <option value="service" {% if category == 'service' %}selected{% endif %}>خدمات</option>
+
+            <option value="auction" {% if category == 'auction' %}selected{% endif %}>مزادات</option>
+            <option value="job" {% if category == 'job' %}selected{% endif %}>فرص العمل</option>
           </select>
         </div>
       </div>
@@ -641,6 +764,33 @@
           <label for="area_min">المساحة من (م²)</label>
           <input type="number" name="area_min" id="area_min" class="form-control" placeholder="المساحة من" value="{{ form.area_min.value }}">
         </div>
+        <div class="form-group">
+          <label for="area_max">المساحة إلى (م²)</label>
+          <input type="number" name="area_max" id="area_max" class="form-control" placeholder="المساحة إلى" value="{{ form.area_max.value }}">
+        </div>
+        <div class="form-group">
+          <label for="region">المنطقة</label>
+          <input type="text" name="region" id="region" class="form-control" placeholder="المنطقة / الحي" value="{{ request.GET.region }}">
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="date_from">تاريخ النشر من</label>
+          <input type="date" name="date_from" id="date_from" class="form-control" value="{{ request.GET.date_from }}">
+        </div>
+        <div class="form-group">
+          <label for="date_to">تاريخ النشر إلى</label>
+          <input type="date" name="date_to" id="date_to" class="form-control" value="{{ request.GET.date_to }}">
+        </div>
+        <div class="form-group">
+          <label for="featured_only">المميز فقط</label>
+          <select name="featured_only" id="featured_only" class="form-control">
+            <option value="">الكل</option>
+            <option value="1" {% if request.GET.featured_only %}selected{% endif %}>مميز فقط</option>
+          </select>
+        </div>
+      </div>
         <div class="form-group">
           <label for="area_max">المساحة إلى (م²)</label>
           <input type="number" name="area_max" id="area_max" class="form-control" placeholder="المساحة إلى" value="{{ form.area_max.value }}">

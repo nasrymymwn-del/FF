@@ -2,6 +2,8 @@
 
 {% block title %}خريطة العقارات المتقدمة{% endblock %}
 
+{% block body_class %}map-page{% endblock %}
+
 {% block extra_css %}
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
@@ -9,6 +11,52 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.css" />
 <link rel="stylesheet" href="https://unpkg.com/leaflet-measure@3.1.4/dist/leaflet-measure.css" />
 <style>
+/* Map page specific styles to hide footer and other elements */
+body.map-page footer,
+body.map-page .footer,
+body.map-page .site-footer,
+body.map-page .dallal-section,
+body.map-page .bottom-section,
+body.map-page .marketing-section {
+  display: none !important;
+}
+
+body.map-page {
+  overflow: hidden;
+  height: 100vh;
+}
+
+body.map-page .main-content,
+body.map-page .content-wrapper {
+  height: 100vh;
+  overflow: hidden;
+}
+</style>
+<style>
+:root {
+  --bg-primary: #0a0a0a;
+  --bg-secondary: #1a1a1a;
+  --bg-tertiary: #2a2a2a;
+  --border-color: rgba(255, 122, 0, 0.2);
+  --text-primary: #ffffff;
+  --text-secondary: #a0a0a0;
+  --text-muted: #6a6a6a;
+  --accent-orange: #ff7a00;
+  --accent-orange-light: #ff9a40;
+  --accent-orange-dark: #ea580c;
+  --success: #22c55e;
+  --card-bg: rgba(26, 26, 26, 0.8);
+  --sidebar-width: 320px;
+}
+
+html, body {
+  overflow-x: hidden;
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -17,8 +65,8 @@
 
 body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background: #1a1a2e;
-  color: #eee;
+  background: var(--bg-primary);
+  color: var(--text-primary);
   overflow: hidden;
 }
 
@@ -33,105 +81,204 @@ body {
   right: 0;
   bottom: 0;
   display: flex;
+  height: 100vh;
+  width: 100vw;
+  max-width: 100vw;
+  overflow: hidden;
+  overflow-x: hidden;
 }
 
 #properties-map {
   flex: 1;
-  height: 100%;
-  background: #1a1a2e;
+  height: 100vh;
+  background: var(--bg-primary);
+  overflow: hidden;
+  overflow-x: hidden;
+}
+
+/* Map page specific styles to hide footer and other elements */
+body.map-page footer,
+body.map-page .footer,
+body.map-page .site-footer,
+body.map-page .dallal-section,
+body.map-page .bottom-section,
+body.map-page .marketing-section,
+body.map-page .extra-section,
+body.map-page .navbar {
+  display: none !important;
+}
+
+body.map-page {
+  overflow: hidden;
+  height: 100vh;
+  width: 100vw;
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+body.map-page .main-content {
+  height: 100vh;
+  overflow: hidden;
+  padding: 0;
+  margin: 0;
+  width: 100vw;
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+html, body {
+  overflow-x: hidden;
+  width: 100%;
+  max-width: 100%;
+}
+
+/* Fullscreen mode */
+body.map-page:fullscreen {
+  overflow: hidden;
+}
+
+body.map-page:fullscreen .map-wrapper {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 100vh;
+  width: 100vw;
+}
+
+body.map-page:fullscreen .map-sidebar {
+  height: 100vh;
 }
 
 /* Sidebar */
 .map-sidebar {
-  width: 380px;
-  background: rgba(26, 26, 46, 0.95);
-  backdrop-filter: blur(10px);
-  border-left: 2px solid #ff6b35;
+  width: var(--sidebar-width);
+  height: 100vh;
+  background: var(--bg-secondary);
+  border-left: 1px solid var(--border-color);
   display: flex;
   flex-direction: column;
   transition: transform 0.3s ease;
   z-index: 1001;
   overflow: hidden;
+  overflow-x: hidden;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
 }
 
 .map-sidebar.collapsed {
-  transform: translateX(380px);
+  transform: translateX(var(--sidebar-width));
 }
 
 .sidebar-header {
-  padding: 20px;
-  background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
-  border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+  padding: 16px 20px;
+  background: linear-gradient(135deg, var(--accent-orange) 0%, var(--accent-orange-dark) 100%);
+  border-bottom: 1px solid rgba(255, 122, 0, 0.2);
 }
 
 .sidebar-header h2 {
-  font-size: 1.3rem;
+  font-size: 1.1rem;
   color: white;
-  margin-bottom: 5px;
+  margin: 0;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
+  font-weight: 600;
 }
 
 .sidebar-stats {
   display: flex;
-  gap: 10px;
-  margin-top: 10px;
+  gap: 8px;
+  margin-top: 12px;
 }
 
 .sidebar-stat {
-  background: rgba(255, 255, 255, 0.2);
-  padding: 5px 10px;
-  border-radius: 8px;
-  font-size: 0.85rem;
+  background: rgba(255, 122, 0, 0.2);
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.75rem;
   color: white;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.sidebar-login-btn {
+  display: block;
+  text-align: center;
+  padding: 8px 12px;
+  background: rgba(255, 122, 0, 0.2);
+  color: white;
+  text-decoration: none;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.sidebar-login-btn:hover {
+  background: rgba(255, 122, 0, 0.3);
 }
 
 .sidebar-toggle {
   position: absolute;
-  left: 50px;
-  top: 20px;
+  left: 16px;
+  top: 16px;
   z-index: 1002;
-  background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
+  background: var(--accent-orange);
   border: none;
   color: white;
-  padding: 12px 15px;
-  border-radius: 10px;
+  padding: 10px 14px;
+  border-radius: 8px;
   cursor: pointer;
-  font-size: 1.2rem;
-  box-shadow: 0 4px 15px rgba(255, 107, 53, 0.3);
-  transition: all 0.3s ease;
+  font-size: 1rem;
+  box-shadow: 0 2px 8px rgba(255, 122, 0, 0.3);
+  transition: all 0.2s ease;
+}
+
+/* Ensure toggle button is visible when navbar is hidden */
+body.map-page .sidebar-toggle {
+  display: flex !important;
+  position: fixed;
+  left: 16px;
+  top: 16px;
+  z-index: 1003;
 }
 
 .sidebar-toggle:hover {
-  transform: scale(1.1);
+  transform: scale(1.05);
+  background: var(--accent-orange-light);
+  box-shadow: 0 4px 15px rgba(255, 122, 0, 0.4);
 }
 
 /* Search Bar */
 .search-container {
-  padding: 15px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 16px;
+  border-bottom: 1px solid var(--border-color);
+  background: var(--bg-secondary);
 }
 
 .search-input {
   width: 100%;
-  padding: 12px 15px;
-  border: 2px solid rgba(255, 255, 255, 0.1);
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.05);
-  color: white;
-  font-size: 0.95rem;
-  transition: all 0.3s ease;
+  padding: 12px 16px;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
 }
 
 .search-input:focus {
   outline: none;
-  border-color: #ff6b35;
-  background: rgba(255, 107, 53, 0.1);
+  border-color: var(--accent-orange);
+  background: var(--bg-primary);
+  box-shadow: 0 0 0 3px rgba(255, 122, 0, 0.1);
 }
 
 .search-input::placeholder {
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--text-muted);
 }
 
 .search-suggestions {
@@ -139,8 +286,8 @@ body {
   top: 100%;
   left: 15px;
   right: 15px;
-  background: rgba(26, 26, 46, 0.98);
-  border: 2px solid rgba(255, 255, 255, 0.1);
+  background: rgba(26, 26, 26, 0.98);
+  border: 2px solid rgba(255, 122, 0, 0.2);
   border-radius: 10px;
   max-height: 300px;
   overflow-y: auto;
@@ -156,77 +303,195 @@ body {
   padding: 12px 15px;
   cursor: pointer;
   transition: all 0.3s ease;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid rgba(255, 122, 0, 0.1);
 }
 
 .suggestion-item:hover {
-  background: rgba(255, 107, 53, 0.1);
+  background: rgba(255, 122, 0, 0.1);
 }
 
 .suggestion-item:last-child {
   border-bottom: none;
 }
 
+/* Categories */
+.categories-container {
+  padding: 16px;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.categories-container h4 {
+  margin: 0 0 12px 0;
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.categories-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.category-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 8px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
+}
+
+.category-card:hover {
+  border-color: var(--accent-orange);
+  background: rgba(255, 122, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.category-card.active {
+  background: var(--accent-orange);
+  border-color: var(--accent-orange);
+  color: white;
+}
+
+.category-icon {
+  font-size: 1.5rem;
+  margin-bottom: 6px;
+}
+
+.category-name {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.category-card.active .category-name {
+  color: white;
+}
+
+/* Filter Section Header */
+.filter-section-header {
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.filter-section-header h4 {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+/* Country Toggle */
+.country-toggle {
+  display: flex;
+  padding: 8px;
+  background: var(--bg-tertiary);
+  border-radius: 10px;
+  margin-bottom: 16px;
+  gap: 4px;
+}
+
+.country-toggle-btn {
+  flex: 1;
+  padding: 10px 12px;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.country-toggle-btn.active {
+  background: var(--accent-orange);
+  color: white;
+  font-weight: 600;
+}
+
+.country-toggle-btn:hover:not(.active) {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
 /* Filters */
 .filters-container {
-  padding: 15px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  max-height: 400px;
+  padding: 16px;
+  border-bottom: 1px solid var(--border-color);
+  max-height: calc(100vh - 200px);
   overflow-y: auto;
+  overflow-x: hidden;
+  background: var(--bg-secondary);
 }
 
 .filter-section {
-  margin-bottom: 15px;
+  margin-bottom: 16px;
 }
 
 .filter-section h4 {
-  font-size: 0.9rem;
-  color: #ff6b35;
+  font-size: 0.85rem;
+  color: var(--accent-orange);
   margin-bottom: 10px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .filter-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 10px;
-  margin-bottom: 10px;
+  gap: 8px;
+  margin-bottom: 12px;
 }
 
 .filter-group {
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 }
 
 .filter-group label {
   display: block;
-  font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.7);
-  margin-bottom: 5px;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+  font-weight: 500;
 }
 
 .filter-group select,
 .filter-group input {
   width: 100%;
-  padding: 10px;
-  border: 2px solid rgba(255, 255, 255, 0.1);
+  padding: 10px 12px;
+  border: 1px solid var(--border-color);
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.05);
-  color: white;
-  font-size: 0.9rem;
-  transition: all 0.3s ease;
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  font-size: 0.85rem;
+  transition: all 0.2s ease;
 }
 
 .filter-group select:focus,
 .filter-group input:focus {
   outline: none;
-  border-color: #ff6b35;
+  border-color: var(--accent-orange);
+  background: var(--bg-primary);
+  box-shadow: 0 0 0 3px rgba(255, 122, 0, 0.1);
 }
 
 .filter-group select option {
-  background: #1a1a2e;
-  color: white;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
 }
 
 .filter-checkbox {
@@ -240,94 +505,105 @@ body {
 .filter-checkbox input {
   width: auto;
   margin: 0;
+  accent-color: var(--accent-orange);
 }
 
 .filter-checkbox label {
   margin: 0;
   cursor: pointer;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
 }
 
 /* Sort Bar */
 .sort-bar {
-  padding: 15px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border-color);
   display: flex;
-  gap: 10px;
+  gap: 8px;
   flex-wrap: wrap;
+  background: var(--bg-secondary);
 }
 
 .sort-btn {
-  padding: 8px 12px;
-  border: 2px solid rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.05);
-  color: white;
-  font-size: 0.85rem;
+  padding: 6px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  font-size: 0.8rem;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
   white-space: nowrap;
+  font-weight: 500;
 }
 
 .sort-btn:hover,
 .sort-btn.active {
-  background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
-  border-color: transparent;
+  background: var(--accent-orange);
+  border-color: var(--accent-orange);
+  color: white;
 }
 
 /* Properties List */
 .properties-list {
   flex: 1;
   overflow-y: auto;
-  padding: 15px;
+  padding: 16px;
+  background: var(--bg-secondary);
+  height: calc(100vh - 450px);
+  min-height: 200px;
 }
 
 .property-card {
-  background: rgba(255, 255, 255, 0.05);
-  border: 2px solid rgba(255, 255, 255, 0.1);
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
   border-radius: 12px;
   overflow: hidden;
-  margin-bottom: 15px;
+  margin-bottom: 12px;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(10px);
 }
 
 .property-card:hover {
-  border-color: #ff6b35;
-  transform: translateY(-3px);
-  box-shadow: 0 5px 20px rgba(255, 107, 53, 0.2);
+  border-color: var(--accent-orange);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 122, 0, 0.15);
 }
 
 .property-card.active {
-  border-color: #ff6b35;
-  background: rgba(255, 107, 53, 0.1);
+  border-color: var(--accent-orange);
+  background: rgba(255, 122, 0, 0.1);
+  box-shadow: 0 0 0 2px rgba(255, 122, 0, 0.2);
 }
 
 .property-image {
   width: 100%;
-  height: 180px;
+  height: 160px;
   object-fit: cover;
   position: relative;
 }
 
 .property-badges {
   position: absolute;
-  top: 10px;
-  left: 10px;
+  top: 8px;
+  left: 8px;
   display: flex;
-  gap: 5px;
+  gap: 4px;
   flex-wrap: wrap;
 }
 
 .property-badge {
-  padding: 4px 10px;
-  border-radius: 6px;
-  font-size: 0.75rem;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 0.7rem;
   font-weight: 600;
   color: white;
 }
 
 .property-badge.sale {
-  background: #22c55e;
+  background: var(--success);
 }
 
 .property-badge.rent {
@@ -339,7 +615,7 @@ body {
 }
 
 .property-badge.featured {
-  background: #ff6b35;
+  background: var(--accent-orange);
 }
 
 .property-badge.new {
@@ -347,134 +623,147 @@ body {
 }
 
 .property-info {
-  padding: 15px;
+  padding: 12px;
 }
 
 .property-price {
-  font-size: 1.5rem;
+  font-size: 1.3rem;
   font-weight: 700;
-  color: #ff6b35;
-  margin-bottom: 8px;
+  color: var(--accent-orange);
+  margin-bottom: 6px;
 }
 
 .property-title {
-  font-size: 1rem;
+  font-size: 0.9rem;
   font-weight: 600;
-  color: white;
-  margin-bottom: 10px;
-  line-height: 1.4;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+  line-height: 1.3;
 }
 
 .property-location {
-  font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.6);
-  margin-bottom: 10px;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 4px;
 }
 
 .property-details {
   display: flex;
-  gap: 15px;
-  font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.7);
-  margin-bottom: 10px;
+  gap: 12px;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
 }
 
 .property-detail {
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 4px;
 }
 
 .property-meta {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 0.8rem;
-  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.75rem;
+  color: var(--text-muted);
 }
 
 /* Map Controls */
 .map-controls {
   position: absolute;
-  top: 20px;
-  right: 20px;
+  top: 16px;
+  right: 16px;
   z-index: 1000;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
 }
 
 .control-btn {
-  width: 45px;
-  height: 45px;
-  border: 2px solid rgba(255, 255, 255, 0.1);
-  border-radius: 10px;
-  background: rgba(26, 26, 46, 0.95);
-  color: white;
-  font-size: 1.2rem;
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  font-size: 1rem;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 .control-btn:hover {
-  background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
-  border-color: transparent;
-  transform: scale(1.1);
+  background: var(--accent-orange);
+  border-color: var(--accent-orange);
+  transform: scale(1.05);
 }
 
 /* Map Layers */
 .map-layers {
   position: absolute;
-  top: 20px;
-  left: 80px;
+  top: 16px;
+  left: 70px;
   z-index: 1000;
-  background: rgba(26, 26, 46, 0.95);
-  border: 2px solid rgba(255, 255, 255, 0.1);
-  border-radius: 10px;
-  padding: 8px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 6px;
   display: flex;
-  gap: 5px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  gap: 6px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  max-width: calc(100vw - 400px);
 }
 
 .layer-btn {
   padding: 8px 12px;
-  border: 2px solid rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.05);
-  color: white;
-  font-size: 0.85rem;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  font-size: 0.75rem;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
   white-space: nowrap;
+  font-weight: 500;
+  flex-shrink: 0;
+  min-width: fit-content;
 }
 
 .layer-btn:hover,
 .layer-btn.active {
-  background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
-  border-color: transparent;
+  background: var(--accent-orange);
+  border-color: var(--accent-orange);
+  color: white;
+  box-shadow: 0 2px 6px rgba(255, 122, 0, 0.3);
+}
+
+.layer-btn:focus {
+  outline: 2px solid var(--accent-orange);
+  outline-offset: 2px;
 }
 
 /* Stats Panel */
 .stats-panel {
   position: absolute;
-  bottom: 20px;
-  left: 20px;
+  bottom: 16px;
+  left: 16px;
   z-index: 1000;
-  background: rgba(26, 26, 46, 0.95);
-  border: 2px solid rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
-  padding: 15px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  padding: 12px;
   display: flex;
-  gap: 15px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  gap: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 .stat-item {
@@ -482,44 +771,55 @@ body {
 }
 
 .stat-number {
-  font-size: 1.5rem;
+  font-size: 1.3rem;
   font-weight: 700;
-  color: #ff6b35;
-  margin-bottom: 3px;
+  color: var(--accent-orange);
+  margin-bottom: 2px;
 }
 
 .stat-label {
-  font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.7rem;
+  color: var(--text-secondary);
 }
 
 /* Property Popup */
 .property-popup {
-  min-width: 320px;
-  max-width: 400px;
+  min-width: 280px;
+  max-width: 350px;
 }
 
 .popup-image {
   width: 100%;
-  height: 200px;
+  height: 160px;
   object-fit: cover;
   border-radius: 8px;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
 }
 
 .popup-content {
-  padding: 15px;
+  padding: 12px;
+}
+
+.popup-house-number {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--accent-orange);
+  margin-bottom: 8px;
+  padding: 8px;
+  background: rgba(255, 122, 0, 0.1);
+  border-radius: 6px;
+  border: 1px solid var(--accent-orange);
 }
 
 .popup-price {
-  font-size: 1.5rem;
+  font-size: 1.3rem;
   font-weight: 700;
-  color: #ff6b35;
-  margin-bottom: 8px;
+  color: var(--accent-orange);
+  margin-bottom: 6px;
 }
 
 .popup-title {
-  font-size: 1.1rem;
+  font-size: 1rem;
   font-weight: 600;
   color: white;
   margin-bottom: 10px;
@@ -566,8 +866,105 @@ body {
   transform: translateY(-2px);
 }
 
+/* Property Polygons */
+.property-polygon {
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.property-polygon:hover {
+  filter: brightness(1.2);
+}
+
+.property-polygon.sale {
+  stroke: #22c55e;
+  fill: #22c55e;
+}
+
+.property-polygon.rent {
+  stroke: #3b82f6;
+  fill: #3b82f6;
+}
+
+.property-polygon.auction {
+  stroke: #ef4444;
+  fill: #ef4444;
+}
+
+.property-polygon.published {
+  stroke: #22c55e;
+  fill: #22c55e;
+}
+
+.property-polygon.draft {
+  stroke: #6b7280;
+  fill: #6b7280;
+}
+
+/* Polygon Labels */
+.polygon-label {
+  background: transparent;
+  border: none;
+}
+
+.polygon-label-content {
+  background: rgba(0, 0, 0, 0.85);
+  color: #ff7a00;
+  border: 2px solid #ff7a00;
+  border-radius: 8px;
+  padding: 4px 8px;
+  font-size: 14px;
+  font-weight: 800;
+  text-align: center;
+  white-space: nowrap;
+  box-shadow: 0 2px 10px rgba(255, 122, 0, 0.4);
+  text-shadow: 0 0 5px rgba(255, 122, 0, 0.6);
+  backdrop-filter: blur(2px);
+  min-width: 40px;
+}
+
 /* Custom Markers */
 .custom-marker {
+  background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
+  color: white;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 12px;
+  white-space: nowrap;
+  box-shadow: 0 4px 15px rgba(255, 107, 53, 0.3);
+  border: 2px solid white;
+}
+
+/* House Number Marker */
+.house-number-marker {
+  background: rgba(0, 0, 0, 0.85);
+  color: #ff7a00;
+  border: 3px solid #ff7a00;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: 800;
+  text-align: center;
+  box-shadow: 0 4px 20px rgba(255, 122, 0, 0.5);
+  text-shadow: 0 0 10px rgba(255, 122, 0, 0.8);
+  backdrop-filter: blur(4px);
+}
+
+.house-number-marker:hover {
+  background: rgba(255, 122, 0, 0.9);
+  color: white;
+  border-color: white;
+  transform: scale(1.1);
+  transition: all 0.3s ease;
+}
+
+/* Price Marker (original style) */
+.price-marker {
   background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
   color: white;
   padding: 6px 12px;
@@ -643,11 +1040,11 @@ body {
 /* Responsive */
 @media (max-width: 1024px) {
   .map-sidebar {
-    width: 320px;
+    width: 300px;
   }
   
   .map-sidebar.collapsed {
-    transform: translateX(320px);
+    transform: translateX(300px);
   }
 }
 
@@ -660,6 +1057,7 @@ body {
     bottom: 0;
     width: 100%;
     transform: translateX(100%);
+    border-radius: 0;
   }
   
   .map-sidebar.collapsed {
@@ -671,25 +1069,43 @@ body {
   }
   
   .sidebar-toggle {
-    left: 20px;
-    top: 20px;
+    left: 16px;
+    top: 16px;
   }
   
   .map-controls {
-    top: 80px;
-    right: 10px;
+    top: 70px;
+    right: 12px;
   }
   
   .map-layers {
-    top: 80px;
-    left: 80px;
-    flex-direction: column;
+    top: 70px;
+    left: 70px;
+    flex-wrap: nowrap;
+    max-width: calc(100vw - 90px);
+  }
+  
+  .categories-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+  
+  .category-card {
+    padding: 10px 6px;
+  }
+  
+  .category-icon {
+    font-size: 1.25rem;
+  }
+  
+  .category-name {
+    font-size: 0.7rem;
   }
   
   .stats-panel {
-    bottom: 10px;
-    left: 10px;
-    right: 10px;
+    bottom: 12px;
+    left: 12px;
+    right: 12px;
     flex-wrap: wrap;
     justify-content: center;
   }
@@ -709,45 +1125,127 @@ body {
   
   <div class="map-sidebar" id="sidebar">
     <div class="sidebar-header">
-      <h2>🗺️ خريطة العقارات</h2>
+      <h2>🗺️ خريطة المنصة</h2>
       <div class="sidebar-stats">
-        <div class="sidebar-stat">📨 {{ total|default:0 }} عقار</div>
+        <div class="sidebar-stat">📨 {{ total|default:0 }} عنصر</div>
         <div class="sidebar-stat">🔔 {{ unread_count|default:0 }} جديد</div>
       </div>
+      {% if not request.user.is_authenticated %}
+      <div style="margin-top: 12px;">
+        <a href="{% url 'login' %}" class="sidebar-login-btn">تسجيل الدخول</a>
+      </div>
+      {% endif %}
     </div>
     
     <div class="search-container">
-      <input type="text" class="search-input" id="search-input" placeholder="🔍 ابحث عن عقار، محافظة، مدينة..." autocomplete="off">
+      <input type="text" class="search-input" id="search-input" placeholder="🔎 ابحث: دار 125، عقار، فندق، وظيفة..." autocomplete="off">
       <div class="search-suggestions" id="search-suggestions"></div>
     </div>
     
+    <!-- Platform Categories -->
+    <div class="categories-container">
+      <h4 style="margin-bottom: 12px; color: var(--text-primary);">📁 أقسام المنصة</h4>
+      <div class="categories-grid">
+        <button class="category-card active" data-category="property">
+          <span class="category-icon">🏠</span>
+          <span class="category-name">العقارات</span>
+        </button>
+        <button class="category-card" data-category="hotel">
+          <span class="category-icon">🏨</span>
+          <span class="category-name">الفنادق</span>
+        </button>
+        <button class="category-card" data-category="resort">
+          <span class="category-icon">🏝️</span>
+          <span class="category-name">المنتجعات</span>
+        </button>
+        <button class="category-card" data-category="travel">
+          <span class="category-icon">✈️</span>
+          <span class="category-name">السفر</span>
+        </button>
+        <button class="category-card" data-category="job">
+          <span class="category-icon">💼</span>
+          <span class="category-name">الوظائف</span>
+        </button>
+        <button class="category-card" data-category="construction">
+          <span class="category-icon">🏗️</span>
+          <span class="category-name">البناء</span>
+        </button>
+        <button class="category-card" data-category="service">
+          <span class="category-icon">🔧</span>
+          <span class="category-name">الخدمات</span>
+        </button>
+        <button class="category-card" data-category="auction">
+          <span class="category-icon">🔨</span>
+          <span class="category-name">المزادات</span>
+        </button>
+      </div>
+    </div>
+    
     <div class="filters-container">
+      <!-- Filter Section Header -->
+      <div class="filter-section-header">
+        <h4 id="filter-section-title">🔍 فلاتر العقارات</h4>
+        <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;">
+          الفلاتر متاحة حاليًا للعقارات فقط
+        </p>
+      </div>
+      
+      <!-- Hidden country filter for API -->
+      <input type="hidden" id="filter-country" value="العراق">
+      
+      <!-- Country Toggle -->
+      <div class="country-toggle">
+        <button class="country-toggle-btn active" data-country="العراق">
+          🇮🇶 داخل العراق
+        </button>
+        <button class="country-toggle-btn" data-country="خارج العراق">
+          🌍 خارج العراق
+        </button>
+      </div>
+      
       <div class="filter-section">
         <h4>📍 الموقع</h4>
-        <div class="filter-group">
+        <div class="filter-group" id="governorate-group">
           <label>المحافظة</label>
           <select id="filter-governorate" onchange="zoomToGovernorate()">
             <option value="">الكل</option>
             <option value="بغداد">بغداد</option>
             <option value="البصرة">البصرة</option>
-            <option value="أربيل">أربيل</option>
             <option value="نينوى">نينوى</option>
-            <option value="النجف">النجف</option>
-            <option value="كربلاء">كربلاء</option>
-            <option value="البصرة">البصرة</option>
-            <option value="الديوانية">الديوانية</option>
-            <option value="واسط">واسط</option>
-            <option value="بابل">بابل</option>
-            <option value="ذي قار">ذي قار</option>
-            <option value="ميسان">ميسان</option>
-            <option value="المثنى">المثنى</option>
-            <option value="القادسية">القادسية</option>
-            <option value="صلاح الدين">صلاح الدين</option>
-            <option value="ديالى">ديالى</option>
-            <option value="كركوك">كركوك</option>
+            <option value="أربيل">أربيل</option>
             <option value="السليمانية">السليمانية</option>
             <option value="دهوك">دهوك</option>
-            <option value="اربيل">اربيل</option>
+            <option value="كركوك">كركوك</option>
+            <option value="الأنبار">الأنبار</option>
+            <option value="صلاح الدين">صلاح الدين</option>
+            <option value="ديالى">ديالى</option>
+            <option value="واسط">واسط</option>
+            <option value="بابل">بابل</option>
+            <option value="كربلاء">كربلاء</option>
+            <option value="النجف">النجف</option>
+            <option value="القادسية">القادسية</option>
+            <option value="المثنى">المثنى</option>
+            <option value="ذي قار">ذي قار</option>
+            <option value="ميسان">ميسان</option>
+            <option value="حلبجة">حلبجة</option>
+          </select>
+        </div>
+        <div class="filter-group" id="foreign-country-group" style="display: none;">
+          <label>الدولة الخارجية</label>
+          <select id="filter-foreign-country">
+            <option value="">اختر الدولة</option>
+            <option value="السعودية">السعودية 🇸🇦</option>
+            <option value="الإمارات">الإمارات 🇦🇪</option>
+            <option value="الكويت">الكويت 🇰🇼</option>
+            <option value="قطر">قطر 🇶🇦</option>
+            <option value="البحرين">البحرين 🇧🇭</option>
+            <option value="عمان">عمان 🇴🇲</option>
+            <option value="الأردن">الأردن 🇯🇴</option>
+            <option value="لبنان">لبنان 🇱🇧</option>
+            <option value="سوريا">سوريا 🇸🇾</option>
+            <option value="تركيا">تركيا 🇹🇷</option>
+            <option value="مصر">مصر 🇪🇬</option>
+            <option value="أخرى">أخرى</option>
           </select>
         </div>
         <div class="filter-row">
@@ -887,8 +1385,8 @@ body {
         </div>
       </div>
       
-      <button class="sort-btn" style="width: 100%; margin-top: 15px;" onclick="applyFilters()">🔍 تطبيق الفلاتر</button>
-      <button class="sort-btn" style="width: 100%; margin-top: 10px;" onclick="resetFilters()">🔄 إعادة تعيين</button>
+      <button class="sort-btn" style="width: 100%; margin-top: 15px;" id="apply-filters-btn">🔍 تطبيق الفلاتر</button>
+      <button class="sort-btn" style="width: 100%; margin-top: 10px;" id="reset-filters-btn">🔄 إعادة تعيين</button>
     </div>
     
     <div class="sort-bar">
@@ -919,14 +1417,15 @@ body {
     <button class="control-btn" onclick="exportResults()" title="تصدير">�</button>
     <button class="control-btn" onclick="toggleTheme()" title="الوضع الليلي/النهاري">🌙</button>
     <button class="control-btn" onclick="toggleFullscreen()" title="ملء الشاشة">⛶</button>
+    <button class="control-btn" onclick="togglePolygonMode()" title="وضع مخطط الأراضي">🗺️</button>
   </div>
   
   <div class="map-layers">
-    <button class="layer-btn active" data-layer="osm">OpenStreetMap</button>
-    <button class="layer-btn" data-layer="satellite">Satellite</button>
-    <button class="layer-btn" data-layer="terrain">Terrain</button>
-    <button class="layer-btn" data-layer="dark">Dark</button>
-    <button class="layer-btn" data-layer="hybrid">Hybrid</button>
+    <button type="button" class="layer-btn active" data-layer="osm">OpenStreetMap</button>
+    <button type="button" class="layer-btn" data-layer="satellite">Satellite</button>
+    <button type="button" class="layer-btn" data-layer="terrain">Terrain</button>
+    <button type="button" class="layer-btn" data-layer="dark">Dark</button>
+    <button type="button" class="layer-btn" data-layer="hybrid">Hybrid</button>
   </div>
   
   <div class="stats-panel">
@@ -962,7 +1461,7 @@ body {
 <script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
 <script>
 (function() {
-  var map, markers, markerCluster, drawControl, heatLayer, measureControl;
+  var map, markers, drawControl, heatLayer, measureControl;
   var currentLayer = 'osm';
   var heatmapEnabled = false;
   var selectedProperty = null;
@@ -1010,44 +1509,101 @@ body {
   // Initialize map
   function initMap() {
     try {
-      var initialData = JSON.parse('{{ map_data_json|safe }}');
+      console.log('Starting map initialization...');
+      
+      // Check if Leaflet is loaded
+      if (typeof L === 'undefined') {
+        console.error('Leaflet library not loaded');
+        showMapError('مكتبة الخريطة غير محملة', 'يرجى التحقق من اتصال الإنترنت');
+        return;
+      }
+      
+      // Check if map container exists
+      var mapContainer = document.getElementById('properties-map');
+      if (!mapContainer) {
+        console.error('Map container not found');
+        showMapError('حاوية الخريطة غير موجودة', 'يرجى التحقق من هيكل الصفحة');
+        return;
+      }
+      
+      console.log('Map container found, size:', mapContainer.offsetWidth, 'x', mapContainer.offsetHeight);
+      
+      // Try to parse initial data
+      var initialData = [];
+      try {
+        var mapDataJson = '{{ map_data_json|safe }}';
+        console.log('Raw map data JSON:', mapDataJson.substring(0, 100) + '...');
+        
+        if (mapDataJson && mapDataJson !== '[]' && mapDataJson !== '' && mapDataJson !== 'None') {
+          initialData = JSON.parse(mapDataJson);
+          console.log('Parsed initial data, properties count:', initialData.length);
+        } else {
+          console.log('No initial map data available');
+        }
+      } catch (e) {
+        console.error('Error parsing map data JSON:', e);
+        console.log('Continuing without initial data');
+      }
+      
       propertiesData = initialData;
       
-      if (initialData.length > 0) {
-        map = L.map('properties-map').setView([initialData[0].lat, initialData[0].lng], 12);
-      } else {
-        map = L.map('properties-map').setView([33.3152, 44.3661], 6); // Iraq center
+      // Initialize map with Iraq center
+      var centerLat = 33.3152;
+      var centerLng = 44.3661;
+      var zoomLevel = 6;
+      
+      // If we have data, center on first property
+      if (initialData.length > 0 && initialData[0].lat && initialData[0].lng) {
+        centerLat = initialData[0].lat;
+        centerLng = initialData[0].lng;
+        zoomLevel = 12;
+        console.log('Centering on first property:', centerLat, centerLng);
       }
+      
+      console.log('Creating map with center:', centerLat, centerLng, 'zoom:', zoomLevel);
+      
+      map = L.map('properties-map', {
+        center: [centerLat, centerLng],
+        zoom: zoomLevel,
+        zoomControl: true,
+        scrollWheelZoom: true
+      });
+      
+      console.log('Map created successfully');
       
       // Add default layer
       addLayer('osm');
+      console.log('Default layer added');
       
-      // Add marker cluster
-      markerCluster = L.markerClusterGroup({
-        showCoverageOnHover: false,
-        zoomToBoundsOnClick: true,
-        maxClusterRadius: 80,
-        spiderfyOnMaxZoom: true,
-        showCoverageOnHover: false,
-        animate: true
-      });
-      
-      map.addLayer(markerCluster);
-      
-      // Add markers
-      addMarkers(initialData);
-      
-      // Load properties list
-      loadPropertyList(initialData);
+      // Add polygons if we have data
+      if (initialData.length > 0) {
+        addMarkers(initialData);
+        loadPropertyList(initialData);
+        console.log('Polygons added, count:', initialData.length);
+      } else {
+        // Load empty state
+        loadPropertyList([]);
+        console.log('No properties to display');
+      }
       
       // Add draw control
       addDrawControl();
       
-      // Add measure control
-      addMeasureControl();
+      // Add measure control (wrapped in try-catch to prevent map failure)
+      try {
+        addMeasureControl();
+      } catch (measureError) {
+        console.warn('Measure control initialization failed, continuing without it:', measureError);
+      }
       
       // Load properties on map move
       map.on('moveend', debounce(loadPropertiesInView, 500));
+      
+      // Handle zoom-based house number visibility
+      map.on('zoomend', function() {
+        var currentZoom = map.getZoom();
+        updateMarkersBasedOnZoom(currentZoom);
+      });
       
       // Initialize search
       initSearch();
@@ -1061,11 +1617,25 @@ body {
       // Auto-refresh every 30 seconds
       setInterval(autoRefresh, 30000);
       
+      console.log('Map initialized successfully');
+      
     } catch (error) {
       console.error('Error initializing map:', error);
-      document.getElementById('properties-map').innerHTML = 
-        '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #ff6b35;">' +
-        '<div>تعذر تحميل الخريطة. يرجى تحديث الصفحة.</div></div>';
+      console.error('Error stack:', error.stack);
+      showMapError('خطأ في تهيئة الخريطة', error.message);
+    }
+  }
+  
+  function showMapError(title, message) {
+    var mapContainer = document.getElementById('properties-map');
+    if (mapContainer) {
+      mapContainer.innerHTML = 
+        '<div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: #f97316; padding: 20px; text-align: center;">' +
+        '<div style="font-size: 48px; margin-bottom: 20px;">🗺️</div>' +
+        '<div style="font-size: 18px; margin-bottom: 10px;">' + title + '</div>' +
+        '<div style="font-size: 14px; color: #94a3b8; margin-bottom: 10px;">' + message + '</div>' +
+        '<button onclick="location.reload()" style="margin-top: 20px; padding: 10px 20px; background: #f97316; color: white; border: none; border-radius: 8px; cursor: pointer;">إعادة المحاولة</button>' +
+        '</div>';
     }
   }
   
@@ -1113,44 +1683,324 @@ body {
     }
     
     if (layer) {
+      // Preserve current map state before adding new layer
+      var currentCenter = map.getCenter();
+      var currentZoom = map.getZoom();
+      
       layer.addTo(map);
+      
+      // Restore map position after layer change
+      map.setView(currentCenter, currentZoom);
     }
     
     currentLayer = layerType;
   }
   
   function addMarkers(properties) {
-    markerCluster.clearLayers();
+    // Clear existing polygons from map
+    map.eachLayer(function(layer) {
+      if (layer instanceof L.Polygon) {
+        map.removeLayer(layer);
+      }
+      if (layer instanceof L.Marker && layer.getIcon().options.className === 'polygon-label') {
+        map.removeLayer(layer);
+      }
+    });
     
-    properties.forEach(function(p) {
-      var marker = createCustomMarker(p);
-      marker.on('click', function() {
-        selectProperty(p);
-      });
-      markerCluster.addLayer(marker);
+    if (!properties || properties.length === 0) {
+      console.log('No properties to add polygons for');
+      return;
+    }
+    
+    var validProperties = properties.filter(function(p) {
+      return p && p.lat && p.lng && !isNaN(p.lat) && !isNaN(p.lng);
+    });
+    
+    console.log('Adding polygons for ' + validProperties.length + ' valid properties out of ' + properties.length);
+    
+    validProperties.forEach(function(p) {
+      try {
+        var polygon = createCustomMarker(p);
+        polygon.on('click', function() {
+          selectProperty(p);
+        });
+        polygon.addTo(map);
+      } catch (error) {
+        console.error('Error adding polygon for property ' + p.id, error);
+      }
     });
   }
   
+  function filterMapMarkers(category) {
+    console.log('Filtering map polygons for category:', category);
+    
+    // Remove all polygons first
+    map.eachLayer(function(layer) {
+      if (layer instanceof L.Polygon) {
+        map.removeLayer(layer);
+      }
+      if (layer instanceof L.Marker && layer.getIcon().options.className === 'polygon-label') {
+        map.removeLayer(layer);
+      }
+    });
+    
+    // Filter properties based on category
+    var filteredProperties = propertiesData.filter(function(p) {
+      return p.category === category;
+    });
+    
+    console.log('Adding filtered polygons:', filteredProperties.length);
+    
+    // Add filtered polygons
+    filteredProperties.forEach(function(p) {
+      try {
+        var polygon = createCustomMarker(p);
+        polygon.on('click', function() {
+          selectProperty(p);
+        });
+        polygon.addTo(map);
+      } catch (error) {
+        console.error('Error adding filtered polygon for property ' + p.id, error);
+      }
+    });
+    
+    // Update filter title
+    var filterTitle = document.getElementById('filter-title');
+    if (filterTitle) {
+      var categoryNames = {
+        'property': 'العقارات',
+        'hotel': 'الفنادق',
+        'resort': 'المنتجعات',
+        'travel': 'شركات السفر',
+        'job': 'الوظائف',
+        'construction': 'البناء',
+        'service': 'الخدمات',
+        'auction': 'المزادات'
+      };
+      filterTitle.textContent = categoryNames[category] || 'الكل';
+    }
+  }
+  
+  function togglePolygonMode() {
+    // Toggle between polygon (land plot) mode and marker mode
+    var isPolygonMode = !window.polygonMode;
+    window.polygonMode = isPolygonMode;
+    
+    // Clear current layers
+    map.eachLayer(function(layer) {
+      if (layer instanceof L.Polygon || (layer instanceof L.Marker && layer.getIcon().options.className === 'polygon-label')) {
+        map.removeLayer(layer);
+      }
+    });
+    
+    // Re-add markers with the current mode
+    if (isPolygonMode) {
+      addMarkers(propertiesData);
+      alert('تم تفعيل وضع مخطط الأراضي');
+    } else {
+      // Switch back to marker mode if needed
+      alert('تم تفعيل وضع Marker العادي');
+    }
+  }
+
+  function updateMarkersBasedOnZoom(zoomLevel) {
+    // Adjust polygon visibility based on zoom level
+    var polygons = [];
+    map.eachLayer(function(layer) {
+      if (layer instanceof L.Polygon) {
+        polygons.push(layer);
+      }
+    });
+    
+    polygons.forEach(function(polygon, index) {
+      // Show all polygons at high zoom levels
+      if (zoomLevel >= 16) {
+        polygon.setStyle({ opacity: 1, fillOpacity: 0.4 });
+      }
+      // Show fewer at medium zoom levels
+      else if (zoomLevel >= 14) {
+        if (index % 2 !== 0) {
+          polygon.setStyle({ opacity: 0.3, fillOpacity: 0.1 });
+        } else {
+          polygon.setStyle({ opacity: 1, fillOpacity: 0.4 });
+        }
+      }
+      // Show very few at low zoom levels
+      else if (zoomLevel >= 12) {
+        if (index % 4 !== 0) {
+          polygon.setStyle({ opacity: 0.3, fillOpacity: 0.1 });
+        } else {
+          polygon.setStyle({ opacity: 1, fillOpacity: 0.4 });
+        }
+      }
+      // Hide most at very low zoom levels
+      else {
+        if (index % 8 !== 0) {
+          polygon.setStyle({ opacity: 0.1, fillOpacity: 0.05 });
+        } else {
+          polygon.setStyle({ opacity: 1, fillOpacity: 0.4 });
+        }
+      }
+    });
+    
+    // Update label visibility similarly
+    var labels = [];
+    map.eachLayer(function(layer) {
+      if (layer instanceof L.Marker && layer.getIcon().options.className === 'polygon-label') {
+        labels.push(layer);
+      }
+    });
+    
+    labels.forEach(function(label, index) {
+      if (zoomLevel >= 16) {
+        label.setOpacity(1);
+      } else if (zoomLevel >= 14) {
+        label.setOpacity(index % 2 === 0 ? 1 : 0.3);
+      } else if (zoomLevel >= 12) {
+        label.setOpacity(index % 4 === 0 ? 1 : 0.3);
+      } else {
+        label.setOpacity(index % 8 === 0 ? 1 : 0.1);
+      }
+    });
+  }
+
   function createCustomMarker(property) {
-    var categoryIcon = categoryIcons[property.category] || '🏠';
-    var statusClass = property.status || 'sale';
-    
-    var icon = L.divIcon({
-      className: 'custom-marker ' + statusClass,
-      html: '<div class="custom-marker ' + statusClass + '">' + categoryIcon + ' ' + formatPrice(property.price) + '</div>',
-      iconSize: [100, 35],
-      iconAnchor: [50, 17]
-    });
-    
-    var marker = L.marker([property.lat, property.lng], { icon: icon });
-    
-    var popupContent = createPopupContent(property);
-    marker.bindPopup(popupContent, {
-      maxWidth: 400,
-      className: 'property-popup'
-    });
-    
-    return marker;
+    try {
+      var categoryIcon = categoryIcons[property.category] || '🏠';
+      var statusClass = property.status || 'sale';
+      
+      // Check if property has polygon coordinates
+      if (property.polygon_coordinates && property.polygon_coordinates.coordinates) {
+        // Create polygon from actual boundaries
+        var coordinates = property.polygon_coordinates.coordinates[0].map(function(coord) {
+          return [coord[1], coord[0]]; // GeoJSON uses [lng, lat], Leaflet uses [lat, lng]
+        });
+        
+        var polygon = L.polygon(coordinates, {
+          color: '#ff7a00',
+          weight: 2,
+          fillColor: getPropertyColor(property.status),
+          fillOpacity: 0.4,
+          className: 'property-polygon ' + statusClass
+        });
+        
+        // Calculate center for label
+        var bounds = polygon.getBounds();
+        var center = bounds.getCenter();
+        
+        // Create label with house number or property number
+        var labelText = property.house_number || property.property_plot_number || property.property_number || '';
+        
+        if (labelText) {
+          var labelIcon = L.divIcon({
+            className: 'polygon-label',
+            html: '<div class="polygon-label-content">' + labelText + '</div>',
+            iconSize: [60, 30],
+            iconAnchor: [30, 15]
+          });
+          
+          var labelMarker = L.marker(center, { icon: labelIcon, interactive: false });
+          labelMarker.addTo(map);
+        }
+        
+        // Store property data on polygon
+        polygon.propertyData = property;
+        
+        // Add click event
+        polygon.on('click', function() {
+          selectProperty(property);
+        });
+        
+        // Add hover effect
+        polygon.on('mouseover', function() {
+          this.setStyle({ weight: 4, fillOpacity: 0.6 });
+        });
+        
+        polygon.on('mouseout', function() {
+          this.setStyle({ weight: 2, fillOpacity: 0.4 });
+        });
+        
+        return polygon;
+      } else {
+        // Create default rectangular polygon from coordinates
+        var lat = property.lat;
+        var lng = property.lng;
+        var plotArea = property.plot_area || property.area || 100; // Default 100m² if not specified
+        
+        // Calculate approximate polygon from center point and area
+        var sideLength = Math.sqrt(plotArea); // Roughly square plot
+        var halfSide = (sideLength / 2) / 111000; // Convert meters to degrees (roughly)
+        
+        var polygonCoords = [
+          [lat + halfSide, lng - halfSide],
+          [lat + halfSide, lng + halfSide],
+          [lat - halfSide, lng + halfSide],
+          [lat - halfSide, lng - halfSide]
+        ];
+        
+        var polygon = L.polygon(polygonCoords, {
+          color: '#ff7a00',
+          weight: 2,
+          fillColor: getPropertyColor(property.status),
+          fillOpacity: 0.4,
+          className: 'property-polygon ' + statusClass
+        });
+        
+        // Create label with house number or property number
+        var labelText = property.house_number || property.property_plot_number || property.property_number || '';
+        
+        if (labelText) {
+          var labelIcon = L.divIcon({
+            className: 'polygon-label',
+            html: '<div class="polygon-label-content">' + labelText + '</div>',
+            iconSize: [60, 30],
+            iconAnchor: [30, 15]
+          });
+          
+          var labelMarker = L.marker([lat, lng], { icon: labelIcon, interactive: false });
+          labelMarker.addTo(map);
+        }
+        
+        // Store property data on polygon
+        polygon.propertyData = property;
+        
+        // Add click event
+        polygon.on('click', function() {
+          selectProperty(property);
+        });
+        
+        // Add hover effect
+        polygon.on('mouseover', function() {
+          this.setStyle({ weight: 4, fillOpacity: 0.6 });
+        });
+        
+        polygon.on('mouseout', function() {
+          this.setStyle({ weight: 2, fillOpacity: 0.4 });
+        });
+        
+        return polygon;
+      }
+    } catch (error) {
+      console.error('Error creating polygon for property ' + property.id, error);
+      // Return a simple marker as fallback
+      return L.marker([property.lat, property.lng]);
+    }
+  }
+  
+  function getPropertyColor(status) {
+    switch(status) {
+      case 'sale':
+      case 'published':
+        return '#22c55e';
+      case 'rent':
+        return '#3b82f6';
+      case 'auction':
+        return '#ef4444';
+      case 'draft':
+        return '#6b7280';
+      default:
+        return '#ff7a00';
+    }
   }
   
   function createPopupContent(property) {
@@ -1162,6 +2012,7 @@ body {
       <div class="property-popup">
         <img src="${image}" class="popup-image" alt="${property.title}">
         <div class="popup-content">
+          ${property.house_number ? '<div class="popup-house-number">🏠 رقم الدار: ' + property.house_number + '</div>' : ''}
           <div class="popup-price">${formatPrice(property.price)} ${property.currency || 'IQD'}</div>
           <div class="popup-title">${categoryIcon} ${property.title}</div>
           <div class="popup-details">
@@ -1198,17 +2049,29 @@ body {
   
   function loadPropertyList(properties) {
     var container = document.getElementById('properties-list');
-    container.innerHTML = '';
-    
-    if (properties.length === 0) {
-      container.innerHTML = '<div style="text-align: center; padding: 20px; color: rgba(255, 255, 255, 0.5);">لا توجد عقارات للعرض</div>';
+    if (!container) {
+      console.error('Properties list container not found');
       return;
     }
     
-    properties.forEach(function(p) {
-      var card = createPropertyCard(p);
-      container.appendChild(card);
-    });
+    container.innerHTML = '';
+    
+    if (!properties || properties.length === 0) {
+      container.innerHTML = '<div style="text-align: center; padding: 20px; color: rgba(255, 122, 0, 0.5);">لا توجد عقارات للعرض</div>';
+      return;
+    }
+    
+    try {
+      properties.forEach(function(p) {
+        if (p && p.id) {
+          var card = createPropertyCard(p);
+          container.appendChild(card);
+        }
+      });
+    } catch (error) {
+      console.error('Error loading property list:', error);
+      container.innerHTML = '<div style="text-align: center; padding: 20px; color: #ff6b35;">حدث خطأ أثناء تحميل قائمة العقارات</div>';
+    }
   }
   
   function createPropertyCard(property) {
@@ -1230,15 +2093,13 @@ body {
       <div class="property-info">
         <div class="property-price">${formatPrice(property.price)} ${property.currency || 'IQD'}</div>
         <div class="property-title">${categoryIcon} ${property.title}</div>
-        <div class="property-location">📍 ${property.governorate || ''} - ${property.city || ''} - ${property.district || ''}</div>
+        <div class="property-location">📍 ${property.governorate || ''} - ${property.city || ''}</div>
         <div class="property-details">
           <span class="property-detail">📐 ${property.area || 0} م²</span>
           <span class="property-detail">🛏️ ${property.bedrooms || 0} غرفة</span>
-          <span class="property-detail">🚿 ${property.bathrooms || 0} حمام</span>
         </div>
         <div class="property-meta">
-          <span>👁️ ${property.views || 0} مشاهدة</span>
-          <span>📅 ${property.created_at || ''}</span>
+          <span>👁️ ${property.views || 0}</span>
         </div>
       </div>
     `;
@@ -1279,12 +2140,15 @@ body {
   }
   
   function applyFilters() {
+    console.log('applyFilters called');
     showLoading();
     
     var filters = {
       governorate: document.getElementById('filter-governorate').value,
       city: document.getElementById('filter-city').value,
       district: document.getElementById('filter-district').value,
+      country: document.getElementById('filter-country').value,
+      foreign_country: document.getElementById('filter-foreign-country').value,
       category: document.getElementById('filter-category').value,
       status: document.getElementById('filter-status').value,
       price_min: document.getElementById('filter-price-min').value,
@@ -1303,13 +2167,17 @@ body {
       featured: document.getElementById('filter-featured').checked
     };
     
+    console.log('Filters:', filters);
     loadFilteredProperties(filters);
   }
   
   function resetFilters() {
+    console.log('resetFilters called');
+    document.getElementById('filter-country').value = 'العراق';
     document.getElementById('filter-governorate').value = '';
     document.getElementById('filter-city').value = '';
     document.getElementById('filter-district').value = '';
+    document.getElementById('filter-foreign-country').value = '';
     document.getElementById('filter-category').value = '';
     document.getElementById('filter-status').value = '';
     document.getElementById('filter-price-min').value = '';
@@ -1327,6 +2195,10 @@ body {
     document.getElementById('filter-video').checked = false;
     document.getElementById('filter-featured').checked = false;
     document.getElementById('search-input').value = '';
+    
+    // Reset country filter display
+    document.getElementById('governorate-group').style.display = 'block';
+    document.getElementById('foreign-country-group').style.display = 'none';
     
     loadInitialProperties();
   }
@@ -1348,7 +2220,7 @@ body {
       
       if (data.properties.length === 0) {
         document.getElementById('properties-list').innerHTML = 
-          '<div style="text-align: center; padding: 20px; color: rgba(255, 255, 255, 0.5);">لا توجد عقارات مطابقة للفلاتر</div>';
+          '<div style="text-align: center; padding: 20px; color: rgba(255, 122, 0, 0.5);">لا توجد عقارات مطابقة للفلاتر</div>';
       }
     })
     .catch(error => {
@@ -1396,7 +2268,7 @@ body {
         L.marker([lat, lng], {
           icon: L.divIcon({
             className: 'user-location-marker',
-            html: '<div style="background: #ff6b35; width: 20px; height: 20px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.3);"></div>',
+            html: '<div style="background: #f97316; width: 20px; height: 20px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.3);"></div>',
             iconSize: [20, 20],
             iconAnchor: [10, 10]
           })
@@ -1415,6 +2287,148 @@ body {
     if (governorateCoords[governorate]) {
       var coords = governorateCoords[governorate];
       map.setView(coords, 10);
+    }
+  }
+  
+  function selectCountry(country) {
+    console.log('selectCountry called with:', country);
+    
+    // Update button states
+    document.querySelectorAll('.country-toggle-btn').forEach(btn => {
+      btn.classList.remove('active');
+      if (btn.dataset.country === country) {
+        btn.classList.add('active');
+      }
+    });
+    
+    // Handle filter visibility
+    var governorateGroup = document.getElementById('governorate-group');
+    var foreignCountryGroup = document.getElementById('foreign-country-group');
+    
+    if (country === 'خارج العراق') {
+      governorateGroup.style.display = 'none';
+      foreignCountryGroup.style.display = 'block';
+    } else {
+      governorateGroup.style.display = 'block';
+      foreignCountryGroup.style.display = 'none';
+    }
+    
+    // Update hidden country filter
+    var countryFilter = document.getElementById('filter-country');
+    if (countryFilter) {
+      countryFilter.value = country;
+    }
+    
+    // Reload properties with new country filter
+    applyFilters();
+  }
+  
+  function selectCategory(category) {
+    console.log('selectCategory called with:', category);
+    
+    // Update category card states
+    document.querySelectorAll('.category-card').forEach(card => {
+      card.classList.remove('active');
+      if (card.dataset.category === category) {
+        card.classList.add('active');
+      }
+    });
+    
+    // Store selected category
+    window.selectedCategory = category;
+    
+    // Filter map markers based on category
+    filterMapMarkers(category);
+    
+    // Update filter section title
+    var filterTitle = document.getElementById('filter-section-title');
+    if (filterTitle) {
+      var categoryNames = {
+        'property': '🔍 فلاتر العقارات',
+        'hotel': '🔍 فلاتر الفنادق',
+        'resort': '🔍 فلاتر المنتجعات',
+        'travel': '🔍 فلاتر السفر',
+        'job': '🔍 فلاتر الوظائف',
+        'construction': '🔍 فلاتر البناء',
+        'service': '🔍 فلاتر الخدمات',
+        'auction': '🔍 فلاتر المزادات'
+      };
+      filterTitle.textContent = categoryNames[category] || '🔍 فلاتر';
+    }
+    
+    // Platform Navigation Registry - Based on actual Django routes
+    var platformRoutes = {
+      'property': {
+        inside: '{% url "category_inside_iraq" %}',
+        outside: '{% url "properties_outside_iraq" %}',
+        create: '{% url "dynamic_add_property" %}'
+      },
+      'hotel': {
+        list: '{% url "hotels_list" %}',
+        inside: '{% url "category_hotels" %}',
+        outside: '{% url "category_hotels_outside" %}',
+        createInside: '{% url "hotel_create_inside_iraq" %}',
+        createOutside: '{% url "hotel_create_outside_iraq" %}'
+      },
+      'resort': {
+        list: '{% url "resorts_list" %}',
+        category: '{% url "category_resorts" %}',
+        inside: '{% url "resorts_inside_iraq" %}',
+        outside: '{% url "resorts_outside_iraq" %}',
+        createInside: '{% url "resort_create_inside_iraq" %}',
+        createOutside: '{% url "resort_create_outside_iraq" %}'
+      },
+      'travel': {
+        list: '{% url "travel_companies" %}',
+        create: '{% url "dallal_travel_company_create" %}'
+      },
+      'job': {
+        list: '{% url "jobs_list" %}',
+        create: '{% url "job_post" %}'
+      },
+      'service': {
+        list: '{% url "public_service_advertisements" %}',
+        create: '{% url "create_service_advertisement" %}'
+      },
+      'auction': {
+        list: '{% url "auctions_list" %}',
+        create: '{% url "broker_create_auction" %}'
+      }
+    };
+    
+    // Navigation logic
+    if (category === 'property') {
+      // Stay on map for properties - show filters
+      console.log('Showing properties on map');
+      return;
+    }
+    
+    // Navigate to appropriate page for other categories
+    var route = platformRoutes[category];
+    if (route) {
+      console.log('Route found for category:', category, route);
+      // For list pages, navigate to list
+      if (route.list) {
+        console.log('Navigating to list page:', route.list);
+        window.location.href = route.list;
+      } 
+      // For categories with inside/outside, default to list
+      else if (route.inside || route.outside) {
+        if (route.list) {
+          console.log('Navigating to list page:', route.list);
+          window.location.href = route.list;
+        } else if (route.inside) {
+          console.log('Navigating to inside page:', route.inside);
+          window.location.href = route.inside;
+        }
+      }
+      // For single create pages
+      else if (route.create) {
+        console.log('Navigating to create page:', route.create);
+        window.location.href = route.create;
+      }
+    } else {
+      console.error('No route found for category:', category);
     }
   }
   
@@ -1470,14 +2484,30 @@ body {
   }
   
   function addMeasureControl() {
-    measureControl = new L.Control.Measure({
-      position: 'topleft',
-      primaryLengthUnit: 'meters',
-      secondaryLengthUnit: 'kilometers',
-      primaryAreaUnit: 'sqmeters',
-      secondaryAreaUnit: 'hectares'
-    });
-    map.addControl(measureControl);
+    try {
+      // Check if leaflet-measure is loaded
+      if (typeof L.control === 'undefined' || typeof L.control.measure === 'undefined') {
+        console.warn('Leaflet Measure plugin not loaded. Measure control will be unavailable.');
+        return;
+      }
+      
+      // Use the correct API for leaflet-measure
+      measureControl = L.control.measure({
+        position: 'topleft',
+        primaryLengthUnit: 'meters',
+        secondaryLengthUnit: 'kilometers',
+        primaryAreaUnit: 'sqmeters',
+        secondaryAreaUnit: 'hectares',
+        localization: 'ar'
+      });
+      
+      map.addControl(measureControl);
+      console.log('Measure control added successfully');
+      
+    } catch (error) {
+      console.error('Error adding measure control:', error);
+      // Continue without measure control - map should still work
+    }
   }
   
   function measureDistance() {
@@ -1513,16 +2543,12 @@ body {
             1.0: 'red'
           }
         }).addTo(map);
-        
-        // Hide markers when heatmap is active
-        markerCluster.setOpacity(0.3);
       }
     } else {
       if (heatLayer) {
         map.removeLayer(heatLayer);
         heatLayer = null;
       }
-      markerCluster.setOpacity(1);
     }
   }
   
@@ -1535,10 +2561,10 @@ body {
     var comparisonHtml = '<div style="max-height: 400px; overflow-y: auto; padding: 20px;">';
     comparisonHtml += '<h3 style="color: white; margin-bottom: 15px;">مقارنة العقارات (' + comparisonList.length + ')</h3>';
     comparisonHtml += '<table style="width: 100%; border-collapse: collapse; color: white;">';
-    comparisonHtml += '<tr style="background: rgba(255, 107, 53, 0.2);"><th>العقار</th><th>السعر</th><th>المساحة</th><th>غرف</th><th>الإجراء</th></tr>';
+    comparisonHtml += '<tr style="background: rgba(255, 122, 0, 0.2);"><th>العقار</th><th>السعر</th><th>المساحة</th><th>غرف</th><th>الإجراء</th></tr>';
     
     comparisonList.forEach(function(comp) {
-      comparisonHtml += '<tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.1);">';
+      comparisonHtml += '<tr style="border-bottom: 1px solid rgba(255, 122, 0, 0.2);">';
       comparisonHtml += '<td>' + comp.title + '</td>';
       comparisonHtml += '<td>' + formatPrice(comp.price) + '</td>';
       comparisonHtml += '<td>' + comp.area + ' م²</td>';
@@ -1613,9 +2639,13 @@ body {
   
   function toggleFullscreen() {
     if (!document.fullscreenElement) {
-      document.documentElement.requestFullscreen();
+      document.documentElement.requestFullscreen().catch(err => {
+        console.log(`Error attempting to enable fullscreen: ${err.message}`);
+      });
     } else {
-      document.exitFullscreen();
+      if (document.exitFullscreen) {
+        document.exitFullscreen();
+      }
     }
   }
   
@@ -1635,7 +2665,8 @@ body {
         return p.title.toLowerCase().includes(query) ||
                (p.governorate && p.governorate.toLowerCase().includes(query)) ||
                (p.city && p.city.toLowerCase().includes(query)) ||
-               (p.district && p.district.toLowerCase().includes(query));
+               (p.district && p.district.toLowerCase().includes(query)) ||
+               (p.house_number && p.house_number.toLowerCase().includes(query));
       });
       
       if (matches.length > 0) {
@@ -1643,10 +2674,13 @@ body {
         matches.slice(0, 5).forEach(function(match) {
           var item = document.createElement('div');
           item.className = 'suggestion-item';
-          item.textContent = match.title + ' - ' + (match.governorate || '') + ' - ' + (match.city || '');
+          var displayText = match.house_number ? 
+            match.house_number + ' - ' + match.title + ' - ' + (match.governorate || '') + ' - ' + (match.city || '') :
+            match.title + ' - ' + (match.governorate || '') + ' - ' + (match.city || '');
+          item.textContent = displayText;
           item.onclick = function() {
             selectProperty(match);
-            searchInput.value = match.title;
+            searchInput.value = displayText;
             suggestions.classList.remove('show');
           };
           suggestions.appendChild(item);
@@ -1654,6 +2688,29 @@ body {
         suggestions.classList.add('show');
       } else {
         suggestions.classList.remove('show');
+      }
+    });
+    
+    // Add support for searching by house number with "دار" prefix
+    searchInput.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') {
+        var query = this.value.toLowerCase();
+        
+        // Check if searching for house number
+        var houseNumberMatch = query.match(/(?:دار|house)?\s*(\d+)/);
+        if (houseNumberMatch) {
+          var houseNumber = houseNumberMatch[1];
+          var property = propertiesData.find(function(p) {
+            return p.house_number === houseNumber;
+          });
+          
+          if (property) {
+            selectProperty(property);
+            searchInput.value = property.house_number + ' - ' + property.title;
+            suggestions.classList.remove('show');
+            return;
+          }
+        }
       }
     });
     
@@ -1665,14 +2722,59 @@ body {
   }
   
   function initSortButtons() {
+    console.log('initSortButtons called');
     var sortButtons = document.querySelectorAll('.sort-btn[data-sort]');
+    console.log('Found sort buttons:', sortButtons.length);
     sortButtons.forEach(function(btn) {
       btn.addEventListener('click', function() {
+        console.log('Sort button clicked:', this.dataset.sort);
         sortButtons.forEach(function(b) { b.classList.remove('active'); });
         this.classList.add('active');
         
         var sortBy = this.dataset.sort;
         sortProperties(sortBy);
+      });
+    });
+    
+    // Initialize filter buttons by ID
+    var applyFiltersBtn = document.getElementById('apply-filters-btn');
+    var resetFiltersBtn = document.getElementById('reset-filters-btn');
+    
+    if (applyFiltersBtn) {
+      applyFiltersBtn.addEventListener('click', function(e) {
+        console.log('Apply filters button clicked');
+        e.preventDefault();
+        applyFilters();
+      });
+    }
+    
+    if (resetFiltersBtn) {
+      resetFiltersBtn.addEventListener('click', function(e) {
+        console.log('Reset filters button clicked');
+        e.preventDefault();
+        resetFilters();
+      });
+    }
+    
+    // Initialize category buttons
+    var categoryButtons = document.querySelectorAll('.category-card');
+    console.log('Found category buttons:', categoryButtons.length);
+    categoryButtons.forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var category = this.dataset.category;
+        console.log('Category button clicked:', category);
+        selectCategory(category);
+      });
+    });
+    
+    // Initialize country toggle buttons
+    var countryButtons = document.querySelectorAll('.country-toggle-btn');
+    console.log('Found country buttons:', countryButtons.length);
+    countryButtons.forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var country = this.dataset.country;
+        console.log('Country button clicked:', country);
+        selectCountry(country);
       });
     });
   }
@@ -1776,13 +2878,53 @@ body {
   }
   
   // Initialize on load
-  if (typeof L !== 'undefined') {
-    initMap();
-  } else {
-    console.error('Leaflet not loaded');
-    document.getElementById('properties-map').innerHTML = 
-      '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #ff6b35;">' +
-      '<div>تعذر تحميل الخريطة. يرجى تحديث الصفحة.</div></div>';
+  document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM loaded, initializing map...');
+    
+    // Check if Leaflet is loaded
+    if (typeof L === 'undefined') {
+      console.error('Leaflet not loaded');
+      var mapContainer = document.getElementById('properties-map');
+      if (mapContainer) {
+        mapContainer.innerHTML = 
+          '<div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: #ff6b35; padding: 20px; text-align: center;">' +
+          '<div style="font-size: 48px; margin-bottom: 20px;">🗺️</div>' +
+          '<div style="font-size: 18px; margin-bottom: 10px;">تعذر تحميل مكتبة الخريطة</div>' +
+          '<div style="font-size: 14px; color: #888;">يرجى التحقق من اتصال الإنترنت والمحاولة مرة أخرى</div>' +
+          '<button onclick="location.reload()" style="margin-top: 20px; padding: 10px 20px; background: #ff6b35; color: white; border: none; border-radius: 8px; cursor: pointer;">إعادة المحاولة</button>' +
+          '</div>';
+      }
+      return;
+    }
+    
+    // Check if map container exists
+    var mapContainer = document.getElementById('properties-map');
+    if (!mapContainer) {
+      console.error('Map container not found');
+      return;
+    }
+    
+    // Initialize map
+    try {
+      initMap();
+    } catch (error) {
+      console.error('Error during map initialization:', error);
+      mapContainer.innerHTML = 
+        '<div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: #ff6b35; padding: 20px; text-align: center;">' +
+        '<div style="font-size: 48px; margin-bottom: 20px;">⚠️</div>' +
+        '<div style="font-size: 18px; margin-bottom: 10px;">حدث خطأ أثناء تحميل الخريطة</div>' +
+        '<div style="font-size: 14px; color: #888;">' + error.message + '</div>' +
+        '<button onclick="location.reload()" style="margin-top: 20px; padding: 10px 20px; background: #ff6b35; color: white; border: none; border-radius: 8px; cursor: pointer;">إعادة المحاولة</button>' +
+        '</div>';
+    }
+  });
+  
+  // Fallback if DOMContentLoaded already fired
+  if (document.readyState === 'complete' || document.readyState === 'interactive') {
+    console.log('Document already loaded, initializing map immediately');
+    if (typeof L !== 'undefined') {
+      initMap();
+    }
   }
 })();
 </script>

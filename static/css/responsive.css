@@ -27,6 +27,13 @@
     padding: 0 var(--spacing-md);
   }
 
+  /* PWA Install Button on Mobile */
+  #pwa-install-btn {
+    font-size: 0.8rem;
+    padding: 6px 12px;
+    gap: 4px;
+  }
+
   .nav-links {
     display: none;
   }
@@ -84,10 +91,44 @@
   .footer-content {
     grid-template-columns: 1fr;
     gap: var(--spacing-lg);
+    text-align: center;
+  }
+
+  .footer-brand,
+  .footer-links-section,
+  .footer-contact-section {
+    text-align: center;
+  }
+
+  .footer-social {
+    justify-content: center;
+  }
+
+  .footer-links,
+  .footer-contact {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .footer {
+    padding: 40px 20px 20px;
+    margin-top: 40px;
+  }
+
+  .footer-bottom {
+    padding: 15px 0;
+    font-size: 0.85rem;
   }
 
   .mobile-bottom-nav {
     display: flex;
+    justify-content: space-around;
+  }
+  
+  .mobile-bottom-nav .bottom-nav-item {
+    flex: 1;
+    text-align: center;
   }
 
   body {
@@ -144,10 +185,31 @@
 
   .footer-content {
     grid-template-columns: repeat(2, 1fr);
+    gap: var(--spacing-xl);
+  }
+
+  .footer-brand {
+    grid-column: span 2;
+    text-align: center;
+  }
+
+  .footer-links-section,
+  .footer-contact-section {
+    text-align: center;
+  }
+
+  .footer {
+    padding: 50px 30px 30px;
   }
 
   .mobile-bottom-nav {
     display: flex;
+    justify-content: space-around;
+  }
+  
+  .mobile-bottom-nav .bottom-nav-item {
+    flex: 1;
+    text-align: center;
   }
 
   body {
@@ -182,6 +244,42 @@
 
   .hero-search {
     grid-template-columns: 2fr 1fr 1fr 1fr auto;
+  }
+
+  .footer-content {
+    grid-template-columns: 2fr 1fr 1fr;
+    gap: 48px;
+  }
+
+  .footer-brand {
+    text-align: left;
+  }
+
+  .footer-logo {
+    justify-content: flex-start;
+  }
+
+  .footer-social {
+    justify-content: flex-start;
+  }
+
+  .footer-links-section,
+  .footer-contact-section {
+    text-align: left;
+  }
+
+  .footer-links,
+  .footer-contact {
+    display: block;
+  }
+
+  .footer-links li,
+  .footer-contact li {
+    margin-bottom: 12px;
+  }
+
+  .footer {
+    padding: 60px 0 30px;
   }
 
   .hide-desktop {
@@ -235,6 +333,15 @@
 
   .section {
     padding: var(--spacing-3xl) 0;
+  }
+
+  .footer-content {
+    grid-template-columns: 2fr 1fr 1fr;
+    gap: 60px;
+  }
+
+  .footer {
+    padding: 80px 0 40px;
   }
 
   h1 { font-size: var(--text-6xl); }

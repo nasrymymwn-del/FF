@@ -5,7 +5,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#0B0B0B">
-  <title>الموقع تحت الصيانة - {{ site_settings.site_name|default:'دلال' }}</title>
+  <title>الموقع تحت الصيانة - {% if site_settings %}{{ site_settings.site_name }}{% else %}دلال{% endif %}</title>
   <link rel="icon" type="image/svg+xml" href="{% static 'images/favicon.svg' %}">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

@@ -1,12 +1,33 @@
 from django.urls import path
+from django.views.generic import RedirectView
+from django.http import FileResponse
+from django.shortcuts import render
+from django.conf import settings
+from pathlib import Path
 
-from . import views, api, broker_views, dallal_views, otp_views
+from . import views, api, broker_views, dallal_views, otp_views, channel_views, ai_chatbot_views, ai_admin_views, api_views, ai_gateway_api
 try:
     from . import api_views_enterprise as api_enterprise
 except ImportError:
     api_enterprise = None
 
+
+def service_worker_view(request):
+    """Serve service worker from root so it can control the whole origin."""
+    sw_path = Path(settings.BASE_DIR) / 'static' / 'js' / 'sw.js'
+    response = FileResponse(open(sw_path, 'rb'), content_type='application/javascript')
+    response['Service-Worker-Allowed'] = '/'
+    response['Cache-Control'] = 'no-cache'
+    return response
+
+
+def offline_view(request):
+    return render(request, 'properties/offline.html')
+
+
 urlpatterns = [
+    path('sw.js', service_worker_view, name='service_worker'),
+    path('offline/', offline_view, name='offline'),
     # Existing template-based routes
     path('', views.home, name='home'),
     path('property/<str:slug>/', views.property_detail, name='property_detail'),
@@ -16,8 +37,16 @@ urlpatterns = [
     path('explore/', views.explore_view, name='explore'),
     path('properties-outside-iraq/', views.properties_outside_iraq_view, name='properties_outside_iraq'),
     path('search/', views.unified_search_view, name='unified_search'),
+    path('services-categories/', views.service_categories_view, name='service_categories'),
+    path('navigation-error/', views.navigation_error_view, name='navigation_error'),
+    # Job opportunities
+    path('jobs/', views.jobs_view, name='jobs'),
+    path('jobs/post/', views.job_create, name='job_post'),
+    path('jobs/create/', RedirectView.as_view(url='/jobs/post/', permanent=False)),
+    path('jobs/<str:slug>/', views.job_detail_view, name='job_detail'),
+    path('jobs/<str:slug>/apply/', views.job_apply_view, name='job_apply'),
     # Channel pages
-    path('channels/', views.channels_view, name='channels'),
+    path('channels/', channel_views.ChannelListView.as_view(), name='channel_list'),
     path('channel/brokers/', views.channel_brokers_view, name='channel_brokers'),
     path('channel/users/', views.channel_users_view, name='channel_users'),
     path('channel/admin/', views.channel_admin_view, name='channel_admin'),
@@ -36,6 +65,7 @@ urlpatterns = [
     path('broker-channel/review/<int:review_id>/helpful/', broker_views.channel_review_helpful, name='channel_review_helpful'),
     path('broker-channel/review/<int:review_id>/reply/', broker_views.channel_review_reply, name='channel_review_reply'),
     path('channels/search/', broker_views.channel_search, name='channel_search'),
+    path('brokers/search/', broker_views.public_broker_search, name='public_broker_search'),
     path('broker-channel/management/', broker_views.channel_management, name='channel_management'),
     path('explore/like/<int:property_id>/', views.like_property, name='like_property'),
     path('explore/save/<int:property_id>/', views.save_property, name='save_property'),
@@ -47,9 +77,9 @@ urlpatterns = [
     path('virtual-tour/point/add/<int:tour_id>/', views.add_tour_point, name='add_tour_point'),
     path('virtual-tour/point/edit/<int:point_id>/', views.edit_tour_point, name='edit_tour_point'),
     path('virtual-tour/point/delete/<int:point_id>/', views.delete_tour_point, name='delete_tour_point'),
-    path('broker/building-requests/', views.broker_building_requests, name='broker_building_requests'),
+
     path('broker/standalone-settings/', views.broker_standalone_settings, name='broker_standalone_settings'),
-    path('broker/<str:username>/', views.broker_profile, name='broker_profile'),
+    path('broker/auctions/', views.broker_auctions, name='broker_auctions'),
     path('d/<slug:slug>/', views.broker_standalone_page, name='broker_standalone_page'),
     path('login/', views.login_view, name='login'),
     path('register/', views.register_view, name='register'),
@@ -62,9 +92,44 @@ urlpatterns = [
     path('otp/verification/', otp_views.otp_verification_page, name='otp_verification'),
     path('otp/resend/', otp_views.resend_otp_view, name='resend_otp'),
     # Admin Panel
-    path('admin-panel/', views.admin_panel, name='admin_panel'),
+    path('admin-panel/', views.admin_panel_enhanced, name='admin_panel'),
+    path('admin-panel/legacy/', views.admin_panel, name='admin_panel_legacy'),
+    path('admin-panel/brokers/', views.admin_brokers_management, name='admin_brokers_management'),
     path('admin-panel/contact/', views.admin_contact_view, name='admin_contact'),
+    path('admin-panel/contact/quick-search/', views.quick_search_users, name='quick_search_users'),
     path('admin-panel/users/', views.admin_users_list, name='admin_users_list'),
+    path('admin-panel/properties/', views.admin_properties_advanced, name='admin_properties_list'),
+    path('admin-panel/subscriptions/', views.admin_subscriptions_advanced, name='admin_subscriptions_list'),
+    path('admin-panel/notifications/', views.admin_notifications_advanced, name='admin_notifications_list'),
+    path('admin-panel/monitoring/', views.admin_realtime_monitoring, name='admin_realtime_monitoring'),
+    path('admin-panel/analytics/', views.admin_analytics_panel, name='admin_analytics_panel'),
+    path('admin-panel/reports/', views.admin_reports_panel, name='admin_reports_panel'),
+    # API endpoints for admin
+    path('api/users/<int:user_id>/toggle-status/', views.api_toggle_user_status, name='api_toggle_user_status'),
+    path('api/users/<int:user_id>/delete/', views.api_delete_user, name='api_delete_user'),
+    path('api/users/bulk-actions/', views.api_bulk_user_actions, name='api_bulk_user_actions'),
+    path('api/properties/<int:property_id>/approve/', views.api_approve_property, name='api_approve_property'),
+    path('api/properties/<int:property_id>/toggle-featured/', views.api_toggle_featured_property, name='api_toggle_featured_property'),
+    path('api/properties/<int:property_id>/delete/', views.api_delete_property, name='api_delete_property'),
+    path('api/monitoring/realtime/', views.api_realtime_monitoring, name='api_realtime_monitoring'),
+    path('api/brokers/<int:broker_id>/verify/', views.api_broker_verify, name='api_broker_verify'),
+    path('api/brokers/<int:broker_id>/delete/', views.api_broker_delete, name='api_broker_delete'),
+    path('api/brokers/<int:broker_id>/toggle-status/', views.api_broker_toggle_status, name='api_broker_toggle_status'),
+    
+    # API endpoints for messaging
+    path('api/users/search/', views.api_user_search, name='api_user_search'),
+    path('api/users/<int:user_id>/profile/', views.api_user_profile, name='api_user_profile'),
+    path('api/conversations/check/', views.api_check_conversation, name='api_check_conversation'),
+    path('api/conversations/create/', views.api_create_conversation, name='api_create_conversation'),
+    path('api/conversations/<uuid:conversation_id>/send/', views.api_send_message, name='api_send_message'),
+    path('api/conversations/<int:conversation_id>/export/', views.api_export_conversation, name='api_export_conversation'),
+    path('api/calls/signaling/', views.api_call_signaling, name='api_call_signaling'),
+    path('api/translate/', views.api_translate_message, name='api_translate_message'),
+    path('api/location/share/', views.api_share_location, name='api_share_location'),
+    path('api/messages/upload-attachments/', views.api_upload_attachments, name='api_upload_attachments'),
+    path('api/properties/search/', views.api_search_properties, name='api_search_properties'),
+    path('api/ratings/submit/', views.api_submit_rating, name='api_submit_rating'),
+    path('api/appointments/create/', views.api_create_appointment, name='api_create_appointment'),
     path('admin-panel/bulk-messaging/', views.admin_bulk_messaging, name='admin_bulk_messaging'),
     # Messaging System
     path('messages/', views.conversations_list, name='conversations_list'),
@@ -80,8 +145,10 @@ urlpatterns = [
     path('admin-panel/users/<int:user_id>/reset-password/', views.admin_reset_password, name='admin_reset_password'),
     path('admin-panel/users/<int:user_id>/change-type/', views.admin_change_user_type, name='admin_change_user_type'),
     path('settings/', views.user_settings, name='user_settings'),
+    path('settings/enhanced/', views.settings_hub_enhanced_view, name='settings_enhanced'),
     path('settings/profile/', views.user_settings_profile, name='user_settings_profile'),
     path('settings/security/', views.user_settings_security, name='user_settings_security'),
+    path('settings/security/revoke-device/<int:device_id>/', views.revoke_device_access, name='revoke_device'),
     path('settings/social/', views.social_settings, name='social_settings'),
     path('settings/notifications/', views.user_settings_notifications, name='user_settings_notifications'),
     path('settings/privacy/', views.user_settings_privacy, name='user_settings_privacy'),
@@ -97,6 +164,10 @@ urlpatterns = [
     path('subscription-plans/', views.subscription_plans, name='subscription_plans'),
     path('user-dashboard/', views.user_dashboard, name='user_dashboard'),
     path('dashboard/', views.dashboard, name='dashboard'),
+    path('dashboard/my-posts/', views.my_posts, name='my_posts'),
+    path('dashboard/advanced-reports/', views.advanced_reports, name='advanced_reports'),
+    path('api/property/<int:property_id>/toggle-featured/', views.toggle_property_featured, name='toggle_property_featured'),
+    path('api/property/<int:property_id>/toggle-promoted/', views.toggle_property_promoted, name='toggle_property_promoted'),
     path('dashboard/settings/', views.update_site_settings, name='update_site_settings'),
     path('dashboard/settings/general/', views.settings_general, name='settings_general'),
     path('dashboard/settings/theme/', views.settings_theme, name='settings_theme'),
@@ -128,23 +199,16 @@ urlpatterns = [
     path('admin-panel/content-moderation/broker/<int:broker_id>/unsuspend/', views.unsuspend_broker, name='unsuspend_broker'),
     # User Monitoring
     path('admin-panel/user-monitoring/', views.user_monitoring_view, name='user_monitoring'),
+    path('admin-panel/user-monitoring/<int:user_id>/details/', views.user_details_api, name='user_details_api'),
     path('admin-panel/user-monitoring/<int:user_id>/delete/', views.delete_user, name='delete_user'),
     path('admin-panel/user-monitoring/<int:user_id>/suspend/', views.suspend_user, name='suspend_user'),
     path('admin-panel/user-monitoring/<int:user_id>/unsuspend/', views.unsuspend_user, name='unsuspend_user'),
     path('admin-panel/user-monitoring/<int:user_id>/restrict/', views.restrict_user, name='restrict_user'),
     path('admin-panel/user-monitoring/<int:user_id>/unrestrict/', views.unrestrict_user, name='unrestrict_user'),
     path('admin-panel/user-monitoring/<int:user_id>/warn/', views.warn_user, name='warn_user'),
-    # Building Requests
-    path('broker/building-requests/create/', views.broker_create_building_request, name='broker_create_building_request'),
-    path('broker/building-requests/', views.broker_building_requests, name='broker_building_requests'),
-    path('building-request/<int:request_id>/', views.building_request_detail, name='building_request_detail'),
-    path('building-request/<int:request_id>/contact/', views.building_request_contact, name='building_request_contact'),
-    path('admin-panel/building-requests/', views.admin_building_requests, name='admin_building_requests'),
-    path('admin-panel/building-requests/<int:request_id>/approve/', views.admin_approve_building_request, name='admin_approve_building_request'),
-    path('admin-panel/building-requests/<int:request_id>/reject/', views.admin_reject_building_request, name='admin_reject_building_request'),
+
     # Auctions
     path('broker/auctions/create/', views.broker_create_auction, name='broker_create_auction'),
-    path('broker/auctions/', views.broker_auctions, name='broker_auctions'),
     path('auction/<int:auction_id>/', views.auction_detail, name='auction_detail'),
     path('auction/<int:auction_id>/join/', views.auction_join, name='auction_join'),
     path('auction/<int:auction_id>/live/', views.auction_live, name='auction_live'),
@@ -159,6 +223,8 @@ urlpatterns = [
     path('dashboard/my-channel/', views.my_channel_view, name='my_channel'),
     path('dashboard/my-channel/post/create/', views.create_channel_post, name='create_channel_post'),
     path('dashboard/my-channel/video/create/', views.create_channel_video, name='create_channel_video'),
+    path('dashboard/my-channel/media/update/', views.update_channel_media, name='update_channel_media'),
+    path('api/channel/update-media/', views.channel_update_media_api, name='channel_update_media_api'),
     path('post/<int:post_id>/like/', views.toggle_post_like, name='toggle_post_like'),
     path('video/<int:video_id>/like/', views.toggle_video_like, name='toggle_video_like'),
     path('channel/<int:channel_id>/', views.channel_public_view, name='channel_public'),
@@ -174,6 +240,51 @@ urlpatterns = [
     path('api/subscription-request/<int:request_id>/approve/', views.subscription_request_approve_api, name='subscription_request_approve_api'),
     path('api/subscription-request/<int:request_id>/reject/', views.subscription_request_reject_api, name='subscription_request_reject_api'),
     path('api/subscription-request/create/', views.subscription_request_create_api, name='subscription_request_create_api'),
+    # Broker management API
+    path('api/brokers/<int:broker_id>/toggle-status/', views.api_broker_toggle_status, name='api_broker_toggle_status'),
+    path('api/brokers/<int:broker_id>/verify/', views.api_broker_verify, name='api_broker_verify'),
+    path('api/brokers/<int:broker_id>/delete/', views.api_broker_delete, name='api_broker_delete'),
+    path('api/brokers/bulk-verify/', views.api_broker_bulk_verify, name='api_broker_bulk_verify'),
+    path('api/brokers/bulk-activate/', views.api_broker_bulk_activate, name='api_broker_bulk_activate'),
+    path('api/brokers/bulk-deactivate/', views.api_broker_bulk_deactivate, name='api_broker_bulk_deactivate'),
+    # AI Chatbot API - Redirected to AI Gateway for unification
+    path('api/chatbot/', ai_gateway_api.ai_chat, name='ai_chatbot_api'),
+    path('api/chatbot/confirmation/', ai_chatbot_views.ai_confirmation_api, name='ai_confirmation_api'),
+    path('api/chatbot/feedback/', ai_chatbot_views.ai_feedback_api, name='ai_feedback_api'),
+    path('api/chatbot/correction/', ai_chatbot_views.ai_correction_api, name='ai_correction_api'),
+    path('api/chatbot/statistics/', ai_chatbot_views.ai_statistics_api, name='ai_statistics_api'),
+    
+    # Production AI API
+    path('api/ai/chat/', api_views.ai_chat_production_api, name='ai_chat_production_api'),
+    path('api/ai/conversations/', api_views.ai_conversation_history_api, name='ai_conversation_history_api'),
+    path('api/ai/conversation/persist/', api_views.ai_conversation_persistence_api, name='ai_conversation_persistence_api'),
+    path('api/ai/conversation/restore/', api_views.ai_conversation_restore_api, name='ai_conversation_restore_api'),
+    path('api/ai/saved-search/', api_views.ai_saved_search_api, name='ai_saved_search_api'),
+    path('api/ai/saved-searches/', api_views.ai_saved_searches_api, name='ai_saved_searches_api'),
+    path('api/ai/property-alert/', api_views.ai_property_alert_api, name='ai_property_alert_api'),
+    path('api/ai/user-analytics/', api_views.ai_user_analytics_api, name='ai_user_analytics_api'),
+    path('api/ai/property-comparison/', api_views.ai_property_comparison_api, name='ai_property_comparison_api'),
+    path('api/ai/buyer-profile/', api_views.ai_buyer_profile_create_api, name='ai_buyer_profile_create_api'),
+    path('api/ai/buyer-profile/get/', api_views.ai_buyer_profile_get_api, name='ai_buyer_profile_get_api'),
+    path('api/ai/recommendations/', api_views.ai_recommendations_api, name='ai_recommendations_api'),
+    
+    # AI Admin
+    path('admin/ai/', ai_admin_views.ai_admin_dashboard, name='ai_admin_dashboard'),
+    path('admin/ai/training-examples/', ai_admin_views.ai_training_examples, name='ai_training_examples'),
+    path('admin/ai/review-examples/', ai_admin_views.ai_review_examples, name='ai_review_examples'),
+    path('admin/ai/unknown-queries/', ai_admin_views.ai_unknown_queries, name='ai_unknown_queries'),
+    path('admin/ai/model-versions/', ai_admin_views.ai_model_versions, name='ai_model_versions'),
+    path('admin/ai/knowledge-base/', ai_admin_views.ai_knowledge_base, name='ai_knowledge_base'),
+    path('api/ai/analytics/', ai_admin_views.ai_analytics_api, name='ai_analytics_api'),
+    path('api/ai/dataset-export/', ai_admin_views.ai_dataset_export_api, name='ai_dataset_export_api'),
+    path('api/ai/train-model/', ai_admin_views.ai_train_model_api, name='ai_train_model_api'),
+    path('api/ai/health/', ai_admin_views.ai_health_check_api, name='ai_health_check_api'),
+    path('api/ai/user-correction/', ai_admin_views.ai_user_correction_api, name='ai_user_correction_api'),
+    path('api/ai/data-augmentation/', ai_admin_views.ai_data_augmentation_api, name='ai_data_augmentation_api'),
+    path('api/ai/model-evaluation/', ai_admin_views.ai_model_evaluation_api, name='ai_model_evaluation_api'),
+    path('api/ai/debug-mode/', ai_admin_views.ai_debug_mode_api, name='ai_debug_mode_api'),
+    path('api/ai/debug-data/', ai_admin_views.ai_debug_data_api, name='ai_debug_data_api'),
+    path('api/ai/ab-testing/', ai_admin_views.ai_ab_testing_config_api, name='ai_ab_testing_config_api'),
     path('dashboard/settings/payments/', views.settings_payments, name='settings_payments'),
     path('dashboard/settings/security/', views.settings_security, name='settings_security'),
     path('dashboard/settings/reports/', views.settings_reports, name='settings_reports'),
@@ -184,6 +295,8 @@ urlpatterns = [
     path('dashboard/settings/maintenance/', views.settings_maintenance, name='settings_maintenance'),
     path('dashboard/settings/oauth-diagnostics/', views.social_auth_diagnostics, name='social_auth_diagnostics'),
     path('dashboard/add/', views.add_property, name='add_property'),
+    path('dashboard/add/enhanced/', views.enhanced_add_property, name='enhanced_add_property'),
+    path('dashboard/add/outside/enhanced/', views.enhanced_add_outside_property, name='enhanced_add_outside_property'),
     path('dashboard/edit/<int:property_id>/', views.edit_property, name='edit_property'),
     path('dashboard/delete/<int:property_id>/', views.delete_property, name='delete_property'),
     path('dashboard/statistics/', views.property_statistics, name='property_statistics'),
@@ -200,6 +313,12 @@ urlpatterns = [
     path('messages/send/', views.send_user_message, name='send_user_message'),
     path('messages/send/<int:broker_id>/', views.send_user_message, name='send_user_message_to_broker'),
     path('messages/delete/<int:message_id>/', views.delete_user_message, name='delete_user_message'),
+    # Broker conversation routes
+    path('broker-conversations/', views.broker_conversation_list, name='broker_conversation_list'),
+    path('broker-conversations/<uuid:conversation_id>/', views.broker_conversation_detail, name='broker_conversation_detail'),
+    path('broker-conversations/start/<int:broker_id>/', views.start_broker_conversation, name='start_broker_conversation'),
+    path('broker-messages/', views.broker_message_list, name='broker_message_list'),
+    path('broker-messages/<uuid:conversation_id>/', views.broker_message_detail, name='broker_message_detail'),
     # Property view commissions
     path('dashboard/commissions/view/', broker_views.property_view_commissions, name='property_view_commissions'),
     path('dashboard/commissions/view/pay/<int:property_id>/', broker_views.pay_property_view_commission, name='pay_property_view_commission'),
@@ -211,6 +330,7 @@ urlpatterns = [
     path('dashboard/property/<int:property_id>/virtual-tour/add/', views.add_virtual_tour, name='add_virtual_tour'),
     path('dashboard/virtual-tour/<int:tour_id>/delete/', views.delete_virtual_tour, name='delete_virtual_tour'),
     path('dashboard/property/<int:property_id>/auction/add/', views.add_auction, name='add_auction'),
+    path('dashboard/auction/<int:auction_id>/edit/', views.edit_auction, name='edit_auction'),
     path('dashboard/auction/<int:auction_id>/delete/', views.delete_auction, name='delete_auction'),
     path('auctions/', views.auctions_list, name='auctions_list'),
     path('auction/<int:auction_id>/', views.auction_detail_view, name='auction_detail'),
@@ -229,6 +349,11 @@ urlpatterns = [
     
     # Tourism section
     path('hotels/', views.hotels_list, name='hotels_list'),
+    path('hotels/create/', views.hotel_create, name='hotel_create'),
+    path('hotels/create/inside-iraq/', views.hotel_create_inside_iraq, name='hotel_create_inside_iraq'),
+    path('hotels/create/outside-iraq/', views.hotel_create_outside_iraq, name='hotel_create_outside_iraq'),
+    path('hotels/<int:hotel_id>/update/', views.hotel_update, name='hotel_update'),
+    path('hotels/<int:hotel_id>/delete/', views.hotel_delete, name='hotel_delete'),
     path('resorts/', views.resorts_list, name='resorts_list'),
     path('resorts/create/', views.resort_create, name='resort_create'),
     path('resorts/<slug:slug>/', views.resort_detail, name='resort_detail'),
@@ -251,12 +376,21 @@ urlpatterns = [
     path('travel-companies/', views.travel_companies_view, name='travel_companies'),
     path('travel-companies/<int:pk>/', views.travel_company_detail, name='travel_company_detail'),
     
+    # Travel packages
+    path('travel-packages/', views.travel_package_list, name='travel_packages'),
+    path('travel-packages/<int:pk>/<slug:slug>/', views.travel_package_detail, name='travel_package_detail'),
+    path('travel-packages/create/<int:company_id>/', views.travel_package_create, name='travel_package_create'),
+    path('travel-packages/<int:pk>/update/', views.travel_package_update, name='travel_package_update'),
+    path('travel-packages/<int:pk>/delete/', views.travel_package_delete, name='travel_package_delete'),
+    
     # Resorts inside Iraq
     path('resorts-inside-iraq/', views.resorts_inside_iraq_view, name='resorts_inside_iraq'),
+    path('resorts-inside-iraq/create/', views.resort_create_inside_iraq, name='resort_create_inside_iraq'),
     path('resorts-inside-iraq/<int:pk>/', views.resort_inside_detail, name='resort_inside_detail'),
     
     # Resorts outside Iraq
     path('resorts-outside-iraq/', views.resorts_outside_iraq_view, name='resorts_outside_iraq'),
+    path('resorts-outside-iraq/create/', views.resort_create_outside_iraq, name='resort_create_outside_iraq'),
     path('resorts-outside-iraq/<int:pk>/', views.resort_outside_detail, name='resort_outside_detail'),
     
     # Dynamic property addition
@@ -269,33 +403,61 @@ urlpatterns = [
     path('dashboard/financial/payment/add/<int:transaction_id>/', views.add_payment, name='add_payment'),
     path('dashboard/financial/wallet/', views.wallet_details, name='wallet_details'),
     path('dashboard/financial/reports/', views.financial_reports, name='financial_reports'),
-    path('building-request/create/', views.building_request_create, name='building_request_create'),
-    path('building-request/<int:request_id>/', views.building_request_detail, name='building_request_detail'),
-    path('building-requests/', views.building_request_list, name='building_request_list'),
-    path('building-requests/public/', views.public_building_requests, name='public_building_requests'),
+
     # Service Providers
     path('service-provider/register/', views.service_provider_register, name='service_provider_register'),
     path('service-provider/dashboard/', views.service_provider_dashboard, name='service_provider_dashboard'),
     path('service-provider/advertisement/create/', views.create_service_advertisement, name='create_service_advertisement'),
+    path('service-provider/advertisement/<int:ad_id>/edit/', views.edit_service_advertisement, name='edit_service_advertisement'),
+    path('service-provider/advertisement/<int:ad_id>/delete/', views.delete_service_advertisement, name='delete_service_advertisement'),
     path('services/', views.public_service_advertisements, name='public_service_advertisements'),
     path('services/<int:ad_id>/', views.service_advertisement_detail, name='service_advertisement_detail'),
     path('services/<int:ad_id>/contact/', views.contact_service_provider, name='contact_service_provider'),
-    path('building-request/<int:request_id>/land-info/', views.building_request_add_land_info, name='building_request_add_land_info'),
-    path('building-request/<int:request_id>/building-details/', views.building_request_add_building_details, name='building_request_add_building_details'),
-    path('building-request/<int:request_id>/budget/', views.building_request_add_budget, name='building_request_add_budget'),
-    path('building-request/<int:request_id>/quote/', views.building_request_add_quote, name='building_request_add_quote'),
-    path('building-request/<int:request_id>/contractor-bid/', views.building_request_add_contractor_bid, name='building_request_add_contractor_bid'),
-    path('building-request/<int:request_id>/contractor-rating/', views.building_request_add_contractor_rating, name='building_request_add_contractor_rating'),
+
+    
+    # Jobs / Employment
+    path('jobs/', views.jobs_list, name='jobs_list'),
+    path('jobs/create/', views.job_create, name='job_create'),
+    path('jobs/my/', views.my_jobs, name='my_jobs'),
+    path('jobs/<int:pk>/edit/', views.job_edit, name='job_edit'),
+    path('jobs/<int:pk>/delete/', views.job_delete, name='job_delete'),
+    path('jobs/<int:pk>/', views.job_detail, name='job_detail'),
+
     path('send-message/', views.send_message, name='send_message'),
     path('report/', views.submit_report, name='submit_report'),
     path('dashboard/reports/', views.report_list, name='report_list'),
     path('dashboard/reports/<int:report_id>/', views.report_detail, name='report_detail'),
     path('dashboard/messages/', views.broker_messages_list, name='broker_messages'),
+    path('dashboard/messages/create/', views.create_conversation_view, name='create_conversation'),
+    path('dashboard/messages/send/', views.send_message_view, name='send_message'),
     path('subscription/renewal/', views.subscription_renewal_request, name='subscription_renewal_request'),
     path('admin-panel/subscription-renewals/', views.subscription_renewal_requests_list, name='subscription_renewal_requests_list'),
     path('api/subscription-renewal/<int:request_id>/approve/', views.approve_subscription_renewal, name='approve_subscription_renewal'),
     path('api/subscription-renewal/<int:request_id>/reject/', views.reject_subscription_renewal, name='reject_subscription_renewal'),
+    path('api/statistics/', views.statistics_api, name='statistics_api'),
+    path('api/chart/growth/', views.chart_growth_data, name='chart_growth_data'),
+    path('api/chart/property-distribution/', views.chart_property_distribution, name='chart_property_distribution'),
+    path('api/chart/broker-performance/', views.chart_broker_performance, name='chart_broker_performance'),
+    path('api/chart/revenue/', views.chart_revenue, name='chart_revenue'),
+    path('api/chart/geographic/', views.chart_geographic, name='chart_geographic'),
+    path('api/chart/user-activity/', views.chart_user_activity, name='chart_user_activity'),
+    path('api/users/all/', views.all_users_api, name='all_users_api'),
+    path('api/conversations/check/', views.api_check_conversation, name='api_check_conversation'),
+    path('api/conversations/create/', views.api_create_conversation, name='api_create_conversation'),
+    path('api/notifications/unread/', views.api_notifications_unread, name='api_notifications_unread'),
+    
+    # Developer Panel APIs
+    path('api/developer/environment-info/', views.developer_environment_info, name='developer_environment_info'),
+    path('api/developer/run-migrations/', views.developer_run_migrations, name='developer_run_migrations'),
+    path('api/developer/collect-static/', views.developer_collect_static, name='developer_collect_static'),
+    path('api/developer/clear-sessions/', views.developer_clear_sessions, name='developer_clear_sessions'),
+    path('api/developer/test-database/', views.developer_test_database, name='developer_test_database'),
+    path('api/developer/clear-cache/', views.developer_clear_cache, name='developer_clear_cache'),
+    path('api/developer/create-superuser/', views.developer_create_superuser, name='developer_create_superuser'),
+    path('api/developer/system-logs/', views.developer_system_logs, name='developer_system_logs'),
+    path('api/developer/restart-server/', views.developer_restart_server, name='developer_restart_server'),
     path('admin-panel/user-monitoring-panel/', views.user_monitoring_panel, name='user_monitoring_panel'),
+    path('admin-panel/subscription-renewals/', views.subscription_renewal_requests_list, name='subscription_renewal_requests_list'),
     path('admin-panel/user-monitoring-panel/<int:user_id>/', views.user_monitoring_detail, name='user_monitoring_detail'),
     path('dashboard/messages/<int:message_id>/', views.broker_message_detail, name='broker_message_detail'),
     path('dashboard/messages/<int:message_id>/archive/', views.archive_message, name='archive_message'),
@@ -317,7 +479,7 @@ urlpatterns = [
     path('api/conversations/<uuid:conversation_id>/', views.api_conversation_detail, name='api_conversation_detail'),
     path('api/conversations/<uuid:conversation_id>/star/', views.api_conversation_star, name='api_conversation_star'),
     path('api/conversations/<uuid:conversation_id>/archive/', views.api_conversation_archive, name='api_conversation_archive'),
-    path('api/conversations/<uuid:conversation_id>/messages/', views.api_send_message, name='api_send_message'),
+    path('api/conversations/<uuid:conversation_id>/messages/', views.api_send_message, name='api_send_message_uuid'),
     path('api/upload-attachment/', views.api_upload_attachment, name='api_upload_attachment'),
     path('api/attach-property/', views.api_attach_property, name='api_attach_property'),
     path('dashboard/settings/message-notifications/', views.message_notification_settings, name='message_notification_settings'),
@@ -349,7 +511,6 @@ urlpatterns = [
     path('admin-panel/notifications/create/', views.admin_create_notification, name='admin_create_notification'),
     path('admin-panel/notifications/<int:notification_id>/', views.admin_notification_detail, name='admin_notification_detail'),
     path('admin-panel/notifications/<int:notification_id>/edit/', views.admin_edit_notification, name='admin_edit_notification'),
-    path('admin-panel/notifications/<int:notification_id>/send/', views.admin_send_notification, name='admin_send_notification'),
     path('admin-panel/notifications/<int:notification_id>/resend/', views.admin_resend_notification, name='admin_resend_notification'),
     path('admin-panel/notifications/<int:notification_id>/delete/', views.admin_delete_notification, name='admin_delete_notification'),
 
@@ -403,11 +564,120 @@ urlpatterns = [
     path('dashboard/broker/subscriptions/', broker_views.broker_subscription_stats, name='broker_subscription_stats'),
     path('dashboard/admin/broker-subscriptions/', broker_views.admin_broker_subscriptions, name='admin_broker_subscriptions'),
     
+    # Backup routes
+    path('api/backup/create/', views.create_backup, name='create_backup'),
+    path('api/backup/import/', views.import_backup, name='import_backup'),
+    path('api/backup/<int:backup_id>/restore/', views.restore_backup, name='restore_backup'),
+    path('api/backup/<int:backup_id>/download/', views.download_backup, name='download_backup'),
+    path('api/backup/<int:backup_id>/delete/', views.delete_backup, name='delete_backup'),
+    path('api/backup/<int:backup_id>/verify/', views.verify_backup, name='verify_backup'),
+    path('api/backup/<int:backup_id>/protect/', views.protect_backup, name='protect_backup'),
+    path('api/backup/<int:backup_id>/detail/', views.backup_detail, name='backup_detail'),
+    path('api/backup/list/', views.backup_list, name='backup_list'),
+    
+    # System Settings routes
+    path('api/system/settings/', views.system_settings, name='system_settings'),
+    path('api/system/clear_cache/', views.clear_cache, name='clear_cache'),
+    path('api/system/restart_server/', views.restart_server, name='restart_server'),
+    path('api/system/advanced_settings/', views.advanced_settings, name='advanced_settings'),
+    path('api/system/diagnostics/', views.system_diagnostics, name='system_diagnostics'),
+    path('api/system/emergency_shutdown/', views.emergency_shutdown, name='emergency_shutdown'),
+
+    # User management routes
+    path('api/users/<int:user_id>/toggle_status/', views.toggle_user_status, name='toggle_user_status'),
+    path('api/users/<int:user_id>/details/', views.user_details_api, name='user_details_api'),
+    path('api/users/export/', views.export_users, name='export_users'),
+
+    # Property management routes
+    path('api/properties/<int:property_id>/approve/', views.approve_property_api, name='approve_property_api'),
+    path('api/properties/<int:property_id>/reject/', views.reject_property_api, name='reject_property_api'),
+
+    # Analytics routes
+    path('api/analytics/growth/', views.analytics_growth_data, name='analytics_growth'),
+    path('api/analytics/property-distribution/', views.analytics_property_distribution, name='analytics_property_distribution'),
+    path('api/analytics/broker-performance/', views.analytics_broker_performance, name='analytics_broker_performance'),
+    path('api/analytics/revenue/', views.analytics_revenue, name='analytics_revenue'),
+    path('api/analytics/geographic/', views.analytics_geographic, name='analytics_geographic'),
+    path('api/analytics/user-activity/', views.analytics_user_activity, name='analytics_user_activity'),
+    path('api/analytics/performance/', views.analytics_performance, name='analytics_performance'),
+
+    # Dashboard stats routes
+    path('api/dashboard/stats/', views.dashboard_stats, name='dashboard_stats'),
+    path('api/dashboard/recent-activity/', views.recent_activity, name='recent_activity'),
+    
+    # Dedicated dashboard APIs for each user type
+    path('api/dashboard/admin/', views.admin_dashboard_api, name='admin_dashboard_api'),
+    path('api/dashboard/broker/', views.broker_dashboard_api, name='broker_dashboard_api'),
+    path('api/dashboard/user/', views.user_dashboard_api, name='user_dashboard_api'),
+
+    # Advanced features routes
+    path('api/notifications/advanced/', views.advanced_notifications, name='advanced_notifications'),
+    path('api/performance/monitoring/', views.performance_monitoring, name='performance_monitoring'),
+    path('api/financial/reports/', views.financial_reports, name='financial_reports'),
+    path('api/support/tickets/', views.support_tickets, name='support_tickets'),
+    path('api/audit/log/', views.audit_log, name='audit_log'),
+    path('api/api-keys/', views.api_keys_management, name='api_keys_management'),
+    path('api/developer/tools/', views.developer_tools, name='developer_tools'),
+    path('api/search/advanced/', views.advanced_search, name='advanced_search'),
+
+    # New advanced features routes
+    path('api/tasks/management/', views.task_management, name='task_management'),
+    path('api/reports/scheduling/', views.report_scheduling, name='report_scheduling'),
+    path('api/files/management/', views.file_management, name='file_management'),
+    path('api/server/logs/', views.server_logs, name='server_logs'),
+    path('api/database/management/', views.database_management, name='database_management'),
+    path('api/security/monitoring/', views.security_monitoring, name='security_monitoring'),
+    path('api/subscriptions/advanced/', views.subscription_management_advanced, name='subscription_management_advanced'),
+    path('api/data/analytics/', views.data_analytics, name='data_analytics'),
+
+    # New advanced features routes (round 2)
+    path('api/media/management/', views.media_management, name='media_management'),
+    path('api/messaging/advanced/', views.advanced_messaging, name='advanced_messaging'),
+    path('api/email/management/', views.email_management, name='email_management'),
+    path('api/access/control/', views.access_control, name='access_control'),
+    path('api/crm/management/', views.crm_management, name='crm_management'),
+    path('api/automation/management/', views.automation_management, name='automation_management'),
+    path('api/integrations/management/', views.integrations_management, name='integrations_management'),
+    path('api/performance/reports/', views.performance_reports, name='performance_reports'),
+
+    # New advanced features routes (round 3)
+    path('api/surveys/management/', views.survey_management, name='survey_management'),
+    path('api/queue/management/', views.queue_management, name='queue_management'),
+    path('api/invoices/management/', views.invoice_management, name='invoice_management'),
+    path('api/inventory/management/', views.inventory_management, name='inventory_management'),
+    path('api/transportation/management/', views.transportation_management, name='transportation_management'),
+    path('api/contracts/management/', views.contract_management, name='contract_management'),
+    path('api/documents/management/', views.document_management, name='document_management'),
+    path('api/events/management/', views.event_management, name='event_management'),
+
+    # Real Estate Specific routes
+    path('api/real-estate/properties/', views.property_management_advanced, name='property_management_advanced'),
+    path('api/real-estate/clients/', views.clients_management, name='clients_management'),
+    path('api/real-estate/offers/', views.offers_management, name='offers_management'),
+    path('api/real-estate/auctions/', views.live_auctions_management, name='live_auctions_management'),
+    path('api/real-estate/schedules/', views.schedules_management, name='schedules_management'),
+    path('api/real-estate/contracts/', views.contracts_real_estate, name='contracts_real_estate'),
+    path('api/real-estate/contracts/<int:contract_id>/', views.contract_detail, name='contract_detail'),
+    path('api/real-estate/contracts/<int:contract_id>/update/', views.contract_update, name='contract_update'),
+    path('api/real-estate/contracts/<int:contract_id>/delete/', views.contract_delete, name='contract_delete'),
+    path('api/real-estate/contracts/<int:contract_id>/approve/', views.contract_approve, name='contract_approve'),
+    path('api/real-estate/payments/', views.payments_commissions, name='payments_commissions'),
+    path('api/real-estate/maps/', views.geographic_maps, name='geographic_maps'),
+    path('api/advanced/reports/', views.advanced_reports_management, name='advanced_reports_management'),
+
     # Dallal system routes
     path('dashboard/dallal/settings/', dallal_views.dallal_settings, name='dallal_settings'),
     path('dashboard/dallal/subscriptions/', dallal_views.dallal_subscriptions_list, name='dallal_subscriptions_list'),
     path('dashboard/dallal/subscriptions/create/', dallal_views.dallal_subscription_create, name='dallal_subscription_create'),
     path('dashboard/dallal/subscriptions/<int:subscription_id>/edit/', dallal_views.dallal_subscription_edit, name='dallal_subscription_edit'),
+    
+    # Dallal travel companies routes
+    path('dashboard/dallal/travel-companies/create/', dallal_views.dallal_travel_company_create, name='dallal_travel_company_create'),
+    path('dashboard/dallal/travel-companies/<int:company_id>/edit/', dallal_views.dallal_travel_company_edit, name='dallal_travel_company_edit'),
+    
+    # Travel company reviews routes
+    path('travel-companies/<int:company_id>/review/create/', dallal_views.travel_company_review_create, name='travel_company_review_create'),
+    path('travel-companies/reviews/<int:review_id>/edit/', dallal_views.travel_company_review_edit, name='travel_company_review_edit'),
     
     # New API endpoints for Next.js frontend
     path('api/health/', api.api_health, name='api_health'),
@@ -470,6 +740,21 @@ urlpatterns = [
     path('service-providers/<slug:slug>/rate/', broker_views.service_provider_rating_create, name='service_provider_rating_create'),
     path('service-providers/<slug:slug>/contact/', broker_views.service_provider_contact, name='service_provider_contact'),
     path('service-providers/<slug:slug>/quote/', broker_views.service_provider_quote, name='service_provider_quote'),
+    
+    # Support Message System
+    path('support/messages/', views.support_message_list, name='support_message_list'),
+    path('support/messages/create/', views.support_message_create, name='support_message_create'),
+    path('support/messages/<int:message_id>/', views.support_message_detail, name='support_message_detail'),
+    path('admin/support/messages/', views.admin_support_message_list, name='admin_support_message_list'),
+    path('admin/support/messages/<int:message_id>/', views.admin_support_message_detail, name='admin_support_message_detail'),
+    
+    # Broker appointments
+    path('broker/<int:broker_id>/appointment/book/', views.broker_appointment_booking, name='broker_appointment_booking'),
+    path('broker/appointments/', views.broker_appointments_list, name='broker_appointments_list'),
+    path('broker/appointments/<int:appointment_id>/', views.broker_appointment_detail, name='broker_appointment_detail'),
+    
+    # Broker profile (must be last as it's a catch-all)
+    path('broker/<str:username>/', views.broker_profile, name='broker_profile'),
 ]
 
 # Enterprise API endpoints (only if available)
@@ -485,3 +770,32 @@ if api_enterprise:
         path('api/v1/keys/', api_enterprise.api_api_keys, name='api_api_keys'),
         path('api/v1/performance/', api_enterprise.api_performance_metrics, name='api_performance_metrics'),
     ]
+
+# Targeted Advertising System
+urlpatterns += [
+    path('advertisements/', views.AdvertisementListView.as_view(), name='advertisement_list'),
+    path('advertisements/<int:ad_id>/', views.AdvertisementDetailView.as_view(), name='advertisement_detail'),
+    path('advertisements/create/', views.create_advertisement, name='create_advertisement'),
+    path('advertisements/<int:ad_id>/update/', views.update_advertisement, name='update_advertisement'),
+    path('advertisements/<int:ad_id>/delete/', views.delete_advertisement, name='delete_advertisement'),
+    path('advertisements/<int:ad_id>/respond/', views.respond_to_advertisement, name='respond_to_advertisement'),
+    path('advertisements/<int:ad_id>/responses/', views.advertisement_responses, name='advertisement_responses'),
+    path('advertisements/responses/<int:response_id>/handle/', views.handle_response, name='handle_response'),
+    path('advertisements/<int:ad_id>/matches/', views.advertisement_matches, name='advertisement_matches'),
+    path('my-advertisements/', views.user_advertisements, name='user_advertisements'),
+    path('advertisements/notification-settings/', views.notification_settings, name='notification_settings'),
+]
+
+# Enhanced Channel System
+urlpatterns += [
+    path('channels/', channel_views.ChannelListView.as_view(), name='channel_list'),
+    path('channels/<int:channel_id>/', channel_views.ChannelDetailView.as_view(), name='channel_detail'),
+    path('channels/<int:channel_id>/dashboard/', channel_views.channel_dashboard, name='channel_dashboard'),
+    path('channels/<int:channel_id>/content/create/', channel_views.create_channel_content, name='create_channel_content'),
+    path('channels/<int:channel_id>/broadcast/create/', channel_views.create_channel_broadcast, name='create_channel_broadcast'),
+    path('channels/<int:channel_id>/subscription/', channel_views.manage_channel_subscription, name='manage_channel_subscription'),
+    path('channels/collaboration/create/', channel_views.create_channel_collaboration, name='create_channel_collaboration'),
+    path('channels/<int:channel_id>/advertisement/create/', channel_views.create_channel_advertisement, name='create_channel_advertisement'),
+    path('channels/<int:channel_id>/follow/', channel_views.follow_channel, name='follow_channel'),
+    path('channels/content/<int:content_id>/like/', channel_views.like_channel_content, name='like_channel_content'),
+]

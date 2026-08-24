@@ -3,6 +3,7 @@
 {% block title %}سجل النشاطات{% endblock %}
 
 {% block content %}
+{% if request.user.is_staff or request.user.is_superuser %}
 <div class="dashboard-container">
   <div class="dashboard-header">
     <div class="header-info">
@@ -119,6 +120,7 @@
     </table>
   </div>
 </div>
+{% endif %}
 
 <style>
 .filter-section {
@@ -293,4 +295,20 @@
   border-bottom: none;
 }
 </style>
+{% endif %}
+{% else %}
+<div class="dashboard-container">
+  <div class="dashboard-header">
+    <div class="header-info">
+      <h1>غير مصرح</h1>
+      <p>ليس لديك صلاحية للوصول إلى سجل النشاطات</p>
+    </div>
+  </div>
+  <div class="alert alert-danger">
+    <h3>⛔ الوصول محدود</h3>
+    <p>هذه الصفحة متاحة فقط للمسؤولين والمشرفين.</p>
+    <a href="{% url 'dashboard' %}" class="btn btn-primary">العودة إلى لوحة التحكم</a>
+  </div>
+</div>
+{% endif %}
 {% endblock %}

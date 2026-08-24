@@ -98,6 +98,11 @@ body {
         {% endif %}
       </div>
       <div class="broker-actions">
+        {% if request.user.is_authenticated %}
+        <a href="{% url 'start_broker_conversation' broker.id %}" class="btn btn-primary" style="background: var(--broker-button);">💬 مراسلة الدلال</a>
+        {% else %}
+        <a href="/login/?next={% url 'start_broker_conversation' broker.id %}" class="btn btn-primary" style="background: var(--broker-button);">💬 مراسلة الدلال</a>
+        {% endif %}
         {% if broker.show_phone and broker.phone %}
         <a href="tel:{{ broker.phone }}" class="btn btn-primary" style="background: var(--broker-button);">📞 اتصل الآن</a>
         {% endif %}

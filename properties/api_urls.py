@@ -11,6 +11,19 @@ from .chat_views import (
     ChatSettingsViewSet, BlockedUserViewSet,
     user_list
 )
+from .ai_multimodal_api import (
+    multimodal_chat, image_similarity_search,
+    cv_job_matching, document_qa, pipeline_statistics
+)
+from .ai_market_orchestrator import market_intelligence_orchestrator
+from .ai_market_api import (
+    market_query, calculate_property_match,
+    match_agents, market_analytics, market_summary
+)
+from .ai_gateway_api import (
+    ai_chat, ai_multimodal, ai_market, ai_autonomous,
+    conversation_state, clear_conversation, ai_chatbot_legacy
+)
 
 
 schema_view = get_schema_view(
@@ -42,4 +55,25 @@ urlpatterns = [
     path('', include(router.urls)),
     path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
     path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
+    # Multimodal AI API endpoints
+    path('ai/multimodal/chat/', multimodal_chat, name='multimodal-chat'),
+    path('ai/multimodal/image-similarity/', image_similarity_search, name='image-similarity'),
+    path('ai/multimodal/cv-matching/', cv_job_matching, name='cv-matching'),
+    path('ai/multimodal/document-qa/', document_qa, name='document-qa'),
+    path('ai/multimodal/statistics/', pipeline_statistics, name='pipeline-statistics'),
+    # Market Intelligence API endpoints
+    path('ai/market/query/', market_query, name='market-query'),
+    path('ai/market/property-match/', calculate_property_match, name='property-match'),
+    path('ai/market/agent-match/', match_agents, name='agent-match'),
+    path('ai/market/analytics/', market_analytics, name='market-analytics'),
+    path('ai/market/summary/', market_summary, name='market-summary'),
+    # Unified AI Gateway endpoints
+    path('ai/chat/', ai_chat, name='ai-chat'),
+    path('ai/multimodal/', ai_multimodal, name='ai-multimodal'),
+    path('ai/market/', ai_market, name='ai-market'),
+    path('ai/autonomous/', ai_autonomous, name='ai-autonomous'),
+    path('ai/conversation/state/', conversation_state, name='conversation-state'),
+    path('ai/conversation/clear/', clear_conversation, name='clear-conversation'),
+    # Legacy endpoint - compatibility wrapper
+    path('chatbot/', ai_chatbot_legacy, name='ai-chatbot-legacy'),
 ]

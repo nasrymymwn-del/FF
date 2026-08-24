@@ -117,14 +117,14 @@
                     {{ ad.description|truncatechars:120 }}
                 </p>
                 
-                <div style="display: flex; gap: 10px;">
+                <div style="display: flex; gap: 10px; flex-direction: column;">
                     <a href="{% url 'service_advertisement_detail' ad.id %}" 
-                       style="flex: 1; padding: 10px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; border-radius: 8px; color: white; text-align: center; text-decoration: none;">
-                        عرض التفاصيل
+                       style="padding: 12px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; border-radius: 8px; color: white; text-align: center; text-decoration: none; font-weight: 600;">
+                        👁️ عرض التفاصيل
                     </a>
                     {% if ad.service_provider.phone %}
                     <a href="tel:{{ ad.service_provider.phone }}" 
-                       style="padding: 10px 20px; background: rgba(255,255,255,0.1); border: none; border-radius: 8px; color: white; text-align: center; text-decoration: none;">
+                       style="padding: 12px; background: rgba(255,255,255,0.1); border: none; border-radius: 8px; color: white; text-align: center; text-decoration: none;">
                         📞 اتصل
                     </a>
                     {% endif %}
@@ -137,6 +137,8 @@
         </div>
         {% endfor %}
     </div>
+
+
 
     <!-- Register as Service Provider Button -->
     <div style="text-align: center; margin-top: 40px;">
@@ -156,6 +158,11 @@
 
 <style>
 .ad-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
+
+.request-card:hover {
     transform: translateY(-5px);
     box-shadow: 0 10px 30px rgba(0,0,0,0.3);
 }

@@ -20,6 +20,7 @@ from .models import (
     Property, Broker, ActivityLog, Notification,
     FinancialTransaction, Expense, Profit
 )
+from .services import SubscriptionService
 
 logger = logging.getLogger('properties')
 

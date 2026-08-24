@@ -3,6 +3,8 @@
 {% block title %}إضافة عقار جديد{% endblock %}
 
 {% block extra_css %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.css" />
 <style>
 .dynamic-form-container {
   max-width: 900px;
@@ -244,6 +246,52 @@
   color: #f87171;
 }
 
+/* Map Layers */
+.map-layers {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 1000;
+  background: rgba(0, 0, 0, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  padding: 6px;
+  display: flex;
+  gap: 6px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  max-width: calc(100% - 32px);
+}
+
+.layer-btn {
+  padding: 8px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  font-weight: 500;
+  flex-shrink: 0;
+  min-width: fit-content;
+}
+
+.layer-btn:hover,
+.layer-btn.active {
+  background: #f97316;
+  border-color: #f97316;
+  color: white;
+  box-shadow: 0 2px 6px rgba(249, 115, 22, 0.4);
+}
+
+.layer-btn:focus {
+  outline: 2px solid #f97316;
+  outline-offset: 2px;
+}
+
 @media (max-width: 768px) {
   .dynamic-form-container {
     margin: 20px;
@@ -280,14 +328,38 @@
         <span class="btn-icon">🌍</span>
         <span class="btn-text">عقارات خارج العراق</span>
       </button>
-      <button type="button" class="category-btn {% if category == 'hotel' %}active{% endif %}" onclick="console.log('Hotel clicked'); selectCategory('hotel')" id="btn-hotel">
-        <span class="btn-icon">🏨</span>
-        <span class="btn-text">فنادق</span>
-      </button>
-      <button type="button" class="category-btn {% if category == 'resort' %}active{% endif %}" onclick="console.log('Resort clicked'); selectCategory('resort')" id="btn-resort">
-        <span class="btn-icon">🏖️</span>
-        <span class="btn-text">منتجعات وأماكن سياحية</span>
-      </button>
+      <a href="{% url 'hotel_create_inside_iraq' %}" class="category-btn" style="text-decoration: none;">
+        <span class="btn-icon">🏨🇮🇶</span>
+        <span class="btn-text">فنادق داخل العراق</span>
+      </a>
+      <a href="{% url 'hotel_create_outside_iraq' %}" class="category-btn" style="text-decoration: none;">
+        <span class="btn-icon">🏨🌍</span>
+        <span class="btn-text">فنادق خارج العراق</span>
+      </a>
+      <a href="{% url 'resort_create_inside_iraq' %}" class="category-btn" style="text-decoration: none;">
+        <span class="btn-icon">🏝️🇮🇶</span>
+        <span class="btn-text">منتجعات داخل العراق</span>
+      </a>
+      <a href="{% url 'resort_create_outside_iraq' %}" class="category-btn" style="text-decoration: none;">
+        <span class="btn-icon">�️🌍</span>
+        <span class="btn-text">منتجعات خارج العراق</span>
+      </a>
+      <a href="{% url 'dallal_travel_company_create' %}" class="category-btn" style="text-decoration: none;">
+        <span class="btn-icon">✈️</span>
+        <span class="btn-text">نشر شركة سفر</span>
+      </a>
+      <a href="{% url 'job_create' %}" class="category-btn" style="text-decoration: none;">
+        <span class="btn-icon">➕</span>
+        <span class="btn-text">نشر وظيفة</span>
+      </a>
+      <a href="{% url 'create_service_advertisement' %}" class="category-btn" style="text-decoration: none;">
+        <span class="btn-icon">🔧</span>
+        <span class="btn-text">نشر خدمة</span>
+      </a>
+      <a href="{% url 'broker_create_auction' %}" class="category-btn" style="text-decoration: none;">
+        <span class="btn-icon">🔨</span>
+        <span class="btn-text">نشر مزاد</span>
+      </a>
     </div>
   </div>
 
@@ -461,19 +533,12 @@
             <option value="واسط">واسط</option>
             <option value="ذي قار">ذي قار</option>
             <option value="ميسان">ميسان</option>
-            <option value="البصرة">البصرة</option>
             <option value="صلاح الدين">صلاح الدين</option>
             <option value="ديالى">ديالى</option>
             <option value="كركوك">كركوك</option>
             <option value="الأنبار">الأنبار</option>
-            <option value="القادسية">القادسية</option>
             <option value="المثنى">المثنى</option>
           </select>
-        </div>
-        
-        <div class="form-group">
-          <label>المدينة</label>
-          <input type="text" name="city" class="form-control">
         </div>
         
         <div class="form-group">
@@ -482,13 +547,101 @@
         </div>
         
         <div class="form-group">
+          <label>الناحية</label>
+          <input type="text" name="subdistrict" class="form-control">
+        </div>
+        
+        <div class="form-group">
+          <label>المدينة</label>
+          <input type="text" name="city" class="form-control">
+        </div>
+        
+        <div class="form-group">
+          <label>المنطقة</label>
+          <input type="text" name="area" class="form-control">
+        </div>
+        
+        <div class="form-group">
+          <label>الحي</label>
+          <input type="text" name="neighborhood" class="form-control">
+        </div>
+        
+        <div class="form-group">
+          <label>المحلة</label>
+          <input type="text" name="mahalla" class="form-control">
+        </div>
+        
+        <div class="form-group">
+          <label>البلوك</label>
+          <input type="text" name="block" class="form-control">
+        </div>
+        
+        <div class="form-group">
           <label>الشارع</label>
           <input type="text" name="street" class="form-control">
         </div>
         
         <div class="form-group">
+          <label>الزقاق</label>
+          <input type="text" name="alley" class="form-control">
+        </div>
+        
+        <div class="form-group">
+          <label>رقم الدار</label>
+          <input type="text" name="house_number" class="form-control">
+        </div>
+        
+        <div class="form-group">
+          <label>رقم العقار</label>
+          <input type="text" name="property_number" class="form-control">
+        </div>
+        
+        <div class="form-group">
           <label>أقرب نقطة دالة</label>
           <input type="text" name="landmark" class="form-control">
+        </div>
+        
+        <div class="form-group">
+          <label>خط العرض</label>
+          <div style="display: flex; gap: 10px;">
+            <input type="number" step="any" name="latitude" class="form-control" placeholder="مثال: 33.3152" id="latitude-input-inside">
+            <button type="button" onclick="getLocationGPSInside()" class="btn btn-secondary" style="white-space: nowrap;">
+              📍 GPS
+            </button>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label>خط الطول</label>
+          <input type="number" step="any" name="longitude" class="form-control" placeholder="مثال: 44.3661" id="longitude-input-inside">
+        </div>
+        
+        <div class="form-group" style="grid-column: span 2;">
+          <label>معاينة الموقع على الخريطة</label>
+          <div style="position: relative;">
+            <div id="location-preview-map-inside" style="height: 300px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.2);"></div>
+            <div class="map-layers">
+              <button type="button" class="layer-btn active" data-layer="osm" onclick="changeMapLayer('inside', 'osm')">OpenStreetMap</button>
+              <button type="button" class="layer-btn" data-layer="satellite" onclick="changeMapLayer('inside', 'satellite')">Satellite</button>
+              <button type="button" class="layer-btn" data-layer="terrain" onclick="changeMapLayer('inside', 'terrain')">Terrain</button>
+              <button type="button" class="layer-btn" data-layer="dark" onclick="changeMapLayer('inside', 'dark')">Dark</button>
+              <button type="button" class="layer-btn" data-layer="hybrid" onclick="changeMapLayer('inside', 'hybrid')">Hybrid</button>
+              <button type="button" class="layer-btn" onclick="toggleMapFullscreen('inside')" title="ملء الشاشة">⛶</button>
+            </div>
+          </div>
+          <p style="font-size: 0.8rem; color: rgba(255,255,255,0.6); margin-top: 5px;">
+            * اضغط على "GPS" لتحديد موقعك تلقائياً أو انقر على الخريطة لتحديد الموقع يدوياً
+          </p>
+        </div>
+        
+        <div class="form-group" style="grid-column: span 2;">
+          <label class="checkbox-label" style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+            <input type="checkbox" name="enable_gps_inside" id="enable-gps-inside" checked>
+            <span>📍 نشر GPS - إظهار الموقع على خريطة المنصة</span>
+          </label>
+          <small style="color: rgba(255,255,255,0.6); display: block; margin-top: 5px;">
+            عند تفعيل هذا الخيار، سيظهر موقع العقار على خريطة المنصة الرئيسية
+          </small>
         </div>
       </div>
       
@@ -864,8 +1017,94 @@
         </div>
         
         <div class="form-group">
+          <label>الحي</label>
+          <input type="text" name="neighborhood" class="form-control">
+        </div>
+        
+        <div class="form-group">
+          <label>المحلة</label>
+          <input type="text" name="mahalla" class="form-control">
+        </div>
+        
+        <div class="form-group">
+          <label>البلوك</label>
+          <input type="text" name="block" class="form-control">
+        </div>
+        
+        <div class="form-group">
+          <label>الشارع</label>
+          <input type="text" name="street" class="form-control">
+        </div>
+        
+        <div class="form-group">
+          <label>الزقاق</label>
+          <input type="text" name="alley" class="form-control">
+        </div>
+        
+        <div class="form-group">
+          <label>رقم الدار</label>
+          <input type="text" name="house_number" class="form-control">
+        </div>
+        
+        <div class="form-group">
+          <label>رقم العقار</label>
+          <input type="text" name="property_number" class="form-control">
+        </div>
+        
+        <div class="form-group">
+          <label>أقرب نقطة دالة</label>
+          <input type="text" name="landmark" class="form-control">
+        </div>
+        
+        <div class="form-group">
           <label>الرمز البريدي</label>
           <input type="text" name="postal_code" class="form-control">
+        </div>
+      </div>
+      
+      <h3 class="section-title" style="font-size: 1.2rem;">الموقع الجغرافي</h3>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>خط العرض</label>
+          <div style="display: flex; gap: 10px;">
+            <input type="number" step="any" name="latitude" class="form-control" placeholder="مثال: 33.3152" id="latitude-input-outside">
+            <button type="button" onclick="getLocationGPSOutside()" class="btn btn-secondary" style="white-space: nowrap;">
+              📍 GPS
+            </button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>خط الطول</label>
+          <input type="number" step="any" name="longitude" class="form-control" placeholder="مثال: 44.3661" id="longitude-input-outside">
+        </div>
+
+        <div class="form-group" style="grid-column: span 2;">
+          <label>معاينة الموقع على الخريطة</label>
+          <div style="position: relative;">
+            <div id="location-preview-map-outside" style="height: 300px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.2);"></div>
+            <div class="map-layers">
+              <button type="button" class="layer-btn active" data-layer="osm" onclick="changeMapLayer('outside', 'osm')">OpenStreetMap</button>
+              <button type="button" class="layer-btn" data-layer="satellite" onclick="changeMapLayer('outside', 'satellite')">Satellite</button>
+              <button type="button" class="layer-btn" data-layer="terrain" onclick="changeMapLayer('outside', 'terrain')">Terrain</button>
+              <button type="button" class="layer-btn" data-layer="dark" onclick="changeMapLayer('outside', 'dark')">Dark</button>
+              <button type="button" class="layer-btn" data-layer="hybrid" onclick="changeMapLayer('outside', 'hybrid')">Hybrid</button>
+              <button type="button" class="layer-btn" onclick="toggleMapFullscreen('outside')" title="ملء الشاشة">⛶</button>
+            </div>
+          </div>
+          <p style="font-size: 0.8rem; color: rgba(255,255,255,0.6); margin-top: 5px;">
+            * اضغط على "GPS" لتحديد موقعك تلقائياً أو انقر على الخريطة لتحديد الموقع يدوياً
+          </p>
+        </div>
+
+        <div class="form-group" style="grid-column: span 2;">
+          <label class="checkbox-label" style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+            <input type="checkbox" name="enable_gps" id="enable-gps-outside" style="width: 20px; height: 20px;">
+            <span>📍 نشر GPS - إظهار الموقع على خريطة المنصة</span>
+          </label>
+          <p style="font-size: 0.8rem; color: rgba(255,255,255,0.6); margin-top: 5px;">
+            عند تفعيل هذا الخيار، سيظهر موقع العقار على خريطة المنصة الرئيسية
+          </p>
         </div>
       </div>
       
@@ -1205,6 +1444,21 @@
         </div>
         
         <div class="form-group">
+          <label>المحافظة</label>
+          <input type="text" name="governorate" class="form-control">
+        </div>
+        
+        <div class="form-group">
+          <label>القضاء</label>
+          <input type="text" name="district" class="form-control">
+        </div>
+        
+        <div class="form-group">
+          <label>الناحية</label>
+          <input type="text" name="subdistrict" class="form-control">
+        </div>
+        
+        <div class="form-group">
           <label>المدينة</label>
           <input type="text" name="city_outside" class="form-control">
         </div>
@@ -1212,6 +1466,46 @@
         <div class="form-group">
           <label>المنطقة</label>
           <input type="text" name="area_outside" class="form-control">
+        </div>
+        
+        <div class="form-group">
+          <label>الحي</label>
+          <input type="text" name="neighborhood" class="form-control">
+        </div>
+        
+        <div class="form-group">
+          <label>المحلة</label>
+          <input type="text" name="mahalla" class="form-control">
+        </div>
+        
+        <div class="form-group">
+          <label>البلوك</label>
+          <input type="text" name="block" class="form-control">
+        </div>
+        
+        <div class="form-group">
+          <label>الشارع</label>
+          <input type="text" name="street" class="form-control">
+        </div>
+        
+        <div class="form-group">
+          <label>الزقاق</label>
+          <input type="text" name="alley" class="form-control">
+        </div>
+        
+        <div class="form-group">
+          <label>رقم الدار</label>
+          <input type="text" name="house_number" class="form-control">
+        </div>
+        
+        <div class="form-group">
+          <label>رقم العقار</label>
+          <input type="text" name="property_number" class="form-control">
+        </div>
+        
+        <div class="form-group">
+          <label>أقرب نقطة دالة</label>
+          <input type="text" name="landmark" class="form-control">
         </div>
       </div>
       
@@ -1389,13 +1683,58 @@
         </div>
         
         <div class="form-group">
+          <label>القضاء</label>
+          <input type="text" name="district" class="form-control">
+        </div>
+        
+        <div class="form-group">
+          <label>الناحية</label>
+          <input type="text" name="subdistrict" class="form-control">
+        </div>
+        
+        <div class="form-group">
           <label>المدينة <span class="required">*</span></label>
           <input type="text" name="city" class="form-control" required>
         </div>
         
         <div class="form-group">
           <label>المنطقة</label>
-          <input type="text" name="district" class="form-control">
+          <input type="text" name="area" class="form-control">
+        </div>
+        
+        <div class="form-group">
+          <label>الحي</label>
+          <input type="text" name="neighborhood" class="form-control">
+        </div>
+        
+        <div class="form-group">
+          <label>المحلة</label>
+          <input type="text" name="mahalla" class="form-control">
+        </div>
+        
+        <div class="form-group">
+          <label>البلوك</label>
+          <input type="text" name="block" class="form-control">
+        </div>
+        
+        <div class="form-group">
+          <label>الشارع</label>
+          <input type="text" name="street" class="form-control">
+        </div>
+        
+        <div class="form-group">
+          <label>الزقاق</label>
+          <input type="text" name="alley" class="form-control">
+        </div>
+        
+        <div class="form-group">
+          <label>رقم الدار</label>
+          <input type="text" name="house_number" class="form-control">
+        </div>
+        
+        <div class="form-group">
+          <label>رقم العقار</label>
+          <input type="text" name="property_number" class="form-control">
         </div>
         
         <div class="form-group" style="grid-column: span 2;">
@@ -1405,12 +1744,45 @@
         
         <div class="form-group">
           <label>خط العرض</label>
-          <input type="number" step="any" name="latitude" class="form-control" placeholder="مثال: 33.3152">
+          <div style="display: flex; gap: 10px;">
+            <input type="number" step="any" name="latitude" class="form-control" placeholder="مثال: 33.3152" id="latitude-input">
+            <button type="button" onclick="getLocationGPS()" class="btn btn-secondary" style="white-space: nowrap;">
+              📍 GPS
+            </button>
+          </div>
         </div>
         
         <div class="form-group">
           <label>خط الطول</label>
-          <input type="number" step="any" name="longitude" class="form-control" placeholder="مثال: 44.3661">
+          <input type="number" step="any" name="longitude" class="form-control" placeholder="مثال: 44.3661" id="longitude-input">
+        </div>
+        
+        <div class="form-group" style="grid-column: span 2;">
+          <label>معاينة الموقع على الخريطة</label>
+          <div style="position: relative;">
+            <div id="location-preview-map" style="height: 300px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.2);"></div>
+            <div class="map-layers">
+              <button type="button" class="layer-btn active" data-layer="osm" onclick="changeMapLayer('resort', 'osm')">OpenStreetMap</button>
+              <button type="button" class="layer-btn" data-layer="satellite" onclick="changeMapLayer('resort', 'satellite')">Satellite</button>
+              <button type="button" class="layer-btn" data-layer="terrain" onclick="changeMapLayer('resort', 'terrain')">Terrain</button>
+              <button type="button" class="layer-btn" data-layer="dark" onclick="changeMapLayer('resort', 'dark')">Dark</button>
+              <button type="button" class="layer-btn" data-layer="hybrid" onclick="changeMapLayer('resort', 'hybrid')">Hybrid</button>
+              <button type="button" class="layer-btn" onclick="toggleMapFullscreen('resort')" title="ملء الشاشة">⛶</button>
+            </div>
+          </div>
+          <p style="font-size: 0.8rem; color: rgba(255,255,255,0.6); margin-top: 5px;">
+            * اضغط على "GPS" لتحديد موقعك تلقائياً أو انقر على الخريطة لتحديد الموقع يدوياً
+          </p>
+        </div>
+        
+        <div class="form-group" style="grid-column: span 2;">
+          <label class="checkbox-label" style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+            <input type="checkbox" name="enable_gps" id="enable-gps" checked>
+            <span>📍 نشر GPS - إظهار الموقع على خريطة المنصة</span>
+          </label>
+          <small style="color: rgba(255,255,255,0.6); display: block; margin-top: 5px;">
+            عند تفعيل هذا الخيار، سيظهر موقع العقار على خريطة المنصة الرئيسية
+          </small>
         </div>
       </div>
       
@@ -1687,11 +2059,635 @@
 {% endblock %}
 
 {% block extra_js %}
+<!-- Leaflet Map Library -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.js"></script>
+
 <!-- Pannellum 360° Viewer Library -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css" />
 <script src="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js"></script>
 
 <script>
+// GPS and Map Functions
+let locationMap = null;
+let locationMarker = null;
+let locationMapInside = null;
+let locationMarkerInside = null;
+let locationMapOutside = null;
+let locationMarkerOutside = null;
+let currentLayerResort = null;
+let currentLayerInside = null;
+let currentLayerOutside = null;
+
+// Change map layer
+function changeMapLayer(mapType, layerType) {
+  const map = mapType === 'inside' ? locationMapInside : (mapType === 'outside' ? locationMapOutside : locationMap);
+  const containerId = mapType === 'inside' ? 'location-preview-map-inside' : (mapType === 'outside' ? 'location-preview-map-outside' : 'location-preview-map');
+  
+  if (!map) return;
+  
+  // Remove existing tile layer
+  if (mapType === 'inside' && currentLayerInside) {
+    map.removeLayer(currentLayerInside);
+  } else if (mapType === 'outside' && currentLayerOutside) {
+    map.removeLayer(currentLayerOutside);
+  } else if (mapType === 'resort' && currentLayerResort) {
+    map.removeLayer(currentLayerResort);
+  }
+  
+  // Add new layer
+  let newLayer;
+  switch(layerType) {
+    case 'osm':
+      newLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+      });
+      break;
+    case 'satellite':
+      newLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+        attribution: 'Tiles &copy; Esri'
+      });
+      break;
+    case 'terrain':
+      newLayer = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenTopoMap'
+      });
+      break;
+    case 'dark':
+      newLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; CARTO'
+      });
+      break;
+    case 'hybrid':
+      newLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+        attribution: 'Tiles &copy; Esri'
+      });
+      break;
+    default:
+      newLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+      });
+  }
+  
+  newLayer.addTo(map);
+  
+  // Update current layer reference
+  if (mapType === 'inside') {
+    currentLayerInside = newLayer;
+  } else if (mapType === 'outside') {
+    currentLayerOutside = newLayer;
+  } else {
+    currentLayerResort = newLayer;
+  }
+  
+  // Update button active state
+  const container = document.getElementById(containerId).parentElement;
+  const buttons = container.querySelectorAll('.layer-btn');
+  buttons.forEach(btn => btn.classList.remove('active'));
+  event.target.classList.add('active');
+}
+
+// Toggle map fullscreen
+function toggleMapFullscreen(mapType) {
+  const containerId = mapType === 'inside' ? 'location-preview-map-inside' : (mapType === 'outside' ? 'location-preview-map-outside' : 'location-preview-map');
+  const mapContainer = document.getElementById(containerId);
+  
+  if (!mapContainer) return;
+  
+  if (!document.fullscreenElement) {
+    mapContainer.requestFullscreen().then(() => {
+      mapContainer.style.height = '100vh';
+      mapContainer.style.borderRadius = '0';
+      // Invalidate map size after entering fullscreen
+      setTimeout(() => {
+        const map = mapType === 'inside' ? locationMapInside : (mapType === 'outside' ? locationMapOutside : locationMap);
+        if (map) map.invalidateSize();
+      }, 100);
+    }).catch(err => {
+      console.error('Error entering fullscreen:', err);
+    });
+  } else {
+    document.exitFullscreen().then(() => {
+      mapContainer.style.height = '300px';
+      mapContainer.style.borderRadius = '10px';
+      // Invalidate map size after exiting fullscreen
+      setTimeout(() => {
+        const map = mapType === 'inside' ? locationMapInside : (mapType === 'outside' ? locationMapOutside : locationMap);
+        if (map) map.invalidateSize();
+      }, 100);
+    });
+  }
+}
+
+// Listen for fullscreen changes
+document.addEventListener('fullscreenchange', function() {
+  if (!document.fullscreenElement) {
+    // Reset all maps when exiting fullscreen
+    const insideMap = document.getElementById('location-preview-map-inside');
+    const outsideMap = document.getElementById('location-preview-map-outside');
+    const resortMap = document.getElementById('location-preview-map');
+    
+    if (insideMap) {
+      insideMap.style.height = '300px';
+      insideMap.style.borderRadius = '10px';
+      setTimeout(() => {
+        if (locationMapInside) locationMapInside.invalidateSize();
+      }, 100);
+    }
+    
+    if (outsideMap) {
+      outsideMap.style.height = '300px';
+      outsideMap.style.borderRadius = '10px';
+      setTimeout(() => {
+        if (locationMapOutside) locationMapOutside.invalidateSize();
+      }, 100);
+    }
+    
+    if (resortMap) {
+      resortMap.style.height = '300px';
+      resortMap.style.borderRadius = '10px';
+      setTimeout(() => {
+        if (locationMap) locationMap.invalidateSize();
+      }, 100);
+    }
+  }
+});
+
+// Initialize location preview map
+function initLocationMap() {
+  if (document.getElementById('location-preview-map')) {
+    // Default center on Iraq
+    const defaultCenter = [33.3152, 44.3661];
+    
+    locationMap = L.map('location-preview-map', {
+      center: defaultCenter,
+      zoom: 6,
+      zoomControl: true
+    });
+    
+    // Add OpenStreetMap layer (default)
+    currentLayerResort = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap contributors'
+    }).addTo(locationMap);
+    
+    // Add draw control
+    const drawnItems = new L.FeatureGroup();
+    locationMap.addLayer(drawnItems);
+    
+    const drawControl = new L.Control.Draw({
+      draw: {
+        polygon: {
+          allowIntersection: false,
+          showArea: true
+        },
+        rectangle: true,
+        circle: false,
+        circlemarker: false,
+        marker: true,
+        polyline: false
+      },
+      edit: {
+        featureGroup: drawnItems,
+        remove: true
+      }
+    });
+    locationMap.addControl(drawControl);
+    
+    // Handle draw events
+    locationMap.on(L.Draw.Event.CREATED, function (e) {
+      const layer = e.layer;
+      drawnItems.addLayer(layer);
+      
+      // If marker is drawn, update coordinates
+      if (e.layerType === 'marker') {
+        const latlng = layer.getLatLng();
+        setManualLocation(latlng.lat, latlng.lng);
+      }
+    });
+    
+    // Add click event to set location
+    locationMap.on('click', function(e) {
+      setManualLocation(e.latlng.lat, e.latlng.lng);
+    });
+    
+    // Add initial marker
+    locationMarker = L.marker(defaultCenter, {
+      draggable: true
+    }).addTo(locationMap);
+    
+    // Update location when marker is dragged
+    locationMarker.on('dragend', function(e) {
+      const position = e.target.getLatLng();
+      setManualLocation(position.lat, position.lng);
+    });
+  }
+}
+
+// Get current GPS location for Outside Iraq Properties
+function getLocationGPSOutside() {
+  // Check if GPS is enabled
+  const enableGPS = document.getElementById('enable-gps-outside');
+  if (!enableGPS || !enableGPS.checked) {
+    alert('يرجى تفعيل خيار "نشر GPS" أولاً لتحديد الموقع');
+    return;
+  }
+  
+  if (navigator.geolocation) {
+    // Show loading state
+    const gpsBtn = document.querySelector('button[onclick="getLocationGPSOutside()"]');
+    if (gpsBtn) {
+      gpsBtn.textContent = '⏳ جاري تحديد الموقع...';
+      gpsBtn.disabled = true;
+    }
+    
+    // Try with high accuracy first
+    navigator.geolocation.getCurrentPosition(
+      function(position) {
+        const lat = position.coords.latitude;
+        const lng = position.coords.longitude;
+        
+        // Update input fields
+        document.getElementById('latitude-input-outside').value = lat.toFixed(6);
+        document.getElementById('longitude-input-outside').value = lng.toFixed(6);
+        
+        // Update map
+        if (locationMapOutside && locationMarkerOutside) {
+          locationMapOutside.setView([lat, lng], 15);
+          locationMarkerOutside.setLatLng([lat, lng]);
+        }
+        
+        // Reset button
+        if (gpsBtn) {
+          gpsBtn.textContent = '📍 GPS';
+          gpsBtn.disabled = false;
+        }
+        
+        alert('تم تحديد الموقع بنجاح!');
+      },
+      function(error) {
+        // Reset button
+        if (gpsBtn) {
+          gpsBtn.textContent = '📍 GPS';
+          gpsBtn.disabled = false;
+        }
+        
+        let errorMessage = 'تعذر تحديد الموقع. ';
+        switch(error.code) {
+          case error.PERMISSION_DENIED:
+            errorMessage += 'يرجى السماح بالوصول إلى الموقع من إعدادات المتصفح.';
+            break;
+          case error.POSITION_UNAVAILABLE:
+            errorMessage += 'معلومات الموقع غير متوفرة. يرجى استخدام تحديد الموقع اليدوي.';
+            break;
+          case error.TIMEOUT:
+            errorMessage += 'انتهت مهلة تحديد الموقع. يرجى:\n1. التأكد من اتصال الإنترنت\n2. الانتقال إلى مكان مفتوح\n3. أو استخدام تحديد الموقع اليدوي بالنقر على الخريطة';
+            break;
+          default:
+            errorMessage += 'حدث خطأ غير معروف: ' + error.message;
+        }
+        alert(errorMessage);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 30000, // Increased to 30 seconds
+        maximumAge: 0
+      }
+    );
+  } else {
+    alert('المتصفح لا يدعم تحديد الموقع الجغرافي. يرجى استخدام تحديد الموقع اليدوي بالنقر على الخريطة.');
+  }
+}
+
+// Set location manually from map click for Outside Iraq
+function setManualLocationOutside(lat, lng) {
+  document.getElementById('latitude-input-outside').value = lat.toFixed(6);
+  document.getElementById('longitude-input-outside').value = lng.toFixed(6);
+  
+  if (locationMarkerOutside) {
+    locationMarkerOutside.setLatLng([lat, lng]);
+  }
+}
+
+// Get current GPS location
+function getLocationGPS() {
+  // Check if GPS is enabled
+  const enableGPS = document.getElementById('enable-gps');
+  if (!enableGPS || !enableGPS.checked) {
+    alert('يرجى تفعيل خيار "نشر GPS" أولاً لتحديد الموقع');
+    return;
+  }
+  
+  if (navigator.geolocation) {
+    // Show loading state
+    const gpsBtn = document.querySelector('button[onclick="getLocationGPS()"]');
+    if (gpsBtn) {
+      gpsBtn.textContent = '⏳ جاري تحديد الموقع...';
+      gpsBtn.disabled = true;
+    }
+    
+    // Try with high accuracy first
+    navigator.geolocation.getCurrentPosition(
+      function(position) {
+        const lat = position.coords.latitude;
+        const lng = position.coords.longitude;
+        
+        // Update input fields
+        document.getElementById('latitude-input').value = lat.toFixed(6);
+        document.getElementById('longitude-input').value = lng.toFixed(6);
+        
+        // Update map
+        if (locationMap && locationMarker) {
+          locationMap.setView([lat, lng], 15);
+          locationMarker.setLatLng([lat, lng]);
+        }
+        
+        // Reset button
+        if (gpsBtn) {
+          gpsBtn.textContent = '📍 GPS';
+          gpsBtn.disabled = false;
+        }
+        
+        alert('تم تحديد الموقع بنجاح!');
+      },
+      function(error) {
+        // Reset button
+        if (gpsBtn) {
+          gpsBtn.textContent = '📍 GPS';
+          gpsBtn.disabled = false;
+        }
+        
+        let errorMessage = 'تعذر تحديد الموقع. ';
+        switch(error.code) {
+          case error.PERMISSION_DENIED:
+            errorMessage += 'يرجى السماح بالوصول إلى الموقع من إعدادات المتصفح.';
+            break;
+          case error.POSITION_UNAVAILABLE:
+            errorMessage += 'معلومات الموقع غير متوفرة. يرجى استخدام تحديد الموقع اليدوي.';
+            break;
+          case error.TIMEOUT:
+            errorMessage += 'انتهت مهلة تحديد الموقع. يرجى:\n1. التأكد من اتصال الإنترنت\n2. الانتقال إلى مكان مفتوح\n3. أو استخدام تحديد الموقع اليدوي بالنقر على الخريطة';
+            break;
+          default:
+            errorMessage += 'حدث خطأ غير معروف: ' + error.message;
+        }
+        alert(errorMessage);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 30000, // Increased to 30 seconds
+        maximumAge: 0
+      }
+    );
+  } else {
+    alert('المتصفح لا يدعم تحديد الموقع الجغرافي. يرجى استخدام تحديد الموقع اليدوي بالنقر على الخريطة.');
+  }
+}
+
+// Set location manually from map click
+function setManualLocation(lat, lng) {
+  document.getElementById('latitude-input').value = lat.toFixed(6);
+  document.getElementById('longitude-input').value = lng.toFixed(6);
+  
+  if (locationMarker) {
+    locationMarker.setLatLng([lat, lng]);
+  }
+}
+
+// Initialize map when page loads
+document.addEventListener('DOMContentLoaded', function() {
+  initLocationMap();
+  initLocationMapInside();
+  initLocationMapOutside();
+});
+
+// GPS for Inside Iraq Properties
+function initLocationMapInside() {
+  if (document.getElementById('location-preview-map-inside')) {
+    // Default center on Iraq
+    const defaultCenter = [33.3152, 44.3661];
+    
+    locationMapInside = L.map('location-preview-map-inside', {
+      center: defaultCenter,
+      zoom: 6,
+      zoomControl: true
+    });
+    
+    // Add OpenStreetMap layer (default)
+    currentLayerInside = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap contributors'
+    }).addTo(locationMapInside);
+    
+    // Add draw control
+    const drawnItems = new L.FeatureGroup();
+    locationMapInside.addLayer(drawnItems);
+    
+    const drawControl = new L.Control.Draw({
+      draw: {
+        polygon: {
+          allowIntersection: false,
+          showArea: true
+        },
+        rectangle: true,
+        circle: false,
+        circlemarker: false,
+        marker: true,
+        polyline: false
+      },
+      edit: {
+        featureGroup: drawnItems,
+        remove: true
+      }
+    });
+    locationMapInside.addControl(drawControl);
+    
+    // Handle draw events
+    locationMapInside.on(L.Draw.Event.CREATED, function (e) {
+      const layer = e.layer;
+      drawnItems.addLayer(layer);
+      
+      // If marker is drawn, update coordinates
+      if (e.layerType === 'marker') {
+        const latlng = layer.getLatLng();
+        setManualLocationInside(latlng.lat, latlng.lng);
+      }
+    });
+    
+    // Add click event to set location
+    locationMapInside.on('click', function(e) {
+      setManualLocationInside(e.latlng.lat, e.latlng.lng);
+    });
+    
+    // Add initial marker
+    locationMarkerInside = L.marker(defaultCenter, {
+      draggable: true
+    }).addTo(locationMapInside);
+    
+    // Update location when marker is dragged
+    locationMarkerInside.on('dragend', function(e) {
+      const position = e.target.getLatLng();
+      setManualLocationInside(position.lat, position.lng);
+    });
+  }
+}
+
+// GPS for Outside Iraq Properties
+function initLocationMapOutside() {
+  if (document.getElementById('location-preview-map-outside')) {
+    // Default center on a location outside Iraq (example: London)
+    const defaultCenter = [51.5074, -0.1278];
+
+    locationMapOutside = L.map('location-preview-map-outside', {
+      center: defaultCenter,
+      zoom: 10,
+      zoomControl: true
+    });
+
+    // Add OpenStreetMap layer (default)
+    currentLayerOutside = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap contributors'
+    }).addTo(locationMapOutside);
+
+    // Add draw control
+    const drawnItems = new L.FeatureGroup();
+    locationMapOutside.addLayer(drawnItems);
+
+    const drawControl = new L.Control.Draw({
+      draw: {
+        polygon: {
+          allowIntersection: false,
+          showArea: true
+        },
+        rectangle: true,
+        circle: false,
+        circlemarker: false,
+        marker: true,
+        polyline: false
+      },
+      edit: {
+        featureGroup: drawnItems,
+        remove: true
+      }
+    });
+    locationMapOutside.addControl(drawControl);
+
+    // Handle draw events
+    locationMapOutside.on(L.Draw.Event.CREATED, function (e) {
+      const layer = e.layer;
+      drawnItems.addLayer(layer);
+
+      // If marker is drawn, update coordinates
+      if (e.layerType === 'marker') {
+        const latlng = layer.getLatLng();
+        setManualLocationOutside(latlng.lat, latlng.lng);
+      }
+    });
+
+    // Add click event to set location
+    locationMapOutside.on('click', function(e) {
+      setManualLocationOutside(e.latlng.lat, e.latlng.lng);
+    });
+
+    // Add initial marker
+    locationMarkerOutside = L.marker(defaultCenter, {
+      draggable: true
+    }).addTo(locationMapOutside);
+
+    // Update location when marker is dragged
+    locationMarkerOutside.on('dragend', function(e) {
+      const position = e.target.getLatLng();
+      setManualLocationOutside(position.lat, position.lng);
+    });
+  }
+}
+
+function getLocationGPSInside() {
+  // Check if GPS is enabled
+  const enableGPS = document.getElementById('enable-gps-inside');
+  if (!enableGPS || !enableGPS.checked) {
+    alert('يرجى تفعيل خيار "نشر GPS" أولاً لتحديد الموقع');
+    return;
+  }
+  
+  if (navigator.geolocation) {
+    // Show loading state
+    const gpsBtn = document.querySelector('button[onclick="getLocationGPSInside()"]');
+    if (gpsBtn) {
+      gpsBtn.textContent = '⏳ جاري تحديد الموقع...';
+      gpsBtn.disabled = true;
+    }
+    
+    navigator.geolocation.getCurrentPosition(
+      function(position) {
+        const lat = position.coords.latitude;
+        const lng = position.coords.longitude;
+        
+        // Update input fields
+        document.getElementById('latitude-input-inside').value = lat.toFixed(6);
+        document.getElementById('longitude-input-inside').value = lng.toFixed(6);
+        
+        // Update map
+        if (locationMapInside && locationMarkerInside) {
+          locationMapInside.setView([lat, lng], 15);
+          locationMarkerInside.setLatLng([lat, lng]);
+        }
+        
+        // Reset button
+        if (gpsBtn) {
+          gpsBtn.textContent = '📍 GPS';
+          gpsBtn.disabled = false;
+        }
+        
+        alert('تم تحديد الموقع بنجاح!');
+      },
+      function(error) {
+        // Reset button
+        if (gpsBtn) {
+          gpsBtn.textContent = '📍 GPS';
+          gpsBtn.disabled = false;
+        }
+        
+        let errorMessage = 'تعذر تحديد الموقع. ';
+        switch(error.code) {
+          case error.PERMISSION_DENIED:
+            errorMessage += 'يرجى السماح بالوصول إلى الموقع من إعدادات المتصفح.';
+            break;
+          case error.POSITION_UNAVAILABLE:
+            errorMessage += 'معلومات الموقع غير متوفرة. يرجى استخدام تحديد الموقع اليدوي.';
+            break;
+          case error.TIMEOUT:
+            errorMessage += 'انتهت مهلة تحديد الموقع. يرجى:\n1. التأكد من اتصال الإنترنت\n2. الانتقال إلى مكان مفتوح\n3. أو استخدام تحديد الموقع اليدوي بالنقر على الخريطة';
+            break;
+          default:
+            errorMessage += 'حدث خطأ غير معروف: ' + error.message;
+        }
+        alert(errorMessage);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 30000, // Increased to 30 seconds
+        maximumAge: 0
+      }
+    );
+  } else {
+    alert('المتصفح لا يدعم تحديد الموقع الجغرافي.');
+  }
+}
+
+function setManualLocationInside(lat, lng) {
+  document.getElementById('latitude-input-inside').value = lat.toFixed(6);
+  document.getElementById('longitude-input-inside').value = lng.toFixed(6);
+  
+  if (locationMarkerInside) {
+    locationMarkerInside.setLatLng([lat, lng]);
+  }
+}
+
+// Initialize map when page loads
+document.addEventListener('DOMContentLoaded', function() {
+  initLocationMap();
+});
+
 // 360° Camera and Preview Functions
 let cameraStream = null;
 let viewer = null;

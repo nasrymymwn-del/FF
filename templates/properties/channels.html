@@ -32,6 +32,11 @@
   margin-bottom: 30px;
 }
 
+.channels-header .btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 122, 0, 0.4);
+}
+
 .search-container {
   max-width: 600px;
   margin: 0 auto;
@@ -388,6 +393,15 @@
     <h1>📺 قنوات الدلالين</h1>
     <p>استكشف قنوات الدلالين المحترفين وتصفح عقاراتهم</p>
     
+    {% if request.user.is_authenticated %}
+    <div style="margin-bottom: 20px;">
+      <a href="{% url 'channel_list' %}" class="btn btn-primary" style="background: linear-gradient(135deg, #FF7A00 0%, #FF9F1C 100%); border: none; color: white; padding: 12px 24px; font-size: 16px; font-weight: 600; border-radius: 8px; box-shadow: 0 4px 15px rgba(255, 122, 0, 0.3); transition: all 0.3s ease; display: inline-flex; align-items: center; gap: 8px; text-decoration: none;">
+        <span style="font-size: 20px;">📺</span>
+        <span>القنوات المتقدمة</span>
+      </a>
+    </div>
+    {% endif %}
+    
     <div class="search-container">
       <form method="GET" action="" class="search-form">
         <input 
@@ -478,7 +492,7 @@
         </div>
         
         <div class="channel-actions">
-          <a href="{% url 'broker_channel_detail' channel.id %}" class="action-btn primary-btn">
+          <a href="{% url 'channel_detail' channel.id %}" class="action-btn primary-btn">
             <span>👁️</span> عرض القناة
           </a>
           {% if request.user.is_authenticated %}

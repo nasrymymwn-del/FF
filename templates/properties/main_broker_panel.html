@@ -143,6 +143,47 @@
         {% endif %}
       </div>
     </div>
+
+    <!-- Appointments Section -->
+    <div class="section">
+      <div class="section-header">
+        <h2>📅 المواعيد المحجوزة</h2>
+        <a href="{% url 'broker_appointments_list' %}" class="view-all">عرض الكل</a>
+      </div>
+      <div class="appointments-grid">
+        {% if recent_appointments %}
+          {% for appointment in recent_appointments %}
+          <div class="appointment-card">
+            <div class="appointment-header">
+              <div class="appointment-type">{{ appointment.get_appointment_type_display }}</div>
+              <div class="appointment-status status-{{ appointment.status }}">
+                {{ appointment.get_status_display }}
+              </div>
+            </div>
+            <div class="appointment-content">
+              <p class="appointment-user">👤 {{ appointment.user.username }}</p>
+              <p class="appointment-datetime">📅 {{ appointment.appointment_date }} - {{ appointment.appointment_time }}</p>
+              {% if appointment.property %}
+              <p class="appointment-property">🏠 {{ appointment.property.display_title }}</p>
+              {% endif %}
+              {% if appointment.location %}
+              <p class="appointment-location">📍 {{ appointment.location }}</p>
+              {% endif %}
+            </div>
+            <div class="appointment-actions">
+              <a href="#" class="btn btn-sm btn-primary">عرض التفاصيل</a>
+            </div>
+          </div>
+          {% endfor %}
+        {% else %}
+          <div class="empty-state">
+            <div class="empty-icon">📅</div>
+            <h3>لا توجد مواعيد</h3>
+            <p>لم يتم حجز أي مواعيد مع الدلالين</p>
+          </div>
+        {% endif %}
+      </div>
+    </div>
   </div>
 </div>
 
@@ -479,6 +520,84 @@
 
 .empty-state p {
   margin: 0 0 24px 0;
+}
+
+/* Appointments Styles */
+.appointments-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.appointment-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.appointment-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.appointment-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.appointment-type {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.appointment-status {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.appointment-status.status-pending {
+  background: rgba(255, 152, 0, 0.2);
+  color: #ff9800;
+}
+
+.appointment-status.status-confirmed {
+  background: rgba(76, 175, 80, 0.2);
+  color: #4caf50;
+}
+
+.appointment-status.status-completed {
+  background: rgba(33, 150, 243, 0.2);
+  color: #2196f3;
+}
+
+.appointment-status.status-cancelled {
+  background: rgba(244, 67, 54, 0.2);
+  color: #f44336;
+}
+
+.appointment-content {
+  padding: 16px;
+}
+
+.appointment-user,
+.appointment-datetime,
+.appointment-property,
+.appointment-location {
+  margin: 8px 0;
+  color: var(--text-light);
+  font-size: 0.9rem;
+}
+
+.appointment-actions {
+  padding: 16px;
+  border-top: 1px solid var(--border);
 }
 
 @media (max-width: 768px) {

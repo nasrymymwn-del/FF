@@ -12,9 +12,54 @@ from django.db.models import Q
 from django.core.cache import cache
 from django.utils.decorators import method_decorator
 from functools import wraps
+from django.contrib.auth.decorators import login_required
 
 from .models import Property, PropertyImage, PropertyVideo, PropertyDocument, SiteSettings
 from .utils import get_public_properties, filter_properties, sort_properties
+from .services import SubscriptionService
+
+
+def subscription_required(view_func):
+    """
+    Decorator to require active subscription for API endpoints.
+    Logs bypass attempts and blocks unauthorized access.
+    """
+    @wraps(view_func)
+    def _wrapped_view(request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return JsonResponse({
+                'error': 'Authentication required',
+                'message': 'You must be logged in to access this endpoint'
+            }, status=401)
+        
+        from .models import Broker
+        broker = Broker.objects.filter(user=request.user).first()
+        
+        if not broker:
+            return JsonResponse({
+                'error': 'Broker account required',
+                'message': 'You must have a broker account to access this endpoint'
+            }, status=403)
+        
+        ip_address = request.META.get('REMOTE_ADDR')
+        user_agent = request.META.get('HTTP_USER_AGENT', '')
+        
+        # Check subscription before action
+        is_allowed, message = SubscriptionService.check_subscription_before_action(
+            request.user,
+            f"API access to {view_func.__name__}",
+            ip_address,
+            user_agent
+        )
+        
+        if not is_allowed:
+            return JsonResponse({
+                'error': 'Subscription required',
+                'message': message
+            }, status=403)
+        
+        return view_func(request, *args, **kwargs)
+    return _wrapped_view
 
 
 def rate_limit(limit=100, period=60):
@@ -82,7 +127,7 @@ def api_properties(request):
     """
     properties = get_public_properties()
     properties = filter_properties(properties, request.GET)
-    properties = sort_properties(request.GET.get('sort'))
+    properties = sort_properties(properties, request.GET.get('sort'))
     
     page_size = int(request.GET.get('page_size', 12))
     page_number = int(request.GET.get('page', 1))
@@ -180,9 +225,11 @@ def api_property_detail(request, slug):
     property_obj.increment_views()
     
     # Get related properties
-    related = get_public_properties().filter(
-        Q(district=property_obj.district) | Q(type=property_obj.type)
-    ).exclude(pk=property_obj.pk)[:4]
+    public_props = get_public_properties()
+    related = [
+        p for p in public_props
+        if p.pk != property_obj.pk and (p.district == property_obj.district or p.type == property_obj.type)
+    ][:4]
     
     # Serialize related properties
     related_data = []
@@ -346,7 +393,7 @@ def api_property_detail(request, slug):
 @rate_limit(limit=100, period=60)
 def api_featured_properties(request):
     """Get featured properties."""
-    featured = get_public_properties().filter(is_featured=True)[:6]
+    featured = [p for p in get_public_properties() if p.is_featured][:6]
     
     properties_data = []
     for prop in featured:
@@ -397,12 +444,15 @@ def api_search_suggestions(request):
     if len(query) < 2:
         return JsonResponse({'suggestions': []})
     
-    properties = get_public_properties().filter(
-        Q(title__icontains=query) |
-        Q(district__icontains=query) |
-        Q(street__icontains=query) |
-        Q(location__icontains=query)
-    )[:10]
+    q = query.lower()
+    properties = [
+        p for p in get_public_properties()
+        if q in (p.title or '').lower()
+        or q in (p.district or '').lower()
+        or q in (p.street or '').lower()
+        or q in (p.location or '').lower()
+        or q in (getattr(p, 'region', None) or '').lower()
+    ][:10]
     
     suggestions = []
     for prop in properties:

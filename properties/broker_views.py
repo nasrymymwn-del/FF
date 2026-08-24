@@ -15,7 +15,7 @@ from django.views.decorators.http import require_http_methods, require_POST
 from .broker_forms import BrokerCreateForm, BrokerEditForm, BrokerJoinForm, MessageReplyForm, OfficeForm
 from .decorators import broker_required, manage_brokers_required
 from .forms import OfficePresenceForm, QuickStatusForm, PresenceNotificationForm, BrokerNotificationSettingsForm, HotelPageForm, HotelPostForm, HotelRoomForm, HotelOfferForm, HotelBookingForm, ServiceProviderPageForm, ServiceProviderWorkForm, ServiceProviderServiceForm, ServiceProviderGalleryForm, ServiceProviderVideoForm, ServiceProvider360Form, ServiceProviderRatingForm, ServiceProviderContactForm, ServiceProviderQuoteForm
-from .models import Broker, BrokerJoinRequest, Message, Office, Property, ActivityLog, Notification, OfficePresence, PresenceNotification, BrokerSubscription, BrokerNotificationSettings, BrokerSubscriptionStats, SubscriptionPlan, BrokerChannel, ChannelRating, ChannelReview, ChannelReviewReply, ChannelShare, ChannelFollow, ChannelSave, HotelPage, HotelPost, HotelRoom, HotelOffer, HotelFollower, HotelRating, ServiceProviderCategory, ServiceProviderPage, ServiceProviderWork, ServiceProviderService, ServiceProviderGallery, ServiceProviderVideo, ServiceProvider360, ServiceProviderFollower, ServiceProviderRating, ServiceProviderContact, ServiceProviderQuote
+from .models import Broker, BrokerJoinRequest, Message, Office, Property, ActivityLog, Notification, OfficePresence, PresenceNotification, BrokerSubscription, BrokerNotificationSettings, BrokerSubscriptionStats, SubscriptionPlan, BrokerChannel, ChannelRating, ChannelReview, ChannelReviewReply, ChannelShare, ChannelFollow, ChannelSave, HotelPage, HotelPost, HotelRoom, HotelOffer, HotelFollower, HotelRating, ServiceProviderCategory, ServiceProviderPage, ServiceProviderWork, ServiceProviderService, ServiceProviderGallery, ServiceProviderVideo, ServiceProvider360, ServiceProviderFollower, ServiceProviderRating, ServiceProviderContact, ServiceProviderQuote, BrokerChannel
 from .permissions import (
     can_manage_join_requests,
     get_accessible_messages,
@@ -188,8 +188,15 @@ def broker_panel(request):
     published_properties = Property.objects.filter(broker=broker, status=Property.STATUS_PUBLISHED).count()
     draft_properties = Property.objects.filter(broker=broker, status=Property.STATUS_DRAFT).count()
     pending_payment_properties = Property.objects.filter(broker=broker, status=Property.STATUS_PAID).count()
+    featured_properties = Property.objects.filter(broker=broker, is_featured=True).count()
+    expired_properties = Property.objects.filter(broker=broker, status=Property.STATUS_EXPIRED).count()
+    pending_approval_properties = Property.objects.filter(broker=broker, status=Property.STATUS_PENDING_APPROVAL).count()
     
-    # Payment statistics
+    # Enforce subscription expiry side-effects on every panel visit
+    try:
+        broker.check_subscription_status()
+    except Exception:
+        pass
     from .models import PropertyPayment
     total_payments = PropertyPayment.objects.filter(broker=broker).count()
     pending_payments = PropertyPayment.objects.filter(broker=broker, status=PropertyPayment.STATUS_PENDING).count()
@@ -241,6 +248,9 @@ def broker_panel(request):
         'published_properties': published_properties,
         'draft_properties': draft_properties,
         'pending_payment_properties': pending_payment_properties,
+        'featured_properties': featured_properties,
+        'expired_properties': expired_properties,
+        'pending_approval_properties': pending_approval_properties,
         'total_payments': total_payments,
         'pending_payments': pending_payments,
         'completed_payments': completed_payments,
@@ -253,8 +263,110 @@ def broker_panel(request):
     })
 
 
-@login_required
-@manage_brokers_required
+def public_broker_search(request):
+    """البحث العام عن الدلالين للجمهور"""
+    from django.db.models import Q, Sum
+    from django.core.paginator import Paginator
+    
+    search_query = request.GET.get('search', '')
+    governorate = request.GET.get('governorate', '')
+    sort_by = request.GET.get('sort', 'rating')
+    
+    # Get all active brokers
+    brokers = Broker.objects.filter(is_active=True).select_related('user').prefetch_related('channel')
+    
+    # Apply filters
+    if search_query:
+        brokers = brokers.filter(
+            Q(display_name__icontains=search_query) |
+            Q(company_name__icontains=search_query) |
+            Q(description__icontains=search_query)
+        )
+    
+    if governorate:
+        brokers = brokers.filter(governorate=governorate)
+    
+    # Prepare broker data with statistics
+    broker_data = []
+    for broker in brokers:
+        # Calculate property count
+        prop_count = Property.objects.filter(
+            Q(owner=broker.user) | Q(broker=broker)
+        ).count()
+        
+        # Calculate total views
+        views = Property.objects.filter(
+            Q(owner=broker.user) | Q(broker=broker)
+        ).aggregate(total=Sum('views_count'))['total'] or 0
+        
+        # Get channel info if exists
+        channel_info = None
+        try:
+            channel = broker.channel
+            channel_info = {
+                'id': channel.id,
+                'name': channel.name,
+                'followers': channel.followers_count,
+                'views': channel.views_count,
+                'rating': channel.rating,
+                'is_verified': channel.is_verified,
+            }
+        except BrokerChannel.DoesNotExist:
+            pass
+        
+        broker_data.append({
+            'broker': broker,
+            'property_count': prop_count,
+            'total_views': views,
+            'is_verified': broker.is_verified,
+            'channel': channel_info,
+            'governorate': broker.governorate,
+            'subscription_plan': broker.subscription_plan.name if broker.subscription_plan else 'غير مشترك',
+            'services_offered': broker.services_offered if broker.services_offered else [],
+            'specialties': broker.specialties if broker.specialties else [],
+            'company_name': broker.company_name if hasattr(broker, 'company_name') else broker.office_name,
+            'bio': broker.bio,
+            'years_of_experience': broker.years_of_experience,
+            'clients_count': broker.clients_count,
+            'working_governorates': broker.working_governorates.split(',') if broker.working_governorates else [],
+        })
+    
+    # Apply sorting
+    if sort_by == 'properties':
+        broker_data.sort(key=lambda x: x['property_count'], reverse=True)
+    elif sort_by == 'views':
+        broker_data.sort(key=lambda x: x['total_views'], reverse=True)
+    elif sort_by == 'followers':
+        broker_data.sort(key=lambda x: x['channel']['followers'] if x['channel'] else 0, reverse=True)
+    elif sort_by == 'name':
+        broker_data.sort(key=lambda x: x['broker'].display_name)
+    elif sort_by == 'newest':
+        broker_data.sort(key=lambda x: x['broker'].created_at, reverse=True)
+    else:  # rating default
+        broker_data.sort(key=lambda x: x['channel']['rating'] if x['channel'] else 0, reverse=True)
+    
+    # Pagination
+    paginator = Paginator(broker_data, 12)
+    page_number = request.GET.get('page', 1)
+    page_obj = paginator.get_page(page_number)
+    
+    context = {
+        'brokers': page_obj,
+        'page_obj': page_obj,
+        'search_query': search_query,
+        'governorate': governorate,
+        'sort_by': sort_by,
+        'page_title': 'البحث عن الدلالين',
+        'governorates': [
+            'بغداد', 'البصرة', 'نينوى', 'أربيل', 'الأنبار', 'ديالى', 
+            'ذي قار', 'صلاح الدين', 'كركوك', 'بابل', 'كربلاء', 'واسط',
+            'ميسان', 'القادسية', 'النجف', 'المثنى', 'الديوانية', 'العمارة'
+        ],
+    }
+    
+    return render(request, 'properties/public_broker_search.html', context)
+
+
 def broker_list(request):
     from django.db.models import Q
 
@@ -1015,8 +1127,6 @@ def broker_message_archive(request, message_id):
     return redirect('broker_messages')
 
 
-@login_required
-@broker_required
 def properties_map(request):
     """Enhanced properties map with AJAX support"""
     from django.core.paginator import Paginator
@@ -1026,6 +1136,8 @@ def properties_map(request):
     governorate = request.GET.get('governorate')
     city = request.GET.get('city')
     district = request.GET.get('district')
+    country = request.GET.get('country')
+    foreign_country = request.GET.get('foreign_country')
     category = request.GET.get('category')
     status = request.GET.get('status')
     price_min = request.GET.get('price_min')
@@ -1043,11 +1155,23 @@ def properties_map(request):
     has_video = request.GET.get('has_video')
     featured = request.GET.get('featured')
     
-    # Base queryset
-    props = get_accessible_properties(request.user).filter(
+    # Base queryset - get all public properties for map
+    from django.db.models import Q
+    props = Property.objects.filter(
         latitude__isnull=False, 
-        longitude__isnull=False
+        longitude__isnull=False,
+        status='active'
     ).select_related('broker', 'owner').prefetch_related('gallery_images')
+    
+    # Apply country filter
+    if country == 'خارج العراق':
+        # Show properties outside Iraq
+        props = props.filter(~Q(governorate__in=['بغداد', 'البصرة', 'نينوى', 'أربيل', 'السليمانية', 'دهوك', 'كركوك', 'الأنبار', 'صلاح الدين', 'ديالى', 'واسط', 'بابل', 'كربلاء', 'النجف', 'القادسية', 'المثنى', 'ذي قار', 'ميسان', 'حلبجة']))
+        if foreign_country:
+            props = props.filter(country=foreign_country)
+    else:
+        # Show properties inside Iraq (default)
+        props = props.filter(governorate__in=['بغداد', 'البصرة', 'نينوى', 'أربيل', 'السليمانية', 'دهوك', 'كركوك', 'الأنبار', 'صلاح الدين', 'ديالى', 'واسط', 'بابل', 'كربلاء', 'النجف', 'القادسية', 'المثنى', 'ذي قار', 'ميسان', 'حلبجة'])
     
     # Apply filters
     if governorate:
@@ -1091,23 +1215,26 @@ def properties_map(request):
     
     # Get counts for statistics
     try:
-        hotels_count = Hotel.objects.filter(broker=request.user.broker_profile).count()
+        hotels_count = Hotel.objects.count()
     except:
         hotels_count = 0
     
     try:
-        resorts_count = Resort.objects.filter(broker=request.user.broker_profile).count()
+        resorts_count = Resort.objects.count()
     except:
         resorts_count = 0
     
     try:
-        auctions_count = Auction.objects.filter(broker=request.user.broker_profile).count()
+        auctions_count = Auction.objects.count()
     except:
         auctions_count = 0
     
     try:
         from .models import Message
-        unread_count = Message.objects.filter(recipient=request.user, is_read=False).count()
+        if request.user.is_authenticated:
+            unread_count = Message.objects.filter(recipient=request.user, is_read=False).count()
+        else:
+            unread_count = 0
     except:
         unread_count = 0
     
@@ -1201,6 +1328,15 @@ def properties_map(request):
             'views': p.views_count if hasattr(p, 'views_count') else 0,
             'rating': p.rating if hasattr(p, 'rating') else 0,
             'created_at': p.created_at.strftime('%Y-%m-%d') if p.created_at else '',
+            'house_number': p.house_number,
+            'neighborhood': p.neighborhood,
+            'mahalla': p.mahalla,
+            'block': p.block,
+            'street': p.street,
+            'alley': p.alley,
+            'property_plot_number': p.property_plot_number,
+            'polygon_coordinates': p.polygon_coordinates,
+            'plot_area': float(p.plot_area) if p.plot_area else None,
         })
     
     return render(request, 'properties/properties_map.html', {
@@ -1295,6 +1431,7 @@ def map_api_properties(request):
             'url': p.get_absolute_url(),
             'district': p.district,
             'governorate': p.governorate,
+            'city': p.city,
             'type': p.get_type_display(),
             'status': p.get_status_display(),
             'area': p.area,
@@ -1305,6 +1442,16 @@ def map_api_properties(request):
             'is_promoted': p.is_promoted,
             'broker': p.broker.display_name if p.broker else None,
             'office': p.office.name if p.office else None,
+            'house_number': p.house_number,
+            'neighborhood': p.neighborhood,
+            'mahalla': p.mahalla,
+            'block': p.block,
+            'street': p.street,
+            'alley': p.alley,
+            'property_plot_number': p.property_plot_number,
+            'currency': p.currency if hasattr(p, 'currency') else 'IQD',
+            'polygon_coordinates': p.polygon_coordinates,
+            'plot_area': float(p.plot_area) if p.plot_area else None,
         })
     
     return JsonResponse({
@@ -2397,7 +2544,7 @@ def broker_channel_stats(request):
         return redirect('broker_channel_settings')
     
     # Get channel statistics
-    properties = Property.objects.filter(broker=broker, status__in=['ready', 'rent'])
+    properties = Property.objects.filter(broker=broker, status__in=['ready', 'rent', 'published', 'renewed'])
     
     stats = {
         'total_properties': properties.count(),

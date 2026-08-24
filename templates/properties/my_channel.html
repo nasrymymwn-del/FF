@@ -14,10 +14,12 @@
 
 {% block dashboard_actions %}
 <a href="{% url 'broker_channel_detail' channel.id %}" class="btn btn-outline btn-sm" target="_blank">👁️ عرض القناة</a>
-<a href="{% url 'create_channel_post' %}" class="btn btn-primary btn-sm">➕ منشور جديد</a>
-<a href="{% url 'create_channel_video' %}" class="btn btn-primary btn-sm">🎥 رفع فيديو</a>
+<a href="/add/dynamic/" class="btn btn-primary btn-sm">➕ منشور جديد</a>
 <a href="{% url 'admin_contact' %}" class="btn btn-outline btn-sm">📧 مراسلة الإدارة</a>
 {% endblock %}
+
+{% block dashboard_content %}
+{% csrf_token %}
 
 {% block extra_css %}
 <style>
@@ -415,6 +417,126 @@
   opacity: 0.9;
 }
 
+/* Messages Section */
+.messages-section {
+  padding: 20px;
+}
+
+.section-header {
+  margin-bottom: 30px;
+}
+
+.section-header h3 {
+  font-size: 1.5rem;
+  margin-bottom: 10px;
+  color: var(--text);
+}
+
+.section-header p {
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.support-message-actions {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 30px;
+  flex-wrap: wrap;
+}
+
+.quick-contacts {
+  background: var(--card-bg);
+  border-radius: 15px;
+  padding: 25px;
+  box-shadow: var(--shadow);
+}
+
+.quick-contacts h4 {
+  margin-bottom: 20px;
+  color: var(--text);
+}
+
+.contact-info {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.contact-item {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 15px;
+  background: var(--bg);
+  border-radius: 10px;
+  transition: all 0.3s ease;
+}
+
+.contact-item:hover {
+  background: var(--primary);
+  color: white;
+}
+
+.contact-item i {
+  font-size: 1.2rem;
+  color: var(--primary);
+}
+
+.contact-item:hover i {
+  color: white;
+}
+
+/* Quick Publish Section */
+.quick-publish-section {
+  margin-bottom: 30px;
+}
+
+.quick-publish-section h3 {
+  font-size: 1.3rem;
+  margin-bottom: 20px;
+  color: var(--text);
+}
+
+.publish-options-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 15px;
+}
+
+.publish-option-card {
+  background: var(--card-bg);
+  border-radius: 15px;
+  padding: 20px;
+  text-align: center;
+  text-decoration: none;
+  color: var(--text);
+  transition: all 0.3s ease;
+  box-shadow: var(--shadow);
+  border: 2px solid transparent;
+}
+
+.publish-option-card:hover {
+  transform: translateY(-5px);
+  border-color: var(--primary);
+  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+}
+
+.publish-icon {
+  font-size: 2.5rem;
+  margin-bottom: 10px;
+}
+
+.publish-title {
+  font-weight: 600;
+  margin-bottom: 5px;
+  color: var(--text);
+}
+
+.publish-desc {
+  font-size: 0.85rem;
+  color: var(--text-light);
+}
+
 /* Properties Grid */
 .properties-grid {
   display: grid;
@@ -792,7 +914,7 @@
   <div class="stats-grid">
     <div class="stat-card purple">
       <div class="stat-icon">🏘️</div>
-      <div class="stat-number">{{ channel.properties_count|default:0 }}</div>
+      <div class="stat-number">{{ properties.count|default:0 }}</div>
       <div class="stat-label">عقارات</div>
     </div>
     <div class="stat-card blue">
@@ -807,12 +929,12 @@
     </div>
     <div class="stat-card orange">
       <div class="stat-icon">📱</div>
-      <div class="stat-number">{{ channel.posts_count|default:0 }}</div>
+      <div class="stat-number">{{ posts.count|default:0 }}</div>
       <div class="stat-label">منشورات</div>
     </div>
     <div class="stat-card red">
       <div class="stat-icon">🎯</div>
-      <div class="stat-number">{{ channel.auctions_count|default:0 }}</div>
+      <div class="stat-number">0</div>
       <div class="stat-label">مزادات</div>
     </div>
     <div class="stat-card pink">
@@ -827,12 +949,12 @@
     </div>
     <div class="stat-card yellow">
       <div class="stat-icon">💬</div>
-      <div class="stat-number">{{ channel.messages_count|default:0 }}</div>
+      <div class="stat-number">0</div>
       <div class="stat-label">رسائل</div>
     </div>
     <div class="stat-card indigo">
       <div class="stat-icon">⭐</div>
-      <div class="stat-number">{{ channel.reviews_count|default:0 }}</div>
+      <div class="stat-number">{{ channel.rating_count|default:0 }}</div>
       <div class="stat-label">تقييمات</div>
     </div>
     <div class="stat-card teal">
@@ -878,6 +1000,69 @@
 
   <!-- Home Tab -->
   <div id="home-tab" class="tab-content active">
+    <!-- Quick Publish Options -->
+    <div class="quick-publish-section">
+      <h3>📝 خيارات النشر السريع</h3>
+      <p style="margin-bottom: 15px; color: var(--text-light);">اختر نوع المحتوى الذي تريد نشره في قناتك</p>
+      <div class="publish-options-grid">
+        <a href="/add/dynamic/?category=inside_iraq" class="publish-option-card">
+          <div class="publish-icon">🏠</div>
+          <div class="publish-title">عقارات داخل العراق</div>
+          <div class="publish-desc">نشر عقارات محلية</div>
+        </a>
+        <a href="/add/dynamic/?category=outside_iraq" class="publish-option-card">
+          <div class="publish-icon">🌍</div>
+          <div class="publish-title">عقارات خارج العراق</div>
+          <div class="publish-desc">نشر عقارات عالمية</div>
+        </a>
+        <a href="/add/dynamic/?category=hotel_iraq" class="publish-option-card">
+          <div class="publish-icon">🏨🇮🇶</div>
+          <div class="publish-title">فنادق داخل العراق</div>
+          <div class="publish-desc">نشر فنادق محلية</div>
+        </a>
+        <a href="/add/dynamic/?category=hotel_world" class="publish-option-card">
+          <div class="publish-icon">🏨🌍</div>
+          <div class="publish-title">فنادق خارج العراق</div>
+          <div class="publish-desc">نشر فنادق عالمية</div>
+        </a>
+        <a href="/add/dynamic/?category=resort_iraq" class="publish-option-card">
+          <div class="publish-icon">🏝️🇮🇶</div>
+          <div class="publish-title">منتجعات داخل العراق</div>
+          <div class="publish-desc">نشر منتجعات محلية</div>
+        </a>
+        <a href="/add/dynamic/?category=resort_world" class="publish-option-card">
+          <div class="publish-icon">🏝️🌍</div>
+          <div class="publish-title">منتجعات خارج العراق</div>
+          <div class="publish-desc">نشر منتجعات عالمية</div>
+        </a>
+        <a href="/add/dynamic/?category=travel_company" class="publish-option-card">
+          <div class="publish-icon">✈️</div>
+          <div class="publish-title">نشر شركة سفر</div>
+          <div class="publish-desc">نشر خدمات سفر</div>
+        </a>
+        <a href="{% url 'job_post' %}" class="publish-option-card">
+          <div class="publish-icon">➕</div>
+          <div class="publish-title">نشر وظيفة</div>
+          <div class="publish-desc">نشر فرص عمل</div>
+        </a>
+        <a href="{% url 'create_advertisement' %}" class="publish-option-card">
+          <div class="publish-icon">🏗️</div>
+          <div class="publish-title">نشر طلب بناء</div>
+          <div class="publish-desc">نشر طلبات إنشاء</div>
+        </a>
+        <a href="/add/dynamic/?category=service" class="publish-option-card">
+          <div class="publish-icon">🔧</div>
+          <div class="publish-title">نشر خدمة</div>
+          <div class="publish-desc">نشر خدمات متنوعة</div>
+        </a>
+        <a href="/add/dynamic/?category=auction" class="publish-option-card">
+          <div class="publish-icon">🔨</div>
+          <div class="publish-title">نشر مزاد</div>
+          <div class="publish-desc">نشر مزادات عقارية</div>
+        </a>
+      </div>
+    </div>
+
     <!-- Recent Activity -->
     <div class="recent-activity">
       <h3>📊 آخر النشاط</h3>
@@ -1015,8 +1200,8 @@
                 <span>👁️ {{ post.views_count|default:0 }}</span>
               </div>
               <div class="property-actions">
-                <a href="{% url 'edit_channel_post' post.id %}" class="property-action-btn edit">✏️ تعديل</a>
-                <a href="{% url 'delete_channel_post' post.id %}" class="property-action-btn delete" onclick="return confirm('هل أنت متأكد من حذف هذا المنشور؟')">🗑️ حذف</a>
+                <button class="property-action-btn edit" onclick="editPost({{ post.id }})">✏️ تعديل</button>
+                <button class="property-action-btn delete" onclick="deletePost({{ post.id }})">🗑️ حذف</button>
               </div>
             </div>
           </div>
@@ -1053,10 +1238,38 @@
 
   <!-- Messages Tab -->
   <div id="messages-tab" class="tab-content">
-    <div class="empty-state">
-      <div class="empty-state-icon">💬</div>
-      <h3>لا توجد رسائل حالياً</h3>
-      <p>الرسائل من العملاء ستظهر هنا</p>
+    <div class="messages-section">
+      <div class="section-header">
+        <h3>💬 نظام المراسلة</h3>
+        <p>تواصل مع مركز الدعم الفني للحصول على المساعدة</p>
+      </div>
+      
+      <div class="support-message-actions">
+        <a href="{% url 'support_message_create' %}" class="btn btn-primary">
+          <i class="fas fa-paper-plane"></i> إرسال رسالة للدعم الفني
+        </a>
+        <a href="{% url 'support_message_list' %}" class="btn btn-outline">
+          <i class="fas fa-inbox"></i> رسائلي السابقة
+        </a>
+      </div>
+      
+      <div class="quick-contacts">
+        <h4>📞 معلومات الاتصال السريع</h4>
+        <div class="contact-info">
+          <div class="contact-item">
+            <i class="fas fa-envelope"></i>
+            <span>support@dalal.iq</span>
+          </div>
+          <div class="contact-item">
+            <i class="fas fa-phone"></i>
+            <span>+964 780 000 0000</span>
+          </div>
+          <div class="contact-item">
+            <i class="fas fa-clock"></i>
+            <span>العمل: 9 صباحاً - 5 مساءً</span>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -1093,7 +1306,35 @@
   </div>
 </div>
 
+<input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+
 <script>
+// Get CSRF token from cookie or hidden input
+function getCookie(name) {
+  let cookieValue = null;
+  if (document.cookie && document.cookie !== '') {
+    const cookies = document.cookie.split(';');
+    for (let i = 0; i < cookies.length; i++) {
+      const cookie = cookies[i].trim();
+      if (cookie.substring(0, name.length + 1) === (name + '=')) {
+        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+        break;
+      }
+    }
+  }
+  return cookieValue;
+}
+
+function getCSRFToken() {
+  // Try to get from hidden input first
+  const hiddenInput = document.querySelector('[name="csrfmiddlewaretoken"]');
+  if (hiddenInput && hiddenInput.value) {
+    return hiddenInput.value;
+  }
+  // Fallback to cookie
+  return getCookie('csrftoken');
+}
+
 function switchTab(tabName) {
   document.querySelectorAll('.tab-content').forEach(tab => {
     tab.classList.remove('active');
@@ -1106,11 +1347,73 @@ function switchTab(tabName) {
 }
 
 function changeCover() {
-  alert('سيتم إضافة وظيفة تغيير الغلاف قريباً');
+  // Open file dialog for cover image
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = 'image/*';
+  input.onchange = function(e) {
+    const file = e.target.files[0];
+    if (file) {
+      // Preview image before upload
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        if (confirm('هل تريد رفع هذه الصورة كغلاف للقناة؟')) {
+          uploadImage(file, 'cover');
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+  input.click();
 }
 
 function changeAvatar() {
-  alert('سيتم إضافة وظيفة تغيير الشعار قريباً');
+  // Open file dialog for logo
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = 'image/*';
+  input.onchange = function(e) {
+    const file = e.target.files[0];
+    if (file) {
+      // Preview image before upload
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        if (confirm('هل تريد رفع هذه الصورة كشعار للقناة؟')) {
+          uploadImage(file, 'logo');
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+  input.click();
+}
+
+function uploadImage(file, type) {
+  const formData = new FormData();
+  formData.append(type + '_image', file);
+  
+  const csrfToken = getCSRFToken();
+  
+  fetch('/api/channel/update-media/', {
+    method: 'POST',
+    body: formData,
+    headers: {
+      'X-CSRFToken': csrfToken
+    }
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      alert('✅ تم تحديث الصورة بنجاح');
+      location.reload();
+    } else {
+      alert('❌ حدث خطأ: ' + (data.error || 'خطأ غير معروف'));
+    }
+  })
+  .catch(error => {
+    alert('❌ حدث خطأ في رفع الصورة');
+    console.error('Upload error:', error);
+  });
 }
 
 function shareChannel() {
@@ -1147,5 +1450,16 @@ function toggleFeatured(button) {
   const propertyId = button.getAttribute('data-property-id');
   alert('سيتم إضافة وظيفة تمييز العقار قريباً - ID: ' + propertyId);
 }
+
+function editPost(postId) {
+  alert('سيتم إضافة وظيفة تعديل المنشور قريباً - ID: ' + postId);
+}
+
+function deletePost(postId) {
+  if (confirm('هل أنت متأكد من حذف هذا المنشور؟')) {
+    alert('سيتم إضافة وظيفة حذف المنشور قريباً - ID: ' + postId);
+  }
+}
+{% endblock %}
 </script>
 {% endblock %}

@@ -99,9 +99,86 @@
 
         <button type="submit" class="btn btn-primary">حفظ الإعدادات</button>
       </form>
+
+      <div class="form-section" style="margin-top: 2rem;">
+        <h2>إدارة النسخ الاحتياطية</h2>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:1rem;">
+          <button type="button" class="btn btn-primary" onclick="createBackup('full')">إنشاء نسخة كاملة</button>
+          <button type="button" class="btn btn-outline" onclick="createBackup('database')">نسخة قاعدة البيانات</button>
+          <button type="button" class="btn btn-outline" onclick="createBackup('files')">نسخة الملفات</button>
+        </div>
+        <div class="table-responsive">
+          <table class="table" style="width:100%;border-collapse:collapse;">
+            <thead>
+              <tr>
+                <th>الاسم</th>
+                <th>النوع</th>
+                <th>الحجم</th>
+                <th>التاريخ</th>
+                <th>بواسطة</th>
+                <th>إجراءات</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for backup in backups %}
+              <tr>
+                <td>{{ backup.name }}</td>
+                <td>{{ backup.get_backup_type_display }}</td>
+                <td>{{ backup.size }} MB</td>
+                <td>{{ backup.created_at|date:"Y-m-d H:i" }}</td>
+                <td>{{ backup.created_by.username|default:"—" }}</td>
+                <td style="display:flex;gap:6px;flex-wrap:wrap;">
+                  <a class="btn btn-sm btn-outline" href="{% url 'download_backup' backup.id %}">تنزيل</a>
+                  <button type="button" class="btn btn-sm btn-primary" onclick="restoreBackup({{ backup.id }})">استعادة</button>
+                  <button type="button" class="btn btn-sm btn-danger" onclick="deleteBackup({{ backup.id }})">حذف</button>
+                </td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="6">لا توجد نسخ احتياطية بعد</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
   </div>
 </div>
+
+<script>
+function getCSRFToken() {
+  const match = document.cookie.match(/csrftoken=([^;]+)/);
+  return match ? match[1] : '';
+}
+function createBackup(type) {
+  fetch('{% url "create_backup" %}', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json', 'X-CSRFToken': getCSRFToken()},
+    body: JSON.stringify({type: type})
+  }).then(r => r.json()).then(data => {
+    if (data.success) { alert('تم إنشاء النسخة بنجاح'); location.reload(); }
+    else { alert(data.error || 'فشل إنشاء النسخة'); }
+  }).catch(() => alert('حدث خطأ في الاتصال'));
+}
+function restoreBackup(id) {
+  if (!confirm('استعادة هذه النسخة؟ قد يتم استبدال البيانات الحالية.')) return;
+  fetch(`/api/backup/${id}/restore/`, {
+    method: 'POST',
+    headers: {'X-CSRFToken': getCSRFToken()}
+  }).then(r => r.json()).then(data => {
+    alert(data.success ? 'تمت الاستعادة بنجاح' : (data.error || 'فشلت الاستعادة'));
+  }).catch(() => alert('حدث خطأ في الاتصال'));
+}
+function deleteBackup(id) {
+  if (!confirm('حذف هذه النسخة؟')) return;
+  fetch(`/api/backup/${id}/delete/`, {
+    method: 'POST',
+    headers: {'X-CSRFToken': getCSRFToken()}
+  }).then(r => r.json()).then(data => {
+    if (data.success) location.reload();
+    else alert(data.error || 'فشل الحذف');
+  }).catch(() => alert('حدث خطأ في الاتصال'));
+}
+</script>
 
 <style>
 .settings-layout {

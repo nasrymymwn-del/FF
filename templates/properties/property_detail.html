@@ -88,6 +88,14 @@
           <span class="btn-icon">⚖️</span>
           <span>مقارنة</span>
         </button>
+        <button type="button" class="btn btn-outline rating-btn" onclick="toggleRatingModal({{ property.id }}, 'property')">
+          <span class="btn-icon">⭐</span>
+          <span>تقييم</span>
+        </button>
+        <button type="button" class="btn btn-outline appointment-btn" onclick="toggleAppointmentModal({{ property.id }}, 'property_viewing')">
+          <span class="btn-icon">📅</span>
+          <span>جدولة معاينة</span>
+        </button>
         <a href="tel:{{ property.phone }}" class="btn btn-primary call-btn">
           <span class="btn-icon">📞</span>
           <span>اتصال</span>
@@ -295,6 +303,12 @@
           <div class="detail-item">
             <span class="detail-label">الناحية:</span>
             <span class="detail-value">{{ property.nahiyah }}</span>
+          </div>
+          {% endif %}
+          {% if property.region %}
+          <div class="detail-item">
+            <span class="detail-label">المنطقة:</span>
+            <span class="detail-value">{{ property.region }}</span>
           </div>
           {% endif %}
           {% if property.landmark %}
@@ -807,7 +821,7 @@
         <span class="btn-icon">📞</span>
         <span>اتصال مباشر</span>
       </a>
-      {% if site_settings.whatsapp %}
+      {% if site_settings and site_settings.whatsapp %}
       <a href="https://wa.me/{{ site_settings.whatsapp }}" class="btn btn-accent btn-lg whatsapp-btn-full" target="_blank" rel="noopener">
         <span class="btn-icon">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.435 9.884-9.881 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
@@ -2155,6 +2169,354 @@
   width: 100%;
 }
 </style>
+
+<!-- Rating Modal -->
+<div class="modal" id="rating-modal" style="display: none;">
+  <div class="modal-content rating-modal-content">
+    <div class="modal-header">
+      <h3>⭐ تقييم العقار</h3>
+      <button class="modal-close" onclick="closeRatingModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="rating-target-id" value="{{ property.id }}">
+      <input type="hidden" id="rating-type" value="property">
+      <input type="hidden" id="rating-value">
+      
+      <div class="rating-stars">
+        <span class="rating-star" onclick="setRating(1)">☆</span>
+        <span class="rating-star" onclick="setRating(2)">☆</span>
+        <span class="rating-star" onclick="setRating(3)">☆</span>
+        <span class="rating-star" onclick="setRating(4)">☆</span>
+        <span class="rating-star" onclick="setRating(5)">☆</span>
+      </div>
+      
+      <div class="review-section">
+        <label>مراجعتك:</label>
+        <textarea id="review-text" rows="4" placeholder="اكتب مراجعتك هنا..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeRatingModal()">إلغاء</button>
+      <button class="btn btn-primary" onclick="submitRating()">إرسال التقييم</button>
+    </div>
+  </div>
+</div>
+
+<!-- Appointment Modal -->
+<div class="modal" id="appointment-modal" style="display: none;">
+  <div class="modal-content appointment-modal-content">
+    <div class="modal-header">
+      <h3>📅 جدولة معاينة العقار</h3>
+      <button class="modal-close" onclick="closeAppointmentModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="appointment-target-id" value="{{ property.id }}">
+      <input type="hidden" id="appointment-type" value="property_viewing">
+      
+      <div class="appointment-form">
+        <div class="form-group">
+          <label>نوع الموعد:</label>
+          <select id="appointment-type-display" disabled>
+            <option value="property_viewing" selected>معاينة عقار</option>
+            <option value="phone_call">مكالمة هاتفية</option>
+            <option value="meeting">اجتماع</option>
+            <option value="video_call">مكالمة فيديو</option>
+          </select>
+        </div>
+        
+        <div class="form-group">
+          <label>التاريخ:</label>
+          <input type="date" id="appointment-date">
+        </div>
+        
+        <div class="form-group">
+          <label>الوقت:</label>
+          <input type="time" id="appointment-time">
+        </div>
+        
+        <div class="form-group">
+          <label>ملاحظات:</label>
+          <textarea id="appointment-notes" rows="3" placeholder="أي ملاحظات إضافية..."></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeAppointmentModal()">إلغاء</button>
+      <button class="btn btn-primary" onclick="submitAppointment()">جدولة الموعد</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// Rating and Appointment Functions
+function toggleRatingModal(targetId, targetType) {
+  document.getElementById('rating-modal').style.display = 'flex';
+  document.getElementById('rating-target-id').value = targetId;
+  document.getElementById('rating-type').value = targetType;
+}
+
+function closeRatingModal() {
+  document.getElementById('rating-modal').style.display = 'none';
+}
+
+function setRating(rating) {
+  const stars = document.querySelectorAll('.rating-star');
+  stars.forEach((star, index) => {
+    if (index < rating) {
+      star.classList.add('active');
+      star.textContent = '⭐';
+    } else {
+      star.classList.remove('active');
+      star.textContent = '☆';
+    }
+  });
+  document.getElementById('rating-value').value = rating;
+}
+
+function submitRating() {
+  const ratingValue = document.getElementById('rating-value').value;
+  const targetType = document.getElementById('rating-type').value;
+  const targetId = document.getElementById('rating-target-id').value;
+  const reviewText = document.getElementById('review-text').value;
+  
+  if (!ratingValue) {
+    alert('يرجى اختيار تقييم');
+    return;
+  }
+  
+  fetch('/api/ratings/submit/', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': getCsrfToken()
+    },
+    body: JSON.stringify({
+      rating_type: targetType,
+      target_id: targetId,
+      rating: ratingValue,
+      review: reviewText
+    })
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      alert('تم إرسال التقييم بنجاح');
+      closeRatingModal();
+    } else {
+      alert('حدث خطأ في إرسال التقييم');
+    }
+  })
+  .catch(error => {
+    console.error('Rating error:', error);
+    alert('حدث خطأ في إرسال التقييم');
+  });
+}
+
+function toggleAppointmentModal(targetId, appointmentType) {
+  document.getElementById('appointment-modal').style.display = 'flex';
+  document.getElementById('appointment-target-id').value = targetId;
+  document.getElementById('appointment-type').value = appointmentType;
+}
+
+function closeAppointmentModal() {
+  document.getElementById('appointment-modal').style.display = 'none';
+}
+
+function submitAppointment() {
+  const targetId = document.getElementById('appointment-target-id').value;
+  const appointmentType = document.getElementById('appointment-type').value;
+  const appointmentDate = document.getElementById('appointment-date').value;
+  const appointmentTime = document.getElementById('appointment-time').value;
+  const notes = document.getElementById('appointment-notes').value;
+  
+  if (!appointmentDate || !appointmentTime) {
+    alert('يرجى اختيار التاريخ والوقت');
+    return;
+  }
+  
+  fetch('/api/appointments/create/', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': getCsrfToken()
+    },
+    body: JSON.stringify({
+      appointment_type: appointmentType,
+      target_id: targetId,
+      appointment_date: appointmentDate,
+      appointment_time: appointmentTime,
+      notes: notes
+    })
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      alert('تم إنشاء الموعد بنجاح');
+      closeAppointmentModal();
+    } else {
+      alert('حدث خطأ في إنشاء الموعد');
+    }
+  })
+  .catch(error => {
+    console.error('Appointment error:', error);
+    alert('حدث خطأ في إنشاء الموعد');
+  });
+}
+
+function getCsrfToken() {
+  return document.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
+}
+</script>
+
+<style>
+/* Rating Modal Styles */
+.rating-modal-content {
+  max-width: 500px;
+}
+
+.rating-stars {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.rating-star {
+  font-size: 2rem;
+  cursor: pointer;
+  color: #666;
+  transition: all 0.3s ease;
+}
+
+.rating-star:hover {
+  color: #ff9500;
+  transform: scale(1.1);
+}
+
+.rating-star.active {
+  color: #ff9500;
+}
+
+.review-section {
+  margin-top: 20px;
+}
+
+.review-section label {
+  display: block;
+  margin-bottom: 8px;
+  color: #a0a0a0;
+  font-weight: 600;
+}
+
+.review-section textarea {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #404040;
+  border-radius: 8px;
+  background: #1a1a1a;
+  color: #ffffff;
+  resize: vertical;
+}
+
+/* Appointment Modal Styles */
+.appointment-modal-content {
+  max-width: 500px;
+}
+
+.appointment-form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-group label {
+  color: #a0a0a0;
+  font-weight: 600;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  padding: 12px;
+  border: 1px solid #404040;
+  border-radius: 8px;
+  background: #1a1a1a;
+  color: #ffffff;
+  outline: none;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  border-color: #667eea;
+}
+
+/* Modal Styles */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: #2d2d2d;
+  border-radius: 15px;
+  width: 90%;
+  max-width: 500px;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+}
+
+.modal-header {
+  padding: 20px;
+  border-bottom: 1px solid #404040;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-header h3 {
+  margin: 0;
+  color: #ffffff;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  color: #a0a0a0;
+  cursor: pointer;
+  font-size: 1.5rem;
+}
+
+.modal-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+}
+
+.modal-footer {
+  padding: 20px;
+  border-top: 1px solid #404040;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+</style>
 {% endblock %}
 
 <!-- Fullscreen Map Modal -->
@@ -2179,20 +2541,28 @@ window.PROPERTY_PRICE = {{ property.price }};
 document.addEventListener('DOMContentLoaded', function() {
   {% for tour in virtual_tours %}
   if (document.getElementById('panorama-{{ tour.id }}')) {
+    {% if tour.tour_type == 'external' and tour.external_url %}
+    document.getElementById('panorama-{{ tour.id }}').innerHTML =
+      '<iframe src="{{ tour.external_url }}" style="width:100%;height:100%;border:0;" allowfullscreen loading="lazy"></iframe>';
+    {% elif tour.image %}
     new VirtualTour360('#panorama-{{ tour.id }}', {
       imageUrl: "{{ tour.image.url }}",
-      autoRotate: {{ tour.auto_rotate|lower }},
-      autoRotateSpeed: {{ tour.auto_rotate_speed }},
-      enableZoom: {{ tour.enable_zoom|lower }},
-      minZoom: {{ tour.min_zoom }},
-      maxZoom: {{ tour.max_zoom }},
-      enableFullscreen: {{ tour.enable_fullscreen|lower }},
-      enableVR: {{ tour.enable_vr|lower }},
-      initialPitch: {{ tour.initial_view_pitch }},
-      initialYaw: {{ tour.initial_view_yaw }},
-      startInAutoplay: {{ tour.start_in_autoplay|lower }},
-      autoplayDuration: {{ tour.autoplay_duration }}
+      autoRotate: {{ tour.auto_rotate|yesno:"true,false" }},
+      autoRotateSpeed: {{ tour.auto_rotate_speed|default:1 }},
+      enableZoom: {{ tour.enable_zoom|yesno:"true,false" }},
+      minZoom: {{ tour.min_zoom|default:0.5 }},
+      maxZoom: {{ tour.max_zoom|default:3 }},
+      enableFullscreen: {{ tour.enable_fullscreen|yesno:"true,false" }},
+      enableVR: {{ tour.enable_vr|yesno:"true,false" }},
+      initialPitch: {{ tour.initial_view_pitch|default:0 }},
+      initialYaw: {{ tour.initial_view_yaw|default:0 }},
+      startInAutoplay: {{ tour.start_in_autoplay|yesno:"true,false" }},
+      autoplayDuration: {{ tour.autoplay_duration|default:10 }}
     });
+    {% else %}
+    document.getElementById('panorama-{{ tour.id }}').innerHTML =
+      '<div style="display:grid;place-items:center;height:100%;opacity:.7;">لا تتوفر صورة 360° لهذه الجولة</div>';
+    {% endif %}
   }
   {% endfor %}
 });

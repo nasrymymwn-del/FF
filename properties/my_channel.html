@@ -8,6 +8,7 @@
 {% block dashboard_subtitle %}
 <p style="margin:4px 0 0;color:var(--text-muted);font-size:0.9rem;">
   {% if channel.is_verified %}<span class="badge">✅ قناة موثقة</span>{% endif %}
+  <span class="badge">{{ channel.get_category_display }}</span>
   {{ channel.get_status_display }} — {{ channel.followers_count }} متابع
 </p>
 {% endblock %}
@@ -1015,8 +1016,8 @@
                 <span>👁️ {{ post.views_count|default:0 }}</span>
               </div>
               <div class="property-actions">
-                <a href="{% url 'edit_channel_post' post.id %}" class="property-action-btn edit">✏️ تعديل</a>
-                <a href="{% url 'delete_channel_post' post.id %}" class="property-action-btn delete" onclick="return confirm('هل أنت متأكد من حذف هذا المنشور؟')">🗑️ حذف</a>
+                <button class="property-action-btn edit" onclick="editPost({{ post.id }})">✏️ تعديل</button>
+                <button class="property-action-btn delete" onclick="deletePost({{ post.id }})">🗑️ حذف</button>
               </div>
             </div>
           </div>
@@ -1106,11 +1107,11 @@ function switchTab(tabName) {
 }
 
 function changeCover() {
-  alert('سيتم إضافة وظيفة تغيير الغلاف قريباً');
+  window.location.href = "{% url 'update_channel_media' %}";
 }
 
 function changeAvatar() {
-  alert('سيتم إضافة وظيفة تغيير الشعار قريباً');
+  window.location.href = "{% url 'update_channel_media' %}";
 }
 
 function shareChannel() {
@@ -1146,6 +1147,16 @@ function shareProperty(button) {
 function toggleFeatured(button) {
   const propertyId = button.getAttribute('data-property-id');
   alert('سيتم إضافة وظيفة تمييز العقار قريباً - ID: ' + propertyId);
+}
+
+function editPost(postId) {
+  alert('سيتم إضافة وظيفة تعديل المنشور قريباً - ID: ' + postId);
+}
+
+function deletePost(postId) {
+  if (confirm('هل أنت متأكد من حذف هذا المنشور؟')) {
+    alert('سيتم إضافة وظيفة حذف المنشور قريباً - ID: ' + postId);
+  }
 }
 </script>
 {% endblock %}

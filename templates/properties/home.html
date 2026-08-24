@@ -1,15 +1,29 @@
 {% extends 'properties/base.html' %}
 {% load static %}
 
-{% block title %}عقارات للبيع والإيجار في العراق{% endblock %}
+{% block title %}عقارات للبيع والإيجار في العراق - منصة دلال{% endblock %}
 
 {% block content %}
 <section class="hero">
   <div class="hero-bg"></div>
   <div class="container hero-content">
     <div class="hero-badge">🏆 منصة عقارات عراقية موثوقة</div>
-    <h1><span class="text-gold">{{ site_settings.site_name|default:'دلال' }}</span> — عقارك في دقائق</h1>
+    <h1><span class="text-gold">{% if site_settings %}{{ site_settings.site_name }}{% else %}دلال{% endif %}</span> — عقارك في دقائق</h1>
     <p>اكتشف أفضل العقارات للبيع والإيجار في العراق — تجربة فاخرة، سريعة، وموثوقة</p>
+    <div class="hero-stats">
+      <div class="stat-item">
+        <div class="stat-number">{{ stats.total_properties|default:0 }}</div>
+        <div class="stat-label">عقار متاح</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-number">{{ stats.total_brokers|default:0 }}</div>
+        <div class="stat-label">دلال نشط</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-number">{{ stats.total_channels|default:0 }}</div>
+        <div class="stat-label">قناة نشطة</div>
+      </div>
+    </div>
   </div>
 </section>
 
@@ -128,76 +142,6 @@
         <h3>عقارات خارج العراق</h3>
         <p>استكشف العقارات والفنادق والمنتجعات خارج العراق</p>
       </a>
-      <a href="{% url 'auctions_list' %}" class="platform-card card">
-        <div class="platform-icon">🔨</div>
-        <h3>المزادات</h3>
-        <p>مزادات عقارية حية مع نظام مزايدة متقدم</p>
-      </a>
-      <a href="{% url 'public_building_requests' %}" class="platform-card card">
-        <div class="platform-icon">🏗️</div>
-        <h3>طلبات البناء</h3>
-        <p>اطلب بناء منزلك واحصل على عروض المقاولين</p>
-      </a>
-      <a href="{% url 'public_service_advertisements' %}" class="platform-card card">
-        <div class="platform-icon">🔧</div>
-        <h3>الخدمات</h3>
-        <p>ابحث عن مقدمي الخدمات المحترفين</p>
-      </a>
-      <a href="{% url 'channels_list' %}" class="platform-card card">
-        <div class="platform-icon">📺</div>
-        <h3>قنوات الدلالين</h3>
-        <p>استكشف قنوات الدلالين المحترفين وعقاراتهم</p>
-      </a>
-      <a href="{% url 'hotels_list' %}" class="platform-card card">
-        <div class="platform-icon">🏨</div>
-        <h3>الفنادق</h3>
-        <p>استكشف أفضل الفنادق والإقامة السياحية</p>
-      </a>
-      <a href="{% url 'category_hotels' %}" class="platform-card card">
-        <div class="platform-icon">🏨🇮🇶</div>
-        <h3>فنادق داخل العراق</h3>
-        <p>فنادق ومنتجعات داخل العراق</p>
-      </a>
-      <a href="{% url 'category_hotels_outside' %}" class="platform-card card">
-        <div class="platform-icon">🏨🌍</div>
-        <h3>فنادق خارج العراق</h3>
-        <p>فنادق ومنتجعات خارج العراق</p>
-      </a>
-      <a href="{% url 'category_resorts' %}" class="platform-card card">
-        <div class="platform-icon">🏖️</div>
-        <h3>المنتجعات</h3>
-        <p>منتجعات واستراحات للعائلات والسياح مع بحث متطور</p>
-      </a>
-      <a href="{% url 'resorts_inside_iraq' %}" class="platform-card card">
-        <div class="platform-icon">🏝️🇮🇶</div>
-        <h3>منتجعات داخل العراق</h3>
-        <p>منتجعات واستراحات داخل العراق</p>
-      </a>
-      <a href="{% url 'resorts_outside_iraq' %}" class="platform-card card">
-        <div class="platform-icon">🏝️🌍</div>
-        <h3>منتجعات خارج العراق</h3>
-        <p>منتجعات واستراحات خارج العراق</p>
-      </a>
-      <a href="{% url 'travel_companies' %}" class="platform-card card">
-        <div class="platform-icon">✈️</div>
-        <h3>شركات السفر</h3>
-        <p>شركات سفر وسياحة للرحلات الداخلية والخارجية</p>
-      </a>
-      <a href="#" class="platform-card card">
-        <div class="platform-icon">💼</div>
-        <h3>فرص العمل داخل العراق</h3>
-        <p>ابحث عن فرص عمل داخل العراق</p>
-      </a>
-      <a href="#" class="platform-card card">
-        <div class="platform-icon">🌍💼</div>
-        <h3>فرص العمل خارج العراق</h3>
-        <p>ابحث عن فرص عمل خارج العراق</p>
-      </a>
-      <a href="{% url 'explore' %}" class="platform-card card">
-        <div class="platform-icon">🔍</div>
-        <h3>استكشف</h3>
-        <p>تصفح تفاعلي مع خرائط وفلترة ذكية</p>
-      </a>
       {% if can_access_dashboard %}
       <a href="{% url 'dashboard' %}" class="platform-card card">
         <div class="platform-icon">📊</div>
@@ -222,15 +166,22 @@
 </div>
 
 <div class="container">
-  <div class="building-banner">
-    <div class="building-banner-content">
-      <h2>🏗️ اطلب بناء منزلك</h2>
-      <p>احصل على عروض من أفضل المقاولين والمهندسين</p>
-      <div class="building-buttons">
-        <a href="{% url 'building_request_create' %}" class="btn btn-primary btn-lg">
-          <span>طلب بناء</span>
-        </a>
-      </div>
+  <div class="container" style="margin-top: 40px;">
+    <div style="text-align:center; margin-bottom:30px;">
+      <h2 style="font-size:2rem; font-weight:800; margin-bottom:12px; background: linear-gradient(135deg, #ff8c00 0%, #ff6600 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">الخدمات والوظائف</h2>
+      <p style="color:var(--text-muted); max-width:600px; margin:0 auto;">استكشف أفضل الخدمات المحترفية وفرص العمل المتاحة</p>
+    </div>
+    <div class="platforms-grid">
+      <a href="{% url 'public_service_advertisements' %}" class="platform-card card">
+        <div class="platform-icon">🔧</div>
+        <h3>الخدمات</h3>
+        <p>ابحث عن مقدمي الخدمات المحترفين</p>
+      </a>
+      <a href="{% url 'jobs_list' %}" class="platform-card card">
+        <div class="platform-icon">💼</div>
+        <h3>فرص العمل</h3>
+        <p>ابحث عن فرص العمل داخل وخارج العراق</p>
+      </a>
     </div>
   </div>
 </div>
@@ -278,6 +229,40 @@
         <span>مميز</span>
       </a>
     </div>
+  </div>
+</div>
+  
+<div class="container" style="margin-top: 40px;">
+  <div style="text-align:center; margin-bottom:40px;">
+    <h2 style="font-size:2rem; font-weight:800; margin-bottom:12px;">السفر والسياحة</h2>
+    <p style="color:var(--text-muted); max-width:600px; margin:0 auto;">استكشف الفنادق والمنتجعات وشركات السفر للرحلات الداخلية والخارجية</p>
+  </div>
+  <div class="platforms-grid">
+    <a href="{% url 'category_hotels' %}" class="platform-card card">
+      <div class="platform-icon">🏨🇮🇶</div>
+      <h3>فنادق داخل العراق</h3>
+      <p>فنادق ومنتجعات داخل العراق</p>
+    </a>
+    <a href="{% url 'category_hotels_outside' %}" class="platform-card card">
+      <div class="platform-icon">🏨🌍</div>
+      <h3>فنادق خارج العراق</h3>
+      <p>فنادق ومنتجعات خارج العراق</p>
+    </a>
+    <a href="{% url 'resorts_inside_iraq' %}" class="platform-card card">
+      <div class="platform-icon">🏝️🇮🇶</div>
+      <h3>منتجعات داخل العراق</h3>
+      <p>منتجعات واستراحات داخل العراق</p>
+    </a>
+    <a href="{% url 'resorts_outside_iraq' %}" class="platform-card card">
+      <div class="platform-icon">🏝️🌍</div>
+      <h3>منتجعات خارج العراق</h3>
+      <p>منتجعات واستراحات خارج العراق</p>
+    </a>
+    <a href="{% url 'travel_companies' %}" class="platform-card card">
+      <div class="platform-icon">✈️</div>
+      <h3>شركات السفر</h3>
+      <p>شركات سفر وسياحة للرحلات الداخلية والخارجية</p>
+    </a>
   </div>
 </div>
 
@@ -349,28 +334,6 @@
   </div>
 </section>
 {% endif %}
-
-<!-- Tourism Section -->
-<section class="section" style="padding-top:0">
-  <div class="container">
-    <div class="section-header">
-      <div class="section-badge">
-        <span class="badge-icon">🏨</span>
-        <span>السياحة</span>
-      </div>
-      <h2 class="section-title">فنادق ومنتجعات</h2>
-      <p class="section-subtitle">أفضل الأماكن السياحية في العراق</p>
-    </div>
-    <div class="tourism-links" style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:24px;">
-      <a href="{% url 'hotels_list' %}" class="btn btn-primary" style="flex:1;min-width:150px;text-align:center;">
-        🏨 الفنادق
-      </a>
-      <a href="{% url 'resorts_list' %}" class="btn btn-accent" style="flex:1;min-width:150px;text-align:center;">
-        🏖️ المنتجعات
-      </a>
-    </div>
-  </div>
-</section>
 
 <section class="section" id="properties">
   <div class="container">
@@ -502,8 +465,91 @@
   transform: translateY(-2px);
   box-shadow: 0 6px 16px rgba(0,0,0,0.3);
 }
+
+/* Enhanced Statistics Section */
+.enhanced-stats-section {
+  padding: 60px 0;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  margin: 40px 0;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 24px;
+}
+
+.stat-card {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border-radius: 16px;
+  padding: 24px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transition: all 0.3s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-4px);
+  background: rgba(255, 255, 255, 0.15);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+}
+
+.stat-icon {
+  font-size: 2.5rem;
+  line-height: 1;
+}
+
+.stat-info {
+  flex: 1;
+}
+
+.stat-card .stat-number {
+  font-size: 2rem;
+  font-weight: 800;
+  color: white;
+  line-height: 1.2;
+  margin-bottom: 4px;
+}
+
+.stat-card .stat-label {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+.stat-card .stat-trend {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+@media (max-width: 768px) {
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .stat-card {
+    padding: 16px;
+  }
+  
+  .stat-icon {
+    font-size: 2rem;
+  }
+  
+  .stat-card .stat-number {
+    font-size: 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+}
 </style>
-</section>
 
 <!-- نافذة المقارنة -->
 <div id="compare-modal" style="display:none;position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,0.5);padding:1rem;overflow:auto">

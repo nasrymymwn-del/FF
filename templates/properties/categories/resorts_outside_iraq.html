@@ -351,6 +351,15 @@
   </form>
 </div>
 
+{% if can_create_resort %}
+<div style="text-align: center; margin: 20px 0;">
+  <a href="{% url 'resort_create_outside_iraq' %}" class="search-btn" style="display: inline-flex; align-items: center; gap: 8px; text-decoration: none;">
+    <i class="fas fa-plus"></i>
+    نشر منتجع خارج العراق
+  </a>
+</div>
+{% endif %}
+
 {% if resorts %}
 <div class="resorts-grid">
   {% for resort in resorts %}
@@ -420,7 +429,7 @@
         <span class="view-btn">عرض التفاصيل</span>
       </div>
       
-      <div class="resort-location">🌍 {{ resort.country.name_ar if resort.country }} - {{ resort.city }}</div>
+      <div class="resort-location">🌍 {{ resort.country.name_ar|default:'' }} - {{ resort.city }}</div>
     </div>
   </a>
   {% endfor %}

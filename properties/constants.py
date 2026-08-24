@@ -84,6 +84,14 @@ PROPERTY_TYPES = {
         ('commercial_land', 'أرض تجارية'),
         ('investment_land', 'أرض استثمارية'),
     ],
+    'building': [
+        ('residential_building', 'بناية سكنية'),
+        ('commercial_building', 'بناية تجارية'),
+        ('industrial_building', 'بناية صناعية'),
+        ('mixed_use_building', 'بناية مختلطة الاستخدام'),
+        ('under_construction', 'قيد البناء'),
+        ('building_project', 'مشروع بناء'),
+    ],
     'outside_iraq': [
         ('outside_apartment', 'شقة خارج العراق'),
         ('outside_villa', 'فيلا خارج العراق'),
@@ -136,6 +144,21 @@ TRAVEL_COMPANY_TYPES = [
     ('adventure', 'مغامرة'),
     ('medical', 'سياحة علاجية'),
     ('educational', 'سياحة تعليمية'),
+    ('family', 'عائلات'),
+    ('luxury', 'فاخرة'),
+    ('budget', 'اقتصادية'),
+    ('cultural', 'ثقافية'),
+    ('religious', 'دينية'),
+    ('ecotourism', 'سياحة بيئية'),
+    ('cruise', 'رحلات بحرية'),
+    ('wedding_honeymoon', 'زفاف وشهر عسل'),
+    ('student', 'طلاب'),
+    ('senior', 'كبار السن'),
+    ('accessible', 'ذوي احتياجات خاصة'),
+    ('corporate', 'شركات'),
+    ('group_tours', 'رحلات جماعية'),
+    ('private_tours', 'رحلات خاصة'),
+    ('custom_packages', 'باقات مخصصة'),
 ]
 
 # Travel types

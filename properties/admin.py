@@ -1,16 +1,23 @@
 from django.contrib import admin
 from django.utils.html import format_html
+from django.db.models import Count, Sum
+from django.utils import timezone
+from datetime import timedelta
 
 from .models import (
-    Message, Property, PropertyImage, SiteSettings, Broker, BrokerJoinRequest, Office,
+    Property, PropertyImage, SiteSettings, Broker, BrokerJoinRequest, Office,
     PropertyRating, BrokerRating, TwoFactorAuth, SecurityLog,
     DallalGlobalSettings, BasicDallalSettings, PremiumDallalSettings,
     DallalSubscription, PropertyDallalAssignment, SubscriptionPlan, BrokerChannel,
-    Conversation, MessageAttachment, MessageReaction, MessageReport,
+    Conversation, Message, MessageAttachment, MessageReaction, MessageReport,
     Country, City, Area, LiveStream, LiveStreamComment, PropertyVideo, PropertyDocument,
     PropertyMediaStats, PropertyViewStats, PropertyEngagementStats, PropertyConversionStats,
     AdvancedSubscriptionPlan, BrokerPlanSubscription, SubscriptionRenewalRequest,
-    BuildingRequestSubscription, AuctionSubscription, Role, UserRole, PermissionLog
+    AuctionSubscription, Role, UserRole, PermissionLog,
+    JobCategory, Job, JobApplication,
+    TravelCompany, TravelCompanyImage, TravelCompanyVideo, TravelCompanyReview, TravelCompanyRatingBreakdown,
+    ServiceProviderCategory, ServiceProviderPage, ServiceProviderService, ServiceBooking, ServiceProviderSchedule, 
+    ServiceProviderAvailability, ServiceProviderReview, ServiceProviderRatingBreakdown, SupportMessage
 )
 
 
@@ -36,7 +43,7 @@ class PropertyDocumentInline(admin.TabularInline):
 class PropertyAdmin(admin.ModelAdmin):
     list_display = (
         'display_title', 'type', 'district', 'price', 'status',
-        'is_featured', 'is_promoted', 'views_count', 'created_at',
+        'is_featured', 'is_promoted', 'views_count', 'like_count', 'created_at',
     )
     list_filter = ('type', 'status', 'category', 'governorate', 'is_featured', 'is_promoted', 'parking', 'furnished')
     search_fields = ('title', 'location', 'district', 'street', 'description', 'phone', 'slug', 'property_number')
@@ -45,6 +52,34 @@ class PropertyAdmin(admin.ModelAdmin):
     readonly_fields = ('views_count', 'created_at', 'updated_at', 'short_share_code')
     inlines = [PropertyImageInline, PropertyVideoInline, PropertyDocumentInline]
     list_per_page = 25
+    actions = ['mark_as_featured', 'mark_as_promoted', 'activate_properties', 'deactivate_properties']
+
+    def like_count(self, obj):
+        try:
+            return obj.propertylike.count()
+        except:
+            return 0
+    like_count.short_description = 'الإعجابات'
+
+    @admin.action(description='تعليم كمميز')
+    def mark_as_featured(self, request, queryset):
+        queryset.update(is_featured=True)
+        self.message_user(request, f'تم تعليم {queryset.count()} عقار كمميز')
+
+    @admin.action(description='تعليم كمروج')
+    def mark_as_promoted(self, request, queryset):
+        queryset.update(is_promoted=True)
+        self.message_user(request, f'تم تعليم {queryset.count()} عقار كمروج')
+
+    @admin.action(description='تفعيل العقارات')
+    def activate_properties(self, request, queryset):
+        queryset.update(status='available')
+        self.message_user(request, f'تم تفعيل {queryset.count()} عقار')
+
+    @admin.action(description='تعطيل العقارات')
+    def deactivate_properties(self, request, queryset):
+        queryset.update(status='sold')
+        self.message_user(request, f'تم تعطيل {queryset.count()} عقار')
 
     fieldsets = (
         ('المعلومات الأساسية', {
@@ -212,9 +247,29 @@ class PropertyImageAdmin(admin.ModelAdmin):
 
 @admin.register(Broker)
 class BrokerAdmin(admin.ModelAdmin):
-    list_display = ('display_name', 'role', 'phone', 'subscription_plan', 'is_verified', 'is_active')
+    list_display = ('display_name', 'role', 'phone', 'subscription_plan', 'is_verified', 'is_active', 'properties_count')
     list_filter = ('role', 'subscription_plan', 'is_verified', 'is_active')
     search_fields = ('user__username', 'user__first_name', 'phone', 'office_name')
+    actions = ['verify_brokers', 'activate_brokers', 'deactivate_brokers']
+
+    def properties_count(self, obj):
+        return obj.property_set.count()
+    properties_count.short_description = 'عدد العقارات'
+
+    @admin.action(description='توثيق الوسطاء')
+    def verify_brokers(self, request, queryset):
+        queryset.update(is_verified=True)
+        self.message_user(request, f'تم توثيق {queryset.count()} وسيط')
+
+    @admin.action(description='تفعيل الوسطاء')
+    def activate_brokers(self, request, queryset):
+        queryset.update(is_active=True)
+        self.message_user(request, f'تم تفعيل {queryset.count()} وسيط')
+
+    @admin.action(description='تعطيل الوسطاء')
+    def deactivate_brokers(self, request, queryset):
+        queryset.update(is_active=False)
+        self.message_user(request, f'تم تعطيل {queryset.count()} وسيط')
 
 
 @admin.register(SubscriptionPlan)
@@ -231,6 +286,16 @@ class AdvancedSubscriptionPlanAdmin(admin.ModelAdmin):
     list_filter = ('plan_type', 'tier', 'is_active')
     search_fields = ('name',)
     list_editable = ('is_active',)
+    readonly_fields = ('created_at', 'updated_at')
+    
+    def has_add_permission(self, request):
+        return request.user.is_superuser
+    
+    def has_change_permission(self, request, obj=None):
+        return request.user.is_superuser
+    
+    def has_delete_permission(self, request, obj=None):
+        return request.user.is_superuser
 
 
 @admin.register(BrokerPlanSubscription)
@@ -238,11 +303,20 @@ class BrokerPlanSubscriptionAdmin(admin.ModelAdmin):
     list_display = ('broker', 'plan', 'start_date', 'end_date', 'status', 'properties_used', 'get_seconds_remaining')
     list_filter = ('status', 'plan__plan_type', 'plan__tier')
     search_fields = ('broker__display_name', 'plan__name')
-    readonly_fields = ('get_seconds_remaining', 'created_at', 'updated_at')
+    readonly_fields = ('get_seconds_remaining', 'created_at', 'updated_at', 'properties_used', 'auctions_used', 'building_requests_used')
     
     def get_seconds_remaining(self, obj):
         return obj.get_seconds_remaining()
     get_seconds_remaining.short_description = 'الثواني المتبقية'
+    
+    def has_add_permission(self, request):
+        return request.user.is_superuser
+    
+    def has_change_permission(self, request, obj=None):
+        return request.user.is_superuser
+    
+    def has_delete_permission(self, request, obj=None):
+        return request.user.is_superuser
 
 
 @admin.register(SubscriptionRenewalRequest)
@@ -251,15 +325,16 @@ class SubscriptionRenewalRequestAdmin(admin.ModelAdmin):
     list_filter = ('status', 'plan__plan_type')
     search_fields = ('broker__display_name', 'plan__name')
     list_editable = ('status',)
-    readonly_fields = ('created_at', 'updated_at')
-
-
-@admin.register(BuildingRequestSubscription)
-class BuildingRequestSubscriptionAdmin(admin.ModelAdmin):
-    list_display = ('broker', 'annual_price', 'start_date', 'end_date', 'status', 'requests_used', 'max_requests')
-    list_filter = ('status',)
-    search_fields = ('broker__display_name',)
-    readonly_fields = ('created_at', 'updated_at')
+    readonly_fields = ('created_at', 'updated_at', 'ip_address', 'user_agent')
+    
+    def has_add_permission(self, request):
+        return request.user.is_superuser
+    
+    def has_change_permission(self, request, obj=None):
+        return request.user.is_superuser
+    
+    def has_delete_permission(self, request, obj=None):
+        return request.user.is_superuser
 
 
 @admin.register(AuctionSubscription)
@@ -267,7 +342,16 @@ class AuctionSubscriptionAdmin(admin.ModelAdmin):
     list_display = ('broker', 'price_per_auction', 'status', 'auctions_used', 'auctions_paid', 'total_paid')
     list_filter = ('status',)
     search_fields = ('broker__display_name',)
-    readonly_fields = ('created_at', 'updated_at')
+    readonly_fields = ('created_at', 'updated_at', 'auctions_used', 'auctions_paid', 'total_paid')
+    
+    def has_add_permission(self, request):
+        return request.user.is_superuser
+    
+    def has_change_permission(self, request, obj=None):
+        return request.user.is_superuser
+    
+    def has_delete_permission(self, request, obj=None):
+        return request.user.is_superuser
 
 
 @admin.register(Role)
@@ -465,6 +549,9 @@ class BrokerChannelAdmin(admin.ModelAdmin):
     )
 
 
+
+
+
 @admin.register(Country)
 class CountryAdmin(admin.ModelAdmin):
     list_display = ('name_ar', 'name_en', 'code', 'currency_code', 'is_active')
@@ -561,3 +648,487 @@ class PropertyConversionStatsAdmin(admin.ModelAdmin):
     list_display = ('property', 'total_leads', 'total_appointments', 'total_sales', 'updated_at')
     search_fields = ('property__title',)
     readonly_fields = ('created_at', 'updated_at')
+
+
+# Job Opportunity Admin Classes
+@admin.register(JobCategory)
+class JobCategoryAdmin(admin.ModelAdmin):
+    list_display = ('name_ar', 'name_en', 'is_active', 'jobs_count')
+    list_filter = ('is_active',)
+    search_fields = ('name_ar', 'name_en')
+    list_editable = ('is_active',)
+    
+    def jobs_count(self, obj):
+        return obj.jobs.count()
+    jobs_count.short_description = 'عدد الوظائف'
+
+
+@admin.register(Job)
+class JobAdmin(admin.ModelAdmin):
+    list_display = ('title', 'company_name', 'category', 'job_type', 'governorate', 'status', 'is_featured', 'is_urgent', 'views_count', 'applications_count', 'created_at')
+    list_filter = ('status', 'job_type', 'experience_level', 'governorate', 'is_featured', 'is_urgent', 'category')
+    search_fields = ('title', 'company_name', 'description', 'skills')
+    list_editable = ('status', 'is_featured', 'is_urgent')
+    prepopulated_fields = {'slug': ('title',)}
+    readonly_fields = ('views_count', 'applications_count', 'created_at', 'updated_at')
+    actions = ['activate_jobs', 'close_jobs', 'mark_as_featured', 'mark_as_urgent']
+    
+    fieldsets = (
+        ('المعلومات الأساسية', {
+            'fields': ('title', 'slug', 'category', 'status', 'is_featured', 'is_urgent')
+        }),
+        ('معلومات الشركة', {
+            'fields': ('company_name', 'company_logo', 'company_description')
+        }),
+        ('تفاصيل الوظيفة', {
+            'fields': ('job_type', 'experience_level', 'is_remote')
+        }),
+        ('الموقع', {
+            'fields': ('governorate', 'city', 'address')
+        }),
+        ('الراتب', {
+            'fields': ('salary_min', 'salary_max', 'salary_currency', 'salary_period', 'is_salary_negotiable')
+        }),
+        ('الوصف والمتطلبات', {
+            'fields': ('description', 'requirements', 'responsibilities', 'benefits', 'skills')
+        }),
+        ('معلومات الاتصال', {
+            'fields': ('contact_name', 'contact_email', 'contact_phone')
+        }),
+        ('الإعدادات', {
+            'fields': ('expiry_date', 'posted_by')
+        }),
+        ('الإحصائيات', {
+            'fields': ('views_count', 'applications_count', 'created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
+    
+    @admin.action(description='تفعيل الوظائف')
+    def activate_jobs(self, request, queryset):
+        queryset.update(status='active')
+        self.message_user(request, f'تم تفعيل {queryset.count()} وظيفة')
+    
+    @admin.action(description='إغلاق الوظائف')
+    def close_jobs(self, request, queryset):
+        queryset.update(status='closed')
+        self.message_user(request, f'تم إغلاق {queryset.count()} وظيفة')
+    
+    @admin.action(description='تعليم كمميز')
+    def mark_as_featured(self, request, queryset):
+        queryset.update(is_featured=True)
+        self.message_user(request, f'تم تعليم {queryset.count()} وظيفة كمميزة')
+    
+    @admin.action(description='تعليم كعادية')
+    def mark_as_urgent(self, request, queryset):
+        queryset.update(is_urgent=True)
+        self.message_user(request, f'تم تعليم {queryset.count()} وظيفة كعادية')
+
+
+@admin.register(JobApplication)
+class JobApplicationAdmin(admin.ModelAdmin):
+    list_display = ('full_name', 'job', 'email', 'phone', 'status', 'years_of_experience', 'applied_at')
+    list_filter = ('status', 'job__category', 'job__governorate', 'applied_at')
+    search_fields = ('full_name', 'email', 'phone', 'job__title')
+    list_editable = ('status',)
+    readonly_fields = ('applied_at', 'updated_at')
+    actions = ['accept_applications', 'reject_applications', 'shortlist_applications']
+    
+    fieldsets = (
+        ('المعلومات الشخصية', {
+            'fields': ('full_name', 'email', 'phone')
+        }),
+        ('المعلومات المهنية', {
+            'fields': ('current_position', 'current_company', 'years_of_experience')
+        }),
+        ('المستندات', {
+            'fields': ('cv_file', 'cover_letter', 'portfolio_url')
+        }),
+        ('التفاصيل الإضافية', {
+            'fields': ('expected_salary', 'available_date')
+        }),
+        ('الحالة والملاحظات', {
+            'fields': ('status', 'recruiter_notes')
+        }),
+        ('الوقت', {
+            'fields': ('applied_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
+    
+    @admin.action(description='قبول الطلبات')
+    def accept_applications(self, request, queryset):
+        queryset.update(status='accepted')
+        self.message_user(request, f'تم قبول {queryset.count()} طلب')
+    
+    @admin.action(description='رفض الطلبات')
+    def reject_applications(self, request, queryset):
+        queryset.update(status='rejected')
+        self.message_user(request, f'تم رفض {queryset.count()} طلب')
+    
+    @admin.action(description='إدراج في القائمة المختصرة')
+    def shortlist_applications(self, request, queryset):
+        queryset.update(status='shortlisted')
+        self.message_user(request, f'تم إدراج {queryset.count()} طلب في القائمة المختصرة')
+
+
+# Travel Company Admin Classes
+class TravelCompanyImageInline(admin.TabularInline):
+    model = TravelCompanyImage
+    extra = 1
+    fields = ('image', 'caption', 'order')
+
+
+class TravelCompanyVideoInline(admin.TabularInline):
+    model = TravelCompanyVideo
+    extra = 1
+    fields = ('video', 'thumbnail', 'caption', 'order')
+
+
+@admin.register(TravelCompany)
+class TravelCompanyAdmin(admin.ModelAdmin):
+    list_display = (
+        'name', 'company_type', 'travel_scope', 'travel_type', 'governorate',
+        'rating', 'reviews_count', 'is_verified', 'is_featured', 'is_active', 'created_at'
+    )
+    list_filter = (
+        'company_type', 'travel_scope', 'travel_type', 'governorate',
+        'is_verified', 'is_featured', 'is_active', 'created_at'
+    )
+    search_fields = ('name', 'name_en', 'description', 'phone', 'email', 'city')
+    list_editable = ('is_verified', 'is_featured', 'is_active')
+    readonly_fields = ('rating', 'reviews_count', 'created_at', 'updated_at')
+    inlines = [TravelCompanyImageInline, TravelCompanyVideoInline]
+    
+    fieldsets = (
+        ('المعلومات الأساسية', {
+            'fields': ('name', 'name_en', 'description', 'description_en', 'company_type')
+        }),
+        ('معلومات السفر', {
+            'fields': ('travel_types', 'travel_scope', 'travel_type', 'departure_time')
+        }),
+        ('الأسعار والوجهات', {
+            'fields': ('price', 'price_currency', 'destinations')
+        }),
+        ('المرافق والخدمات', {
+            'fields': ('facilities', 'services')
+        }),
+        ('معلومات الفروع', {
+            'fields': ('has_branches', 'branches_count', 'branch_locations')
+        }),
+        ('معلومات الحجز', {
+            'fields': ('booking_methods', 'advance_booking_days', 'cancellation_policy', 'cancellation_policy_en')
+        }),
+        ('السعة والإنتاجية', {
+            'fields': ('daily_capacity', 'monthly_capacity')
+        }),
+        ('الشهادات والشركاء', {
+            'fields': ('certifications', 'partners')
+        }),
+        ('العروض الخاصة', {
+            'fields': ('has_special_offers', 'special_offers')
+        }),
+        ('ساعات العمل', {
+            'fields': ('working_hours',)
+        }),
+        ('معلومات الاتصال', {
+            'fields': ('phone', 'whatsapp', 'email', 'website', 'facebook', 'instagram', 'twitter', 'telegram')
+        }),
+        ('الموقع الجغرافي', {
+            'fields': ('address', 'governorate', 'city', 'latitude', 'longitude')
+        }),
+        ('الصور والوسائط', {
+            'fields': ('logo', 'cover_image')
+        }),
+        ('التقييمات والحالة', {
+            'fields': ('rating', 'reviews_count', 'is_verified', 'is_featured', 'is_active')
+        }),
+        ('الوقت', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
+
+
+@admin.register(TravelCompanyReview)
+class TravelCompanyReviewAdmin(admin.ModelAdmin):
+    list_display = (
+        'company', 'user', 'overall_rating', 'service_quality', 'price_value',
+        'reliability', 'customer_service', 'comfort', 'is_verified', 'is_approved', 'created_at'
+    )
+    list_filter = (
+        'overall_rating', 'service_quality', 'price_value', 'reliability',
+        'customer_service', 'comfort', 'is_verified', 'is_approved', 'created_at'
+    )
+    search_fields = ('title', 'comment', 'company__name', 'user__username', 'destination')
+    list_editable = ('is_verified', 'is_approved')
+    readonly_fields = ('created_at', 'updated_at')
+    
+    fieldsets = (
+        ('المعلومات الأساسية', {
+            'fields': ('company', 'user', 'overall_rating')
+        }),
+        ('التقييمات التفصيلية', {
+            'fields': ('service_quality', 'price_value', 'reliability', 'customer_service', 'comfort')
+        }),
+        ('محتوى التقييم', {
+            'fields': ('title', 'comment', 'comment_en')
+        }),
+        ('تفاصيل الرحلة', {
+            'fields': ('trip_date', 'destination', 'travel_type')
+        }),
+        ('الوسائط', {
+            'fields': ('images',)
+        }),
+        ('الحالة', {
+            'fields': ('is_verified', 'is_approved')
+        }),
+        ('الوقت', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
+
+
+@admin.register(TravelCompanyRatingBreakdown)
+class TravelCompanyRatingBreakdownAdmin(admin.ModelAdmin):
+    list_display = (
+        'company', 'avg_service_quality', 'avg_price_value', 'avg_reliability',
+        'avg_customer_service', 'avg_comfort', 'rating_5_count', 'rating_4_count',
+        'rating_3_count', 'rating_2_count', 'rating_1_count', 'last_updated'
+    )
+    list_filter = ('last_updated',)
+    search_fields = ('company__name',)
+    readonly_fields = ('last_updated',)
+    
+    fieldsets = (
+        ('الشركة', {
+            'fields': ('company',)
+        }),
+        ('متوسطات التقييمات', {
+            'fields': ('avg_service_quality', 'avg_price_value', 'avg_reliability', 'avg_customer_service', 'avg_comfort')
+        }),
+        ('توزيع التقييمات', {
+            'fields': ('rating_5_count', 'rating_4_count', 'rating_3_count', 'rating_2_count', 'rating_1_count')
+        }),
+        ('الوقت', {
+            'fields': ('last_updated',)
+        }),
+    )
+
+
+# Service Provider Admin Classes
+
+@admin.register(ServiceProviderCategory)
+class ServiceProviderCategoryAdmin(admin.ModelAdmin):
+    list_display = ('name_ar', 'name_en', 'order', 'is_active')
+    list_filter = ('is_active',)
+    search_fields = ('name_ar', 'name_en')
+    list_editable = ('is_active', 'order')
+    prepopulated_fields = {}
+
+
+@admin.register(ServiceProviderPage)
+class ServiceProviderPageAdmin(admin.ModelAdmin):
+    list_display = ('name', 'page_type', 'category', 'governorate', 'city', 'rating', 'reviews_count', 'status', 'is_verified', 'created_at')
+    list_filter = ('page_type', 'category', 'governorate', 'status', 'is_verified', 'created_at')
+    search_fields = ('name', 'description', 'city', 'phone')
+    list_editable = ('is_verified', 'status')
+    readonly_fields = ('views_count', 'contacts_count', 'quotes_count', 'followers_count', 'rating', 'reviews_count', 'created_at', 'updated_at')
+    prepopulated_fields = {'slug': ('name',)}
+    
+    fieldsets = (
+        ('المعلومات الأساسية', {
+            'fields': ('name', 'slug', 'page_type', 'description')
+        }),
+        ('الفئة والموقع', {
+            'fields': ('category', 'sub_categories', 'governorate', 'city', 'working_areas', 'latitude', 'longitude')
+        }),
+        ('معلومات الاحترافية', {
+            'fields': ('years_of_experience', 'projects_count', 'clients_count')
+        }),
+        ('الاتصال', {
+            'fields': ('phone', 'whatsapp', 'telegram', 'facebook', 'instagram', 'website', 'email')
+        }),
+        ('الوسائط', {
+            'fields': ('profile_image', 'cover_image', 'logo')
+        }),
+        ('أوقات العمل', {
+            'fields': ('working_hours', 'availability')
+        }),
+        ('الإحصائيات', {
+            'fields': ('views_count', 'contacts_count', 'quotes_count', 'followers_count', 'rating', 'reviews_count')
+        }),
+        ('الحالة والتوثيق', {
+            'fields': ('status', 'is_verified', 'verification_date')
+        }),
+        ('الإحصائيات والمالك', {
+            'fields': ('user', 'broker')
+        }),
+        ('SEO', {
+            'fields': ('meta_title', 'meta_description', 'meta_keywords')
+        }),
+        ('الوقت', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
+
+
+@admin.register(ServiceProviderService)
+class ServiceProviderServiceAdmin(admin.ModelAdmin):
+    list_display = ('name', 'page', 'price', 'price_unit', 'is_active', 'order', 'created_at')
+    list_filter = ('is_active', 'created_at')
+    search_fields = ('name', 'description', 'page__name')
+    list_editable = ('is_active', 'order')
+    ordering = ['order', 'name']
+
+
+@admin.register(ServiceBooking)
+class ServiceBookingAdmin(admin.ModelAdmin):
+    list_display = ('customer_name', 'service', 'provider_page', 'booking_date', 'booking_time', 'status', 'payment_status', 'total_price', 'created_at')
+    list_filter = ('status', 'payment_status', 'booking_date', 'location_type', 'created_at')
+    search_fields = ('customer_name', 'customer_phone', 'customer_email', 'service__name', 'provider_page__name')
+    list_editable = ('status', 'payment_status')
+    readonly_fields = ('created_at', 'updated_at', 'confirmed_at', 'completed_at', 'cancelled_at')
+    
+    fieldsets = (
+        ('المعلومات الأساسية', {
+            'fields': ('service', 'provider_page')
+        }),
+        ('معلومات العميل', {
+            'fields': ('customer', 'customer_name', 'customer_phone', 'customer_email')
+        }),
+        ('تفاصيل الحجز', {
+            'fields': ('booking_date', 'booking_time', 'duration', 'location_type', 'address', 'latitude', 'longitude')
+        }),
+        ('التسعير', {
+            'fields': ('total_price', 'deposit_amount', 'currency')
+        }),
+        ('الحالة', {
+            'fields': ('status', 'payment_status')
+        }),
+        ('الملاحظات', {
+            'fields': ('notes', 'customer_notes', 'provider_notes')
+        }),
+        ('الإشعارات', {
+            'fields': ('reminder_sent', 'confirmation_sent')
+        }),
+        ('الوقت', {
+            'fields': ('created_at', 'updated_at', 'confirmed_at', 'completed_at', 'cancelled_at'),
+            'classes': ('collapse',)
+        }),
+    )
+
+
+@admin.register(ServiceProviderSchedule)
+class ServiceProviderScheduleAdmin(admin.ModelAdmin):
+    list_display = ('provider', 'day', 'start_time', 'end_time', 'is_available', 'max_bookings', 'booking_duration')
+    list_filter = ('day', 'is_available')
+    search_fields = ('provider__name',)
+    list_editable = ('is_available', 'max_bookings', 'booking_duration')
+
+
+@admin.register(ServiceProviderAvailability)
+class ServiceProviderAvailabilityAdmin(admin.ModelAdmin):
+    list_display = ('provider', 'date', 'availability_type', 'start_time', 'end_time', 'reason')
+    list_filter = ('availability_type', 'date')
+    search_fields = ('provider__name', 'reason')
+
+
+@admin.register(ServiceProviderReview)
+class ServiceProviderReviewAdmin(admin.ModelAdmin):
+    list_display = ('customer_name', 'provider', 'service', 'overall_rating', 'quality', 'professionalism', 'punctuality', 'communication', 'value_for_money', 'is_verified', 'is_approved', 'is_featured', 'created_at')
+    list_filter = ('overall_rating', 'quality', 'professionalism', 'punctuality', 'communication', 'value_for_money', 'is_verified', 'is_approved', 'is_featured', 'created_at')
+    search_fields = ('title', 'comment', 'customer_name', 'provider__name', 'service__name')
+    list_editable = ('is_verified', 'is_approved', 'is_featured')
+    readonly_fields = ('created_at', 'updated_at')
+    
+    fieldsets = (
+        ('المعلومات الأساسية', {
+            'fields': ('provider', 'service', 'booking', 'customer', 'customer_name')
+        }),
+        ('التقييم العام', {
+            'fields': ('overall_rating',)
+        }),
+        ('التقييمات التفصيلية', {
+            'fields': ('quality', 'professionalism', 'punctuality', 'communication', 'value_for_money')
+        }),
+        ('محتوى التقييم', {
+            'fields': ('title', 'comment')
+        }),
+        ('تفاصيل الخدمة', {
+            'fields': ('service_date', 'service_type')
+        }),
+        ('الوسائط', {
+            'fields': ('images',)
+        }),
+        ('الحالة', {
+            'fields': ('is_verified', 'is_approved', 'is_featured')
+        }),
+        ('الوقت', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
+
+
+@admin.register(ServiceProviderRatingBreakdown)
+class ServiceProviderRatingBreakdownAdmin(admin.ModelAdmin):
+    list_display = ('provider', 'avg_quality', 'avg_professionalism', 'avg_punctuality', 'avg_communication', 'avg_value_for_money', 'rating_5_count', 'rating_4_count', 'rating_3_count', 'rating_2_count', 'rating_1_count', 'last_updated')
+    list_filter = ('last_updated',)
+    search_fields = ('provider__name',)
+    readonly_fields = ['last_updated']
+    
+    fieldsets = (
+        ('مقدم الخدمة', {
+            'fields': ('provider',)
+        }),
+        ('متوسطات التقييمات', {
+            'fields': ('avg_quality', 'avg_professionalism', 'avg_punctuality', 'avg_communication', 'avg_value_for_money')
+        }),
+        ('توزيع التقييمات', {
+            'fields': ('rating_5_count', 'rating_4_count', 'rating_3_count', 'rating_2_count', 'rating_1_count')
+        }),
+        ('الوقت', {
+            'fields': ('last_updated',),
+            'classes': ('collapse',)
+        }),
+    )
+
+
+@admin.register(SupportMessage)
+class SupportMessageAdmin(admin.ModelAdmin):
+    list_display = ('id', 'user', 'subject', 'message_type', 'status', 'priority', 'is_read', 'created_at', 'assigned_to')
+    list_filter = ('status', 'priority', 'message_type', 'is_read', 'created_at')
+    search_fields = ('subject', 'content', 'user__username', 'user__email')
+    list_editable = ('status', 'priority', 'assigned_to')
+    readonly_fields = ('created_at', 'updated_at', 'resolved_at')
+    
+    fieldsets = (
+        ('المعلومات الأساسية', {
+            'fields': ('user', 'message_type', 'subject', 'content')
+        }),
+        ('الحالة والأولوية', {
+            'fields': ('status', 'priority', 'is_read')
+        }),
+        ('الرد الإداري', {
+            'fields': ('admin_response', 'assigned_to')
+        }),
+        ('الوقت', {
+            'fields': ('created_at', 'updated_at', 'resolved_at'),
+            'classes': ('collapse',)
+        }),
+    )
+    
+    def mark_as_resolved(self, request, queryset):
+        queryset.update(status='resolved', resolved_at=timezone.now())
+        self.message_user(request, 'تم تحديد الرسائل كمحلولة')
+    mark_as_resolved.short_description = 'تحديد كمحلولة'
+    
+    def mark_as_in_progress(self, request, queryset):
+        queryset.update(status='in_progress')
+        self.message_user(request, 'تم تحديد الرسائل قيد المعالجة')
+    mark_as_in_progress.short_description = 'تحديد قيد المعالجة'
+    
+    actions = [mark_as_resolved, mark_as_in_progress]

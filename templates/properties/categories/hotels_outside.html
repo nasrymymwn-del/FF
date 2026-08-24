@@ -309,6 +309,14 @@
   <div class="category-icon">{{ category_icon }}</div>
   <h1 class="category-title">{{ category_title }} خارج العراق</h1>
   <p class="category-subtitle">تصفح الفنادق خارج العراق مع خيارات فلترة متقدمة</p>
+  {% if can_create_hotel %}
+  <div style="margin-top: 20px;">
+    <a href="{% url 'hotel_create_outside_iraq' %}" class="btn-filter" style="display: inline-flex; align-items: center; gap: 8px;">
+      <i class="fas fa-plus"></i>
+      نشر فندق خارج العراق
+    </a>
+  </div>
+  {% endif %}
 </div>
 
 <!-- Quick Search Section -->
@@ -442,9 +450,11 @@
       <div class="hotel-content">
         <h3 class="hotel-name">{{ hotel.hotel_name }}</h3>
         <div class="hotel-rating">
-          {% for i in hotel.star_rating|range %}
-          <span class="star">★</span>
-          {% endfor %}
+          {% if hotel.star_rating == 1 %}★{% endif %}
+          {% if hotel.star_rating == 2 %}★★{% endif %}
+          {% if hotel.star_rating == 3 %}★★★{% endif %}
+          {% if hotel.star_rating == 4 %}★★★★{% endif %}
+          {% if hotel.star_rating == 5 %}★★★★★{% endif %}
         </div>
         <p class="hotel-price">{{ hotel.price_per_night }} {{ hotel.currency }}/ليلة</p>
         <p class="hotel-details">{{ hotel.total_rooms }} غرفة {% if hotel.suites %}• {{ hotel.suites }} جناح{% endif %}</p>

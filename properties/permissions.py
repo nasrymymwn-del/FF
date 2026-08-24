@@ -3,7 +3,7 @@
 from django.db.models import Q
 from django.utils import timezone
 
-from .models import Broker, Property, UserProfile, Role, UserRole
+from .models import Broker, Property, UserProfile, Role, UserRole, JobApplication
 
 
 SUBSCRIPTION_LIMITS = {
@@ -148,7 +148,102 @@ def is_regular_user(user):
     """Check if user is a regular user (not admin or broker)."""
     if not user or not user.is_authenticated:
         return False
-    return get_user_type(user) == 'user'
+    user_type = get_user_type(user)
+    return user_type == 'user'
+
+
+def can_post_job(user):
+    """Check if user can post jobs."""
+    if not user or not user.is_authenticated:
+        return False
+    
+    # Superusers can always post jobs
+    if user.is_superuser:
+        return True
+    
+    # Check through roles
+    if has_permission(user, 'can_post_job'):
+        return True
+    
+    # Brokers can post jobs
+    broker = get_broker(user)
+    if broker and broker.is_active:
+        return True
+    
+    # Regular users can post jobs (if you want to allow all authenticated users)
+    # Comment out the next line if you want to restrict job posting to brokers only
+    return True
+
+
+def can_edit_job(user, job):
+    """Check if user can edit a specific job."""
+    if not user or not user.is_authenticated:
+        return False
+    
+    # Superusers can edit any job
+    if user.is_superuser:
+        return True
+    
+    # Check through roles
+    if has_permission(user, 'can_edit_any_job'):
+        return True
+    
+    # Job poster can edit their own job
+    if job.posted_by == user:
+        return True
+    
+    # Broker admins can edit jobs in their company
+    broker = get_broker(user)
+    if broker and broker.is_active and broker.role == Broker.ROLE_ADMIN:
+        return True
+    
+    return False
+
+
+def can_delete_job(user, job):
+    """Check if user can delete a specific job."""
+    if not user or not user.is_authenticated:
+        return False
+    
+    # Superusers can delete any job
+    if user.is_superuser:
+        return True
+    
+    # Check through roles
+    if has_permission(user, 'can_delete_any_job'):
+        return True
+    
+    # Job poster can delete their own job
+    if job.posted_by == user:
+        return True
+    
+    # Broker admins can delete jobs in their company
+    broker = get_broker(user)
+    if broker and broker.is_active and broker.role == Broker.ROLE_ADMIN:
+        return True
+    
+    return False
+
+
+def can_apply_for_job(user, job):
+    """Check if user can apply for a job."""
+    if not user or not user.is_authenticated:
+        return False
+    
+    # Superusers can apply for any job
+    if user.is_superuser:
+        return True
+    
+    # Check if user already applied
+    from .models import JobApplication
+    if JobApplication.objects.filter(job=job, applicant=user).exists():
+        return False
+    
+    # Job poster cannot apply for their own job
+    if job.posted_by == user:
+        return False
+    
+    return True
 
 
 def get_redirect_after_login(user):
@@ -336,7 +431,7 @@ def get_broker_stats(user):
 
     broker = get_broker(user)
     if broker:
-        from .models import FinancialTransaction, BuildingRequest, Expense
+        from .models import FinancialTransaction, Expense
         # Financial stats
         commissions = FinancialTransaction.objects.filter(
             user=user, transaction_type='commission', status='completed'
@@ -357,13 +452,6 @@ def get_broker_stats(user):
         stats['days_remaining'] = broker.get_days_remaining()
         stats['days_elapsed'] = broker.get_days_elapsed()
         stats['remaining_properties'] = broker.get_remaining_properties()
-        
-        # Building requests stats
-        building_requests = BuildingRequest.objects.filter(user=user)
-        stats['total_building_requests'] = building_requests.count()
-        stats['pending_building_requests'] = building_requests.filter(status='pending').count()
-        stats['in_progress_building_requests'] = building_requests.filter(status='in_progress').count()
-        stats['completed_building_requests'] = building_requests.filter(status='completed').count()
         
         # Expenses stats
         expenses = Expense.objects.filter(user=user)

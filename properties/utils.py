@@ -1,33 +1,54 @@
 from django.db.models import Q
+from django.utils import timezone
 
 from .models import Property, PropertyImage, PropertyVideo, Notification
 from .cache_utils import cache_result
 
 
-PUBLIC_STATUSES = ['ready', 'under-construction', 'rent']
+PUBLIC_STATUSES = ['draft', 'paid', 'pending_approval', 'published', 'renewed', 'ready', 'under-construction', 'rent']
 
 
 @cache_result(timeout=300, key_prefix='public_properties')
 def get_public_properties():
-    """Get public properties, excluding those from suspended/expired brokers and brokers with standalone-only pages."""
+    """Get public properties, excluding suspended brokers and expired listings."""
     from .models import Broker
-    # Get active brokers with valid subscriptions and NOT standalone-only mode
-    active_brokers = Broker.objects.filter(
-        is_active=True
-    ).exclude(
-        page_display_mode='standalone_only'
-    ).select_related('user')
+
+    now = timezone.now()
+    inactive_broker_ids = list(
+        Broker.objects.filter(Q(is_active=False) | Q(is_suspended=True)).values_list('id', flat=True)
+    )
+    standalone_only_ids = list(
+        Broker.objects.filter(page_display_mode='standalone_only').values_list('id', flat=True)
+    )
+
+    qs = (
+        Property.objects.filter(status__in=PUBLIC_STATUSES)
+        .exclude(is_frozen=True)
+        .filter(Q(publication_end_date__isnull=True) | Q(publication_end_date__gt=now))
+        .filter(Q(expiry_date__isnull=True) | Q(expiry_date__gt=now))
+        .select_related('broker', 'owner', 'country', 'city_outside', 'area_outside')
+        .prefetch_related('gallery_images')
+        .order_by('-is_pinned', '-is_featured', '-is_promoted', '-created_at')
+    )
     
-    # Filter out suspended or expired brokers
-    active_broker_ids = []
-    for broker in active_brokers:
-        if broker.is_subscription_active():
-            active_broker_ids.append(broker.id)
-    
-    return list(Property.objects.filter(
+    return list(qs)
+
+
+def expire_featured_and_publications():
+    """Clear featured/pinned flags and archive expired publications (server-side)."""
+    today = timezone.now().date()
+    now = timezone.now()
+
+    Property.objects.filter(is_featured=True, promotion_until__lt=today).update(is_featured=False)
+    Property.objects.filter(is_pinned=True, pinned_until__lt=now).update(is_pinned=False)
+    Property.objects.filter(
         status__in=PUBLIC_STATUSES,
-        broker_id__in=active_broker_ids
-    ).select_related().prefetch_related('gallery_images'))
+        publication_end_date__lt=now,
+    ).update(status='expired')
+    Property.objects.filter(
+        status__in=PUBLIC_STATUSES,
+        expiry_date__lt=now,
+    ).update(status='expired')
 
 
 def filter_properties(queryset, params):
@@ -39,6 +60,7 @@ def filter_properties(queryset, params):
         city = params.get('city', '').strip()
         governorate = params.get('governorate', '').strip()
         district = params.get('district', '').strip()
+        region = params.get('region', '').strip()
         ptype = params.get('type')
         status = params.get('status')
         price_min = params.get('price_min')
@@ -50,11 +72,15 @@ def filter_properties(queryset, params):
         
         filtered = queryset
         if q:
-            filtered = [p for p in filtered if q.lower() in p.title.lower() or (p.location and q.lower() in p.location.lower()) or (p.city and q.lower() in p.city.lower()) or (p.district and q.lower() in p.district.lower()) or (p.description and q.lower() in p.description.lower())]
+            filtered = [p for p in filtered if q.lower() in (p.title or '').lower() or (p.location and q.lower() in p.location.lower()) or (p.city and q.lower() in p.city.lower()) or (p.district and q.lower() in p.district.lower()) or (getattr(p, 'region', None) and q.lower() in (p.region or '').lower()) or (p.description and q.lower() in p.description.lower())]
         if city:
             filtered = [p for p in filtered if p.city and city.lower() in p.city.lower()]
+        if governorate:
+            filtered = [p for p in filtered if (p.governorate and governorate.lower() in p.governorate.lower()) or (p.district and governorate.lower() in p.district.lower())]
         if district:
             filtered = [p for p in filtered if p.district and district.lower() in p.district.lower()]
+        if region:
+            filtered = [p for p in filtered if getattr(p, 'region', None) and region.lower() in (p.region or '').lower()]
         if ptype:
             filtered = [p for p in filtered if p.type == ptype]
         if status:
@@ -263,3 +289,14 @@ def create_notification(user, notification_type, title, message, link='', metada
         link=link,
         metadata=metadata,
     )
+
+
+# ==================== Advertising System Utilities ====================
+
+def match_advertisement_with_targets(advertisement):
+    """
+    مطابقة إعلان البناء مع الأهداف المحتملة (عقارات، دلالين، مستخدمين)
+    Match building advertisement with potential targets (properties, brokers, users)
+    """
+    from .advertising_utils import match_advertisement_with_targets as match_targets
+    return match_targets(advertisement)

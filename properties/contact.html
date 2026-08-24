@@ -29,7 +29,7 @@
         </div>
         <div class="contact-card-content">
           <h3>الهاتف</h3>
-          <p><a href="tel:{{ settings.broker_phone }}">{{ settings.broker_phone }}</a></p>
+          <p><a href="tel:{{ settings.broker_phone|default:'07701234567' }}">{{ settings.broker_phone|default:'07701234567' }}</a></p>
         </div>
       </div>
       

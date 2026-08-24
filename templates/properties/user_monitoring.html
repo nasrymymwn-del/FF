@@ -113,21 +113,24 @@
             <div class="actions-dropdown">
               <button class="btn btn-sm btn-action" onclick="toggleActions('{{ user.id }}')">⋯</button>
               <div id="actions-{{ user.id }}" class="actions-menu" style="display: none;">
-                {% if not user.is_superuser %}
-                  <a href="{% url 'warn_user' user.id %}" class="action-item warning">⚠️ إنذار</a>
-                  {% if user.is_active %}
-                    <a href="{% url 'suspend_user' user.id %}" class="action-item danger" onclick="return confirm('هل أنت متأكد من حجب هذا المستخدم؟')">🚫 حجب</a>
-                    {% if user.broker_profile %}
-                      <a href="{% url 'restrict_user' user.id %}" class="action-item warning" onclick="return confirm('هل أنت متأكد من تقيد هذا المستخدم؟')">🔒 تقيد</a>
-                    {% endif %}
-                  {% else %}
-                    <a href="{% url 'unsuspend_user' user.id %}" class="action-item success">🔓 فك الحجب</a>
-                    {% if user.broker_profile %}
-                      <a href="{% url 'unrestrict_user' user.id %}" class="action-item success">🔓 فك التقيد</a>
-                    {% endif %}
+                <a href="{% url 'warn_user' user.id %}" class="action-item warning">⚠️ إنذار</a>
+                {% if user.is_active %}
+                  <a href="{% url 'suspend_user' user.id %}" class="action-item danger" onclick="return confirm('هل أنت متأكد من حجب هذا المستخدم؟')">🚫 حجب</a>
+                  {% if user.broker_profile %}
+                    <a href="{% url 'restrict_user' user.id %}" class="action-item warning" onclick="return confirm('هل أنت متأكد من تقيد هذا المستخدم؟')">🔒 تقيد</a>
                   {% endif %}
+                {% else %}
+                  <a href="{% url 'unsuspend_user' user.id %}" class="action-item success">🔓 فك الحجب</a>
+                  {% if user.broker_profile %}
+                    <a href="{% url 'unrestrict_user' user.id %}" class="action-item success">🔓 فك التقيد</a>
+                  {% endif %}
+                {% endif %}
+                {% if user.is_superuser %}
+                  <a href="{% url 'delete_user' user.id %}" class="action-item danger" onclick="return confirm('تحذير: هذا مستخدم مشرف! هل أنت متأكد من حذف هذا المستخدم؟ لا يمكن التراجع عن هذا الإجراء.')">🗑️ حذف (مشرف)</a>
+                {% else %}
                   <a href="{% url 'delete_user' user.id %}" class="action-item danger" onclick="return confirm('هل أنت متأكد من حذف هذا المستخدم؟ لا يمكن التراجع عن هذا الإجراء.')">🗑️ حذف</a>
                 {% endif %}
+                <a href="#" class="action-item info" onclick="showUserDetails('{{ user.id }}'); return false;">👤 عرض التفاصيل</a>
               </div>
             </div>
           </td>
@@ -402,5 +405,61 @@ document.addEventListener('click', function(e) {
     });
   }
 });
+
+function showUserDetails(userId) {
+  // الحصول على بيانات المستخدم من خلال AJAX
+  fetch(`/admin-panel/user-monitoring/${userId}/details/`)
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        // عرض التفاصيل في نافذة منبثقة
+        const modal = document.createElement('div');
+        modal.className = 'modal';
+        modal.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 1000;';
+        
+        modal.innerHTML = `
+          <div style="background: white; padding: 30px; border-radius: 12px; max-width: 600px; width: 90%; max-height: 90vh; overflow-y: auto;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+              <h3>تفاصيل المستخدم</h3>
+              <button onclick="this.closest('.modal').remove()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer;">&times;</button>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+              <div><strong>الاسم:</strong> ${data.user.username}</div>
+              <div><strong>البريد:</strong> ${data.user.email || 'غير محدد'}</div>
+              <div><strong>النوع:</strong> ${data.user.user_type}</div>
+              <div><strong>الحالة:</strong> ${data.user.is_active ? 'نشط' : 'محجوب'}</div>
+              <div><strong>تاريخ التسجيل:</strong> ${data.user.date_joined}</div>
+              <div><strong>آخر تسجيل دخول:</strong> ${data.user.last_login || 'لم يسجل'}</div>
+            </div>
+            
+            ${data.user.broker_info ? `
+              <div style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
+                <h4>معلومات الدلال</h4>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px;">
+                  <div><strong>الهاتف:</strong> ${data.user.broker_info.phone || 'غير محدد'}</div>
+                  <div><strong>المحافظة:</strong> ${data.user.broker_info.governorate || 'غير محدد'}</div>
+                  <div><strong>حالة الدلال:</strong> ${data.user.broker_info.is_active ? 'نشط' : 'محجوب'}</div>
+                  <div><strong>حالة التحقق:</strong> ${data.user.broker_info.is_verified ? 'متحقق' : 'غير متحقق'}</div>
+                </div>
+              </div>
+            ` : ''}
+            
+            <div style="margin-top: 20px; text-align: center;">
+              <button onclick="this.closest('.modal').remove()" class="btn btn-primary">إغلاق</button>
+            </div>
+          </div>
+        `;
+        
+        document.body.appendChild(modal);
+      } else {
+        alert('خطأ: ' + data.error);
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      alert('حدث خطأ أثناء تحميل التفاصيل');
+    });
+}
 </script>
 {% endblock %}
