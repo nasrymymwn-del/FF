@@ -1,4 +1,4 @@
-# RAILWAY_MIGRATION_FIX - 2026-08-24-16-00 - Add --fake-initial and remove DB deletion
+# RAILWAY_MIGRATION_FIX - 2026-08-24-16-10 - Make migrations non-fatal
 # Use different base image and completely different structure
 FROM python:3.10-slim-bullseye
 
@@ -8,7 +8,7 @@ ENV PYTHONUNBUFFERED=1 \
     DJANGO_SETTINGS_MODULE=dalal_project.settings \
     USE_WEBSOCKETS=false \
     PYTHONPATH=/app \
-    FORCE_REBUILD=2026_08_24_16_00
+    FORCE_REBUILD=2026_08_24_16_10
 
 WORKDIR /app
 

@@ -6,7 +6,7 @@ import sys
 
 # Force disable WebSockets to use Gunicorn instead of Daphne
 os.environ['USE_WEBSOCKETS'] = 'false'
-# Force rebuild - 2026-08-24-16-00 - FIX MIGRATIONS AND STATIC FILES
+# Force rebuild - 2026-08-24-16-10 - MAKE MIGRATIONS NON-FATAL
 
 # Set up Django settings
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'dalal_project.settings')
@@ -34,7 +34,7 @@ def run(cmd, allow_fail=False):
 def main():
     port = os.getenv('PORT', '8080')
     print(f"=== Dalal Platform Startup (port {port}) ===", flush=True)
-    print(f"=== NEW CODE VERSION - 2026-08-24-16-00 - FIX MIGRATIONS AND STATIC FILES ===", flush=True)
+    print(f"=== NEW CODE VERSION - 2026-08-24-16-10 - MAKE MIGRATIONS NON-FATAL ===", flush=True)
     print(f"DEBUG={os.getenv('DEBUG', 'False')}", flush=True)
     print(f"DJANGO_SETTINGS_MODULE={os.getenv('DJANGO_SETTINGS_MODULE')}", flush=True)
     print(f"PYTHONPATH={os.getenv('PYTHONPATH')}", flush=True)
@@ -133,7 +133,10 @@ def main():
     run([sys.executable, 'manage.py', 'makemigrations', '--noinput'])
     
     print("Running migrate...", flush=True)
-    run([sys.executable, 'manage.py', 'migrate', '--noinput', '--fake-initial'], allow_fail=True)
+    # Try normal migrate first with allow_fail=True
+    run([sys.executable, 'manage.py', 'migrate', '--noinput'], allow_fail=True)
+    # If it failed above, try faking properties migrations
+    print("Ensuring migrations are applied correctly...", flush=True)
     
     # Check if properties migrations were applied
     try:
