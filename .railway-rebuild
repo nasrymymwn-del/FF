@@ -1,2 +1,1 @@
-# RAILWAY_CACHE_BUST_2026_08_24_15_35 - Force new Python version (3.11)
-# Completely different base image to bypass cache
+# RAILWAY_CACHE_BUST_2026_08_24_16_25 - Force rebuild for static files fix
