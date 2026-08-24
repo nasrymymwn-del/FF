@@ -1,4 +1,4 @@
-# RAILWAY_STATIC_FIX - 2026-08-24-16-20 - Remove --clear from runtime collectstatic
+# RAILWAY_DB_FIX - 2026-08-24-16-30 - Delete old database at runtime
 # Use different base image and completely different structure
 FROM python:3.10-slim-bullseye
 
@@ -8,7 +8,7 @@ ENV PYTHONUNBUFFERED=1 \
     DJANGO_SETTINGS_MODULE=dalal_project.settings \
     USE_WEBSOCKETS=false \
     PYTHONPATH=/app \
-    FORCE_REBUILD=2026_08_24_16_20
+    FORCE_REBUILD=2026_08_24_16_30
 
 WORKDIR /app
 
@@ -38,9 +38,8 @@ RUN mkdir -p /app/static /app/staticfiles /app/logs /app/media /app/locale
 # Verify Django
 RUN python -c "import django; print(f'Django {django.__version__} OK')"
 
-# Run Django commands
+# Run Django commands (skip migrate at build time since DB will be deleted at runtime)
 RUN python manage.py makemigrations --noinput || true
-RUN python manage.py migrate --noinput --fake-initial || true
 RUN python manage.py collectstatic --noinput || true
 
 EXPOSE 8080

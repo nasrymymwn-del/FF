@@ -6,7 +6,7 @@ import sys
 
 # Force disable WebSockets to use Gunicorn instead of Daphne
 os.environ['USE_WEBSOCKETS'] = 'false'
-# Force rebuild - 2026-08-24-16-20 - REMOVE CLEAR FROM RUNTIME COLLECTSTATIC
+# Force rebuild - 2026-08-24-16-30 - DELETE OLD DATABASE TO FIX MIGRATIONS
 
 # Set up Django settings
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'dalal_project.settings')
@@ -34,7 +34,7 @@ def run(cmd, allow_fail=False):
 def main():
     port = os.getenv('PORT', '8080')
     print(f"=== Dalal Platform Startup (port {port}) ===", flush=True)
-    print(f"=== NEW CODE VERSION - 2026-08-24-16-20 - REMOVE CLEAR FROM RUNTIME COLLECTSTATIC ===", flush=True)
+    print(f"=== NEW CODE VERSION - 2026-08-24-16-30 - DELETE OLD DATABASE TO FIX MIGRATIONS ===", flush=True)
     print(f"DEBUG={os.getenv('DEBUG', 'False')}", flush=True)
     print(f"DJANGO_SETTINGS_MODULE={os.getenv('DJANGO_SETTINGS_MODULE')}", flush=True)
     print(f"PYTHONPATH={os.getenv('PYTHONPATH')}", flush=True)
@@ -128,6 +128,12 @@ def main():
     except Exception as e:
         print(f"Error checking INSTALLED_APPS: {e}", flush=True)
 
+    # Delete old database to fix migration issues
+    db_path = os.path.join(project_root, 'db.sqlite3')
+    if os.path.exists(db_path):
+        print(f"Deleting old database at {db_path}...", flush=True)
+        os.remove(db_path)
+    
     # Run makemigrations first to ensure all migrations are detected
     print("Running makemigrations...", flush=True)
     run([sys.executable, 'manage.py', 'makemigrations', '--noinput'])
