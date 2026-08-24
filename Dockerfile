@@ -1,4 +1,4 @@
-# RAILWAY_PWA_FIX - 2026-08-24-15-50 - Copy static directory for PWA files
+# RAILWAY_STATIC_FIX - 2026-08-24-15-55 - Remove --clear from collectstatic
 # Use different base image and completely different structure
 FROM python:3.10-slim-bullseye
 
@@ -8,7 +8,7 @@ ENV PYTHONUNBUFFERED=1 \
     DJANGO_SETTINGS_MODULE=dalal_project.settings \
     USE_WEBSOCKETS=false \
     PYTHONPATH=/app \
-    FORCE_REBUILD=2026_08_24_15_50
+    FORCE_REBUILD=2026_08_24_15_55
 
 WORKDIR /app
 
@@ -41,7 +41,7 @@ RUN python -c "import django; print(f'Django {django.__version__} OK')"
 # Run Django commands
 RUN python manage.py makemigrations --noinput || true
 RUN python manage.py migrate --noinput || true
-RUN python manage.py collectstatic --noinput --clear || true
+RUN python manage.py collectstatic --noinput || true
 
 EXPOSE 8080
 
