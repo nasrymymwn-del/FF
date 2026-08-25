@@ -1,8 +1,11 @@
+import logging
 from django.db.models import Q
 from django.utils import timezone
 
 from .models import Property, PropertyImage, PropertyVideo, Notification
 from .cache_utils import cache_result
+
+logger = logging.getLogger(__name__)
 
 
 PUBLIC_STATUSES = ['draft', 'paid', 'pending_approval', 'published', 'renewed', 'ready', 'under-construction', 'rent']
@@ -13,25 +16,30 @@ def get_public_properties():
     """Get public properties, excluding suspended brokers and expired listings."""
     from .models import Broker
 
-    now = timezone.now()
-    inactive_broker_ids = list(
-        Broker.objects.filter(Q(is_active=False) | Q(is_suspended=True)).values_list('id', flat=True)
-    )
-    standalone_only_ids = list(
-        Broker.objects.filter(page_display_mode='standalone_only').values_list('id', flat=True)
-    )
+    try:
+        now = timezone.now()
+        inactive_broker_ids = list(
+            Broker.objects.filter(Q(is_active=False) | Q(is_suspended=True)).values_list('id', flat=True)
+        )
+        standalone_only_ids = list(
+            Broker.objects.filter(page_display_mode='standalone_only').values_list('id', flat=True)
+        )
 
-    qs = (
-        Property.objects.filter(status__in=PUBLIC_STATUSES)
-        .exclude(is_frozen=True)
-        .filter(Q(publication_end_date__isnull=True) | Q(publication_end_date__gt=now))
-        .filter(Q(expiry_date__isnull=True) | Q(expiry_date__gt=now))
-        .select_related('broker', 'owner', 'country', 'city_outside', 'area_outside')
-        .prefetch_related('gallery_images')
-        .order_by('-is_pinned', '-is_featured', '-is_promoted', '-created_at')
-    )
-    
-    return list(qs)
+        qs = (
+            Property.objects.filter(status__in=PUBLIC_STATUSES)
+            .exclude(is_frozen=True)
+            .filter(Q(publication_end_date__isnull=True) | Q(publication_end_date__gt=now))
+            .filter(Q(expiry_date__isnull=True) | Q(expiry_date__gt=now))
+            .select_related('broker', 'owner', 'country', 'city_outside', 'area_outside')
+            .prefetch_related('gallery_images')
+            .order_by('-is_pinned', '-is_featured', '-is_promoted', '-created_at')
+        )
+        
+        return list(qs)
+    except Exception as e:
+        logger.error(f"Error in get_public_properties: {e}")
+        # Fallback: return empty list if there's a database schema issue
+        return []
 
 
 def expire_featured_and_publications():
