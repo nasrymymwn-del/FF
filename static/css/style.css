@@ -3183,15 +3183,58 @@ svg {
     height: 100vh;
     background: var(--card-bg);
     flex-direction: column;
-    padding: 80px 30px 30px;
-    gap: 20px;
+    padding: 70px 24px 24px;
+    gap: 16px;
     transition: var(--transition);
     box-shadow: var(--shadow-xl);
-    z-index: 1000;
+    z-index: 9999;
+    overflow-y: auto;
   }
 
   .nav-links.active {
     right: 0;
+  }
+
+  /* Overlay backdrop for mobile menu */
+  .nav-links::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: -1;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+  }
+
+  .nav-links.active::before {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  /* Close button for mobile menu */
+  .mobile-menu-close {
+    display: block;
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    font-size: 24px;
+    color: var(--text);
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 50%;
+    background: none;
+    border: none;
+    transition: var(--transition);
+    z-index: 1;
+  }
+
+  .mobile-menu-close:hover {
+    background: rgba(255, 122, 0, 0.1);
+    color: var(--primary);
   }
 
   .nav-links a {

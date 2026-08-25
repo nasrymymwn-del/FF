@@ -975,6 +975,7 @@
         <span></span><span></span><span></span>
       </button>
       <ul class="nav-links">
+        <button type="button" class="mobile-menu-close" aria-label="إغلاق القائمة">✕</button>
         <li><a href="{% url 'home' %}" data-nav="home">الرئيسية</a></li>
         {% if request.user.is_authenticated %}
         <li><a href="{% url 'dynamic_add_property' %}" data-nav="add-property" class="btn btn-primary">➕ إضافة عقار</a></li>
