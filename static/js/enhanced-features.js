@@ -563,6 +563,36 @@ class FormValidator {
   isValidPhone(phone) {
     return /^[\d\s\-\+\(\)]+$/.test(phone) && phone.replace(/\D/g, '').length >= 10;
   }
+
+  showError(field, message) {
+    const errorElement = field.parentElement.querySelector('.error-message');
+    if (errorElement) {
+      errorElement.textContent = message;
+      errorElement.style.display = 'block';
+    }
+    field.classList.add('error');
+  }
+
+  clearError(e) {
+    const field = e.target;
+    const errorElement = field.parentElement.querySelector('.error-message');
+    if (errorElement) {
+      errorElement.style.display = 'none';
+    }
+    field.classList.remove('error');
+  }
+
+  validateForm() {
+    let isValid = true;
+    this.form.querySelectorAll('input, select, textarea').forEach(field => {
+      const error = this.getFieldError(field);
+      if (error) {
+        this.showError(field, error);
+        isValid = false;
+      }
+    });
+    return isValid;
+  }
 }
 
 // ===== Back to Top Button =====
@@ -599,37 +629,6 @@ class BackToTop {
 document.addEventListener('DOMContentLoaded', () => {
   new BackToTop();
 });
-
-  showError(field, message) {
-    const errorElement = field.parentElement.querySelector('.error-message');
-    if (errorElement) {
-      errorElement.textContent = message;
-      errorElement.style.display = 'block';
-    }
-    field.classList.add('error');
-  }
-
-  clearError(e) {
-    const field = e.target;
-    const errorElement = field.parentElement.querySelector('.error-message');
-    if (errorElement) {
-      errorElement.style.display = 'none';
-    }
-    field.classList.remove('error');
-  }
-
-  validateForm() {
-    let isValid = true;
-    this.form.querySelectorAll('input, select, textarea').forEach(field => {
-      const error = this.getFieldError(field);
-      if (error) {
-        this.showError(field, error);
-        isValid = false;
-      }
-    });
-    return isValid;
-  }
-}
 
 // Initialize all features when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
