@@ -1189,7 +1189,7 @@ def login_view(request):
                 # Redirect based on user type
                 if user_type == 'admin':
                     messages.success(request, 'مرحباً بك في لوحة الإدارة')
-                    return redirect('admin_panel')
+                    return redirect('admin-panel/')
                 elif user_type == 'broker':
                     broker = get_broker(user)
                     if broker and not broker.is_active:

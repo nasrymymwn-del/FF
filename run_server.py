@@ -6,7 +6,7 @@ import sys
 
 # Force disable WebSockets to use Gunicorn instead of Daphne
 os.environ['USE_WEBSOCKETS'] = 'false'
-# Force rebuild - 2026-08-25-05-00 - USE COMMIT WITH MIGRATION MERGE
+# Force rebuild - 2026-08-25-05-10 - FIX SUPERUSER LOGIN
 
 # Set up Django settings
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'dalal_project.settings')
@@ -34,7 +34,7 @@ def run(cmd, allow_fail=False):
 def main():
     port = os.getenv('PORT', '8080')
     print(f"=== Dalal Platform Startup (port {port}) ===", flush=True)
-    print(f"=== NEW CODE VERSION - 2026-08-25-05-00 - USE COMMIT WITH MIGRATION MERGE ===", flush=True)
+    print(f"=== NEW CODE VERSION - 2026-08-25-05-10 - FIX SUPERUSER LOGIN ===", flush=True)
     print(f"DEBUG={os.getenv('DEBUG', 'False')}", flush=True)
     print(f"DJANGO_SETTINGS_MODULE={os.getenv('DJANGO_SETTINGS_MODULE')}", flush=True)
     print(f"PYTHONPATH={os.getenv('PYTHONPATH')}", flush=True)

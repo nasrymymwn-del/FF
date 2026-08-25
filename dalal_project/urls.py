@@ -14,8 +14,8 @@ import sys
 
 from properties.sitemaps import PropertySitemap, StaticViewSitemap
 
-# Force rebuild - 2026-08-25-05-00 - Use commit with migration merge
-print("URLS.PY LOADED - Force rebuild 2026-08-25-05-00", file=sys.stderr)
+# Force rebuild - 2026-08-25-05-10 - Fix superuser login
+print("URLS.PY LOADED - Force rebuild 2026-08-25-05-10", file=sys.stderr)
 
 def health_check(request):
     try:
