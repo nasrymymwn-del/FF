@@ -563,6 +563,43 @@ class FormValidator {
   isValidPhone(phone) {
     return /^[\d\s\-\+\(\)]+$/.test(phone) && phone.replace(/\D/g, '').length >= 10;
   }
+}
+
+// ===== Back to Top Button =====
+class BackToTop {
+  constructor() {
+    this.button = document.getElementById('back-to-top');
+    this.init();
+  }
+
+  init() {
+    if (this.button) {
+      window.addEventListener('scroll', this.handleScroll.bind(this));
+      this.button.addEventListener('click', this.scrollToTop.bind(this));
+    }
+  }
+
+  handleScroll() {
+    if (window.pageYOffset > 300) {
+      this.button.classList.add('visible');
+    } else {
+      this.button.classList.remove('visible');
+    }
+  }
+
+  scrollToTop() {
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
+  }
+}
+
+// Initialize back to top button when DOM is ready
+document.addEventListener('DOMContentLoaded', () => {
+  new BackToTop();
+});
+  }
 
   showError(field, message) {
     const errorElement = field.parentElement.querySelector('.error-message');
