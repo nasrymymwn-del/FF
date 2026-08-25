@@ -1,5 +1,5 @@
-# RAILWAY_REDIRECT_FIX - 2026-08-25-05-35 - Fix admin login redirect URL
-# Fixed admin redirect to use named URL pattern instead of direct path
+# RAILWAY_LOGGING_FIX - 2026-08-25-05-40 - Fix logging AttributeError
+# Fixed session_engine logging to use settings.SESSION_ENGINE
 # Use different base image and completely different structure
 FROM python:3.10-slim-bullseye
 
@@ -9,7 +9,7 @@ ENV PYTHONUNBUFFERED=1 \
     DJANGO_SETTINGS_MODULE=dalal_project.settings \
     USE_WEBSOCKETS=false \
     PYTHONPATH=/app \
-    FORCE_REBUILD=2026_08_25_05_35
+    FORCE_REBUILD=2026_08_25_05_40
 
 WORKDIR /app
 
