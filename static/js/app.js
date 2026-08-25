@@ -318,7 +318,7 @@ function initMobileNav() {
   }
 
   // Close when clicking on backdrop overlay
-  links.addEventListener('click', (e) {
+  links.addEventListener('click', (e) => {
     if (e.target === links) {
       closeMenu();
     }
