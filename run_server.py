@@ -6,7 +6,7 @@ import sys
 
 # Force disable WebSockets to use Gunicorn instead of Daphne
 os.environ['USE_WEBSOCKETS'] = 'false'
-# Force rebuild - 2026-08-25-03-35 - FIX BROKER SEARCH AND AI CHATBOT
+# Force rebuild - 2026-08-25-04-30 - REMOVE MAKEMIGRATIONS FROM RUNTIME
 
 # Set up Django settings
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'dalal_project.settings')
@@ -134,9 +134,9 @@ def main():
         print(f"Deleting old database at {db_path}...", flush=True)
         os.remove(db_path)
     
-    # Run makemigrations first to ensure all migrations are detected
-    print("Running makemigrations...", flush=True)
-    run([sys.executable, 'manage.py', 'makemigrations', '--noinput'])
+    # Skip makemigrations - all migrations are already in place
+    # makemigrations only needed when making model changes, not for deployment
+    print("Skipping makemigrations - using existing migrations...", flush=True)
     
     print("Running migrate...", flush=True)
     # Try normal migrate first with allow_fail=True
