@@ -1,5 +1,5 @@
-# RAILWAY_LOGGING_FIX - 2026-08-25-05-40 - Fix logging AttributeError
-# Fixed session_engine logging to use settings.SESSION_ENGINE
+# RAILWAY_REMOVE_LOGGING - 2026-08-25-05-45 - Remove temporary logging causing AttributeError
+# Removed session_engine logging that was causing errors
 # Use different base image and completely different structure
 FROM python:3.10-slim-bullseye
 
@@ -9,7 +9,7 @@ ENV PYTHONUNBUFFERED=1 \
     DJANGO_SETTINGS_MODULE=dalal_project.settings \
     USE_WEBSOCKETS=false \
     PYTHONPATH=/app \
-    FORCE_REBUILD=2026_08_25_05_40
+    FORCE_REBUILD=2026_08_25_05_45
 
 WORKDIR /app
 

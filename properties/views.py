@@ -1172,10 +1172,6 @@ def login_view(request):
                 login(request, user)
                 user_type = get_user_type(user)
                 
-                # Log session info for debugging
-                from django.conf import settings
-                logger.info(f'[AUTH] Login successful - User: {user.username}, Authenticated: {user.is_authenticated}, Session Key: {request.session.session_key}, Session Engine: {settings.SESSION_ENGINE}')
-                
                 # Log successful login
                 from .models import ActivityLog
                 ActivityLog.log(
@@ -1433,10 +1429,6 @@ def user_dashboard(request):
 @login_required
 def dashboard(request):
     """لوحة تحكم الإدارة والدلال"""
-    # Log authentication status for debugging
-    from django.conf import settings
-    logger.info(f'[AUTH] Dashboard accessed - User: {request.user.username if request.user.is_authenticated else "Anonymous"}, Authenticated: {request.user.is_authenticated}, Session Key: {request.session.session_key}, Session Engine: {settings.SESSION_ENGINE}')
-    
     # Check if user is admin or broker
     if not request.user.is_superuser and not request.user.is_staff and not get_broker(request.user):
         return redirect('user_dashboard')
@@ -13509,10 +13501,6 @@ def all_users_api(request):
 def api_notifications_unread(request):
     """API للحصول على عدد الإشعارات غير المقروءة"""
     try:
-        # Log authentication status for debugging
-        from django.conf import settings
-        logger.info(f'[AUTH] API notifications unread - User: {request.user.username if request.user.is_authenticated else "Anonymous"}, Authenticated: {request.user.is_authenticated}, Session Key: {request.session.session_key if hasattr(request.session, "session_key") else "No session"}, Session Engine: {settings.SESSION_ENGINE}')
-        
         if not request.user.is_authenticated:
             return Response({
                 'unread_count': 0,
