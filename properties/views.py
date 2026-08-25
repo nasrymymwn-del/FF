@@ -1173,7 +1173,8 @@ def login_view(request):
                 user_type = get_user_type(user)
                 
                 # Log session info for debugging
-                logger.info(f'[AUTH] Login successful - User: {user.username}, Authenticated: {user.is_authenticated}, Session Key: {request.session.session_key}, Session Engine: {request.session.session_engine}')
+                from django.conf import settings
+                logger.info(f'[AUTH] Login successful - User: {user.username}, Authenticated: {user.is_authenticated}, Session Key: {request.session.session_key}, Session Engine: {settings.SESSION_ENGINE}')
                 
                 # Log successful login
                 from .models import ActivityLog
@@ -1433,7 +1434,8 @@ def user_dashboard(request):
 def dashboard(request):
     """لوحة تحكم الإدارة والدلال"""
     # Log authentication status for debugging
-    logger.info(f'[AUTH] Dashboard accessed - User: {request.user.username if request.user.is_authenticated else "Anonymous"}, Authenticated: {request.user.is_authenticated}, Session Key: {request.session.session_key}, Session Engine: {request.session.session_engine}')
+    from django.conf import settings
+    logger.info(f'[AUTH] Dashboard accessed - User: {request.user.username if request.user.is_authenticated else "Anonymous"}, Authenticated: {request.user.is_authenticated}, Session Key: {request.session.session_key}, Session Engine: {settings.SESSION_ENGINE}')
     
     # Check if user is admin or broker
     if not request.user.is_superuser and not request.user.is_staff and not get_broker(request.user):
@@ -13508,7 +13510,8 @@ def api_notifications_unread(request):
     """API للحصول على عدد الإشعارات غير المقروءة"""
     try:
         # Log authentication status for debugging
-        logger.info(f'[AUTH] API notifications unread - User: {request.user.username if request.user.is_authenticated else "Anonymous"}, Authenticated: {request.user.is_authenticated}, Session Key: {request.session.session_key if hasattr(request.session, "session_key") else "No session"}')
+        from django.conf import settings
+        logger.info(f'[AUTH] API notifications unread - User: {request.user.username if request.user.is_authenticated else "Anonymous"}, Authenticated: {request.user.is_authenticated}, Session Key: {request.session.session_key if hasattr(request.session, "session_key") else "No session"}, Session Engine: {settings.SESSION_ENGINE}')
         
         if not request.user.is_authenticated:
             return Response({
