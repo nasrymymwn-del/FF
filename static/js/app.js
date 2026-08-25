@@ -290,12 +290,14 @@ function initMobileNav() {
     toggle.classList.remove('active');
     links.classList.remove('active');
     toggle.setAttribute('aria-expanded', 'false');
+    document.body.style.overflow = '';
   };
 
   const openMenu = () => {
     toggle.classList.add('active');
     links.classList.add('active');
     toggle.setAttribute('aria-expanded', 'true');
+    document.body.style.overflow = 'hidden';
   };
 
   toggle.addEventListener('click', (e) => {
