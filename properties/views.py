@@ -13047,17 +13047,15 @@ def statistics_api(request):
         active_subscriptions = 0
         total_revenue = 0
 
-    # Properties statistics
-    iraq_properties = Property.objects.filter(country='Iraq').count()
-    foreign_properties = Property.objects.exclude(country='Iraq').count()
+    # Properties statistics - country is ForeignKey
+    iraq_properties = Property.objects.filter(country__isnull=True).count()
+    foreign_properties = Property.objects.filter(country__isnull=False).count()
 
-    # Hotels statistics
-    iraq_hotels = Hotel.objects.filter(country='Iraq').count()
-    foreign_hotels = Hotel.objects.exclude(country='Iraq').count()
+    # Hotels statistics - hotels don't have country field, just count total
+    total_hotels = Hotel.objects.count()
 
-    # Resorts statistics
-    iraq_resorts = Resort.objects.filter(country='Iraq').count()
-    foreign_resorts = Resort.objects.exclude(country='Iraq').count()
+    # Resorts statistics - resorts don't have country field, just count total
+    total_resorts = Resort.objects.count()
 
     # Jobs statistics
     total_jobs = Job.objects.count()
@@ -13112,14 +13110,10 @@ def statistics_api(request):
             'by_governorate': list(properties_by_governorate)
         },
         'hotels': {
-            'iraq': iraq_hotels,
-            'foreign': foreign_hotels,
-            'total': iraq_hotels + foreign_hotels
+            'total': total_hotels
         },
         'resorts': {
-            'iraq': iraq_resorts,
-            'foreign': foreign_resorts,
-            'total': iraq_resorts + foreign_resorts
+            'total': total_resorts
         },
         'jobs': {
             'total': total_jobs
