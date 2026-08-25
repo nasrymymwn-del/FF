@@ -23,8 +23,8 @@ from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
 from django.utils import timezone
 from decimal import Decimal
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.decorators import api_view, permission_classes, authentication_classes
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 
 # Advertising system imports
@@ -13025,6 +13025,7 @@ def delete_service_advertisement(request, ad_id):
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
+@authentication_classes([])
 @csrf_exempt
 def statistics_api(request):
     """API endpoint للحصول على إحصاءات حقيقية"""
