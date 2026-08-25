@@ -13023,14 +13023,13 @@ def delete_service_advertisement(request, ad_id):
     })
 
 
-@api_view(['GET'])
-@authentication_classes([])
 @csrf_exempt
 def statistics_api(request):
     """API endpoint للحصول على إحصاءات حقيقية"""
     from django.db.models import Count
     from django.db.models.functions import TruncMonth
     from datetime import datetime, timedelta
+    from django.http import JsonResponse
 
     # Platform statistics (matching the structure used in platform_stats)
     try:
@@ -13101,7 +13100,7 @@ def statistics_api(request):
             'count': users_in_month
         })
 
-    return Response({
+    return JsonResponse({
         'properties': {
             'iraq': iraq_properties,
             'foreign': foreign_properties,
