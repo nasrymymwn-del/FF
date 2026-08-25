@@ -14,8 +14,8 @@ import sys
 
 from properties.sitemaps import PropertySitemap, StaticViewSitemap
 
-# Force rebuild - 2026-07-13-07-11 - Fix healthcheck 404
-print("URLS.PY LOADED - Force rebuild 2026-07-13-07-11", file=sys.stderr)
+# Force rebuild - 2026-08-25-04-10 - Fix broker search and AI chatbot errors
+print("URLS.PY LOADED - Force rebuild 2026-08-25-04-10", file=sys.stderr)
 
 def health_check(request):
     try:

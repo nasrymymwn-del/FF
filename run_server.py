@@ -34,7 +34,7 @@ def run(cmd, allow_fail=False):
 def main():
     port = os.getenv('PORT', '8080')
     print(f"=== Dalal Platform Startup (port {port}) ===", flush=True)
-    print(f"=== NEW CODE VERSION - 2026-08-24-16-30 - DELETE OLD DATABASE TO FIX MIGRATIONS ===", flush=True)
+    print(f"=== NEW CODE VERSION - 2026-08-25-04-10 - FIX BROKER SEARCH AND AI CHATBOT ===", flush=True)
     print(f"DEBUG={os.getenv('DEBUG', 'False')}", flush=True)
     print(f"DJANGO_SETTINGS_MODULE={os.getenv('DJANGO_SETTINGS_MODULE')}", flush=True)
     print(f"PYTHONPATH={os.getenv('PYTHONPATH')}", flush=True)
