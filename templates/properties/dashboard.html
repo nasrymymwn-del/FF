@@ -1618,10 +1618,6 @@
       <span class="tab-icon">👥</span>
       <span>مراقبة المستخدمين</span>
     </a>
-    <button type="button" class="tab-btn" data-tab="ads-payments">
-      <span class="tab-icon">💰</span>
-      <span>الإعلانات والمدفوعات</span>
-    </button>
     <button type="button" class="tab-btn" data-tab="subscription-requests">
       <span class="tab-icon">📋</span>
       <span>الطلبات</span>
@@ -1659,14 +1655,6 @@
       <span class="tab-icon">🎫</span>
       <span>تذاكر الدعم</span>
     </button>
-    <button type="button" class="tab-btn" data-tab="audit-log">
-      <span class="tab-icon">📋</span>
-      <span>سجل التدقيق</span>
-    </button>
-    <button type="button" class="tab-btn" data-tab="developer">
-      <span class="tab-icon">👨‍💻</span>
-      <span>المطورين</span>
-    </button>
     <button type="button" class="tab-btn" data-tab="advanced-search">
       <span class="tab-icon">🔍</span>
       <span>بحث متقدم</span>
@@ -1676,15 +1664,6 @@
       <span>إدارة المهام</span>
     </button>
 
-    <button type="button" class="tab-btn" data-tab="server-logs">
-      <span class="tab-icon">📜</span>
-      <span>سجلات الخادم</span>
-    </button>
-
-    <button type="button" class="tab-btn" data-tab="subscriptions-advanced">
-      <span class="tab-icon">💳</span>
-      <span>الاشتراكات المتقدمة</span>
-    </button>
     <button type="button" class="tab-btn" data-tab="data-analytics">
       <span class="tab-icon">📊</span>
       <span>تحليلات البيانات</span>
@@ -2634,83 +2613,6 @@
     </div>
   </div>
 
-  <!-- Ads and Payments Panel -->
-  <div id="panel-ads-payments" class="panel">
-    <div class="panel-header">
-      <div class="panel-badge">
-        <span class="badge-icon">💰</span>
-        <span>الإعلانات والمدفوعات</span>
-      </div>
-      <h2>إدارة الإعلانات والمعاملات المالية</h2>
-    </div>
-    <div class="dashboard-stats">
-      <div class="stat-card">
-        <div class="stat-icon">💵</div>
-        <div class="stat-content">
-          <div class="stat-number">{{ platform_stats.total_revenue|default:0 }}</div>
-          <div class="stat-label">إجمالي الإيرادات</div>
-        </div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-icon">📦</div>
-        <div class="stat-content">
-          <div class="stat-number">{{ platform_stats.active_ads|default:0 }}</div>
-          <div class="stat-label">إعلانات نشطة</div>
-        </div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-icon">💳</div>
-        <div class="stat-content">
-          <div class="stat-number">{{ platform_stats.pending_payments|default:0 }}</div>
-          <div class="stat-label">مدفوعات معلقة</div>
-        </div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-icon">✅</div>
-        <div class="stat-content">
-          <div class="stat-number">{{ platform_stats.completed_payments|default:0 }}</div>
-          <div class="stat-label">مدفوعات مكتملة</div>
-        </div>
-      </div>
-    </div>
-    <div class="table-wrap" style="margin-top: 30px;">
-      <table class="data-table">
-        <thead>
-          <tr>
-            <th>المعاملة</th>
-            <th>المستخدم</th>
-            <th>المبلغ</th>
-            <th>النوع</th>
-            <th>الحالة</th>
-            <th>التاريخ</th>
-            <th>إجراءات</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for payment in recent_payments %}
-          <tr>
-            <td>#{{ payment.id }}</td>
-            <td>{{ payment.user.username }}</td>
-            <td>{{ payment.amount }} د.أ</td>
-            <td>{{ payment.get_transaction_type_display }}</td>
-            <td>
-              <span class="status-badge {{ payment.status }}">{{ payment.get_status_display }}</span>
-            </td>
-            <td>{{ payment.created_at|date:"Y-m-d" }}</td>
-            <td>
-              <button class="btn btn-sm btn-outline" onclick="viewPayment({{ payment.id }})">عرض</button>
-            </td>
-          </tr>
-          {% empty %}
-          <tr>
-            <td colspan="7" style="text-align: center;">لا توجد معاملات</td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-  </div>
-
   <!-- Permissions Panel -->
   <div id="panel-permissions" class="panel">
     <div class="panel-header">
@@ -3227,149 +3129,6 @@
   </div>
   {% endif %}
 
-  <!-- Audit Log Panel -->
-  {% if request.user.is_superuser %}
-  <div id="panel-audit-log" class="panel">
-    <div class="panel-header">
-      <div class="panel-badge">
-        <span class="badge-icon">📋</span>
-        <span>سجل التدقيق</span>
-      </div>
-      <h2>سجل التدقيق الشامل</h2>
-    </div>
-    
-    <!-- Audit Log Filters -->
-    <div class="form-card" style="margin-bottom: 20px;">
-      <div class="form-row">
-        <div class="form-group">
-          <label>الإجراء</label>
-          <select class="form-control" id="auditActionFilter" onchange="filterAuditLog()">
-            <option value="all">الكل</option>
-            <option value="login">تسجيل دخول</option>
-            <option value="create">إنشاء</option>
-            <option value="update">تحديث</option>
-            <option value="delete">حذف</option>
-            <option value="export">تصدير</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>المستخدم</label>
-          <input type="text" class="form-control" id="auditUserFilter" placeholder="اسم المستخدم...">
-        </div>
-        <div class="form-group">
-          <label>&nbsp;</label>
-          <button class="btn btn-secondary" onclick="resetAuditFilters()">إعادة تعيين</button>
-        </div>
-        <div class="form-group">
-          <label>&nbsp;</label>
-          <button class="btn btn-primary" onclick="exportAuditLog()">تصدير السجل</button>
-        </div>
-      </div>
-    </div>
-    
-    <!-- Audit Log Table -->
-    <div class="table-wrap">
-      <table class="data-table" id="auditLogTable">
-        <thead>
-          <tr>
-            <th>المستخدم</th>
-            <th>الإجراء</th>
-            <th>الوحدة</th>
-            <th>الحالة</th>
-            <th>IP</th>
-            <th>التاريخ</th>
-          </tr>
-        </thead>
-        <tbody id="auditLogBody">
-          <tr>
-            <td colspan="6" style="text-align: center;">جاري تحميل السجل...</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-  {% endif %}
-
-  <!-- Developer Panel -->
-  {% if request.user.is_superuser %}
-  <div id="panel-developer" class="panel">
-    <div class="panel-header">
-      <div class="panel-badge">
-        <span class="badge-icon">👨‍💻</span>
-        <span>المطورين</span>
-      </div>
-      <h2>لوحة تحكم المطورين</h2>
-    </div>
-    
-    <!-- Development Environment Info -->
-    <div class="form-card" style="margin-bottom: 20px;">
-      <h3>بيئة التطوير</h3>
-      <div id="dev-info" style="max-height: 400px; overflow-y: auto;">
-        <div style="text-align: center; padding: 20px; color: #888;">جاري تحميل المعلومات...</div>
-      </div>
-    </div>
-    
-    <!-- Developer Tools -->
-    <div class="form-card" style="margin-top: 20px;">
-      <h3>أدوات المطورين</h3>
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
-        <button class="btn btn-secondary" onclick="runMigrations()">تشغيل الترحيلات</button>
-        <button class="btn btn-secondary" onclick="collectStatic()">جمع الملفات الثابتة</button>
-        <button class="btn btn-secondary" onclick="clearSessions()">مسح الجلسات</button>
-        <button class="btn btn-secondary" onclick="testDatabase()">اختبار قاعدة البيانات</button>
-        <button class="btn btn-warning" onclick="reloadServer()">إعادة تحميل السيرفر</button>
-        <button class="btn btn-danger" onclick="clearAllCache()">مسح جميع الكاش</button>
-      </div>
-      
-      <!-- Additional Developer Tools -->
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 15px;">
-        <button class="btn btn-info" onclick="viewSystemLogs()">عرض سجلات النظام</button>
-        <button class="btn btn-success" onclick="showCreateSuperuser()">إنشاء مستخدم مسؤول</button>
-        <button class="btn btn-secondary" onclick="refreshDevInfo()">تحديث المعلومات</button>
-      </div>
-    </div>
-    
-    <!-- System Logs Modal -->
-    <div id="logsModal" class="modal-overlay" style="display: none;">
-      <div class="modal-content" style="width: 80%; max-width: 800px;">
-        <div class="modal-header">
-          <h3 style="margin: 0;">سجلات النظام</h3>
-          <button onclick="closeLogsModal()" class="modal-close">&times;</button>
-        </div>
-        <div id="logsContent" style="font-family: monospace; font-size: 12px; background: #f5f5f5; padding: 15px; border-radius: 5px; white-space: pre-wrap; max-height: 60vh; overflow-y: auto;">
-          جاري تحميل السجلات...
-        </div>
-      </div>
-    </div>
-    
-    <!-- Create Superuser Modal -->
-    <div id="superuserModal" class="modal-overlay" style="display: none;">
-      <div class="modal-content" style="width: 400px;">
-        <div class="modal-header">
-          <h3 style="margin: 0;">إنشاء مستخدم مسؤول</h3>
-          <button onclick="closeSuperuserModal()" class="modal-close">&times;</button>
-        </div>
-        <div style="margin-bottom: 15px;">
-          <label style="display: block; margin-bottom: 5px;">اسم المستخدم:</label>
-          <input type="text" id="superuserUsername" class="form-control" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
-        </div>
-        <div style="margin-bottom: 15px;">
-          <label style="display: block; margin-bottom: 5px;">كلمة المرور:</label>
-          <input type="password" id="superuserPassword" class="form-control" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
-        </div>
-        <div style="margin-bottom: 15px;">
-          <label style="display: block; margin-bottom: 5px;">البريد الإلكتروني (اختياري):</label>
-          <input type="email" id="superuserEmail" class="form-control" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
-        </div>
-        <div style="display: flex; gap: 10px;">
-          <button onclick="createSuperuser()" class="btn btn-success" style="flex: 1;">إنشاء</button>
-          <button onclick="closeSuperuserModal()" class="btn btn-secondary" style="flex: 1;">إلغاء</button>
-        </div>
-      </div>
-    </div>
-  </div>
-  {% endif %}
-
   <!-- Advanced Search Panel -->
   {% if request.user.is_superuser %}
   <div id="panel-advanced-search" class="panel">
@@ -3493,110 +3252,6 @@
 
 
 
-
-  <!-- Server Logs Panel -->
-  {% if request.user.is_superuser %}
-  <div id="panel-server-logs" class="panel">
-    <div class="panel-header">
-      <div class="panel-badge">
-        <span class="badge-icon">📜</span>
-        <span>سجلات الخادم</span>
-      </div>
-      <h2>نظام تتبع سجلات الخادم</h2>
-    </div>
-    
-    <!-- Log Type Selector -->
-    <div class="form-card" style="margin-bottom: 20px;">
-      <div class="form-row">
-        <div class="form-group">
-          <label>نوع السجل</label>
-          <select class="form-control" id="logType" onchange="loadServerLogs()">
-            <option value="error">الأخطاء</option>
-            <option value="access">الوصول</option>
-            <option value="debug">التصحيح</option>
-            <option value="django">Django</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>عدد الأسطر</label>
-          <select class="form-control" id="logLines" onchange="loadServerLogs()">
-            <option value="50">50</option>
-            <option value="100" selected>100</option>
-            <option value="200">200</option>
-            <option value="500">500</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>&nbsp;</label>
-          <button class="btn btn-secondary" onclick="loadServerLogs()">تحديث</button>
-        </div>
-        <div class="form-group">
-          <label>&nbsp;</label>
-          <button class="btn btn-primary" onclick="downloadLogs()">تحميل السجل</button>
-        </div>
-      </div>
-    </div>
-    
-    <!-- Log Content -->
-    <div id="server-logs-content" style="max-height: 500px; overflow-y: auto; background: #1e1e1e; color: #d4d4d4; padding: 15px; border-radius: 8px; font-family: monospace; font-size: 12px;">
-      <div style="text-align: center; padding: 20px; color: #888;">جاري تحميل السجلات...</div>
-    </div>
-  </div>
-  {% endif %}
-
-
-
-
-
-  <!-- Advanced Subscriptions Panel -->
-  {% if request.user.is_superuser %}
-  <div id="panel-subscriptions-advanced" class="panel">
-    <div class="panel-header">
-      <div class="panel-badge">
-        <span class="badge-icon">💳</span>
-        <span>الاشتراكات المتقدمة</span>
-      </div>
-      <h2>نظام إدارة الاشتراكات المتقدم</h2>
-    </div>
-    
-    <!-- Subscription Statistics -->
-    <div class="dashboard-stats">
-      <div class="stat-card">
-        <div class="stat-icon">👥</div>
-        <div class="stat-content">
-          <div class="stat-number" id="totalSubscriptions">0</div>
-          <div class="stat-label">إجمالي الاشتراكات</div>
-        </div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-icon">✅</div>
-        <div class="stat-content">
-          <div class="stat-number" id="activeSubscriptions">0</div>
-          <div class="stat-label">نشطة</div>
-        </div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-icon">⏰</div>
-        <div class="stat-content">
-          <div class="stat-number" id="expiredSubscriptions">0</div>
-          <div class="stat-label">منتهية</div>
-        </div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-icon">💰</div>
-        <div class="stat-content">
-          <div class="stat-number" id="totalRevenue">$0</div>
-          <div class="stat-label">إجمالي الإيرادات</div>
-        </div>
-      </div>
-    </div>
-    
-    <!-- Subscriptions List -->
-    <div id="subscriptions-list" style="max-height: 400px; overflow-y: auto; margin-top: 20px;">
-      <div style="text-align: center; padding: 20px; color: #888;">جاري تحميل الاشتراكات...</div>
-    </div>
-  </div>
-  {% endif %}
 
   <!-- Data Analytics Panel -->
   {% if request.user.is_superuser %}
