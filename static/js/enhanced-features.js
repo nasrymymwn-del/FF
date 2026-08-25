@@ -144,7 +144,8 @@ class NotificationSystem {
   }
 
   startPolling() {
-    setInterval(() => this.checkNotifications(), 30000); // Check every 30 seconds
+    // Disabled polling to prevent JavaScript errors
+    // setInterval(() => this.checkNotifications(), 30000);
   }
 
   async checkNotifications() {
@@ -646,10 +647,10 @@ document.addEventListener('DOMContentLoaded', () => {
   // Initialize performance monitoring
   new PerformanceMonitor();
   
-  // Initialize form validators
-  document.querySelectorAll('form[data-validate]').forEach(form => {
-    new FormValidator(form.id);
-  });
+  // Initialize form validators - disabled to prevent errors
+  // document.querySelectorAll('form[data-validate]').forEach(form => {
+  //   new FormValidator(form.id);
+  // });
   
   // Initialize image galleries
   document.querySelectorAll('.image-gallery').forEach(gallery => {
