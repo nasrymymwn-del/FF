@@ -289,47 +289,52 @@ def public_broker_search(request):
     # Prepare broker data with statistics
     broker_data = []
     for broker in brokers:
-        # Calculate property count
-        prop_count = Property.objects.filter(
-            Q(owner=broker.user) | Q(broker=broker)
-        ).count()
-        
-        # Calculate total views
-        views = Property.objects.filter(
-            Q(owner=broker.user) | Q(broker=broker)
-        ).aggregate(total=Sum('views_count'))['total'] or 0
-        
-        # Get channel info if exists
-        channel_info = None
         try:
-            channel = broker.channel
-            channel_info = {
-                'id': channel.id,
-                'name': channel.name,
-                'followers': channel.followers_count,
-                'views': channel.views_count,
-                'rating': channel.rating,
-                'is_verified': channel.is_verified,
-            }
-        except BrokerChannel.DoesNotExist:
-            pass
-        
-        broker_data.append({
-            'broker': broker,
-            'property_count': prop_count,
-            'total_views': views,
-            'is_verified': broker.is_verified,
-            'channel': channel_info,
-            'governorate': broker.governorate,
-            'subscription_plan': broker.subscription_plan.name if broker.subscription_plan else 'غير مشترك',
-            'services_offered': broker.services_offered if broker.services_offered else [],
-            'specialties': broker.specialties if broker.specialties else [],
-            'company_name': broker.company_name if hasattr(broker, 'company_name') else broker.office_name,
-            'bio': broker.bio,
-            'years_of_experience': broker.years_of_experience,
-            'clients_count': broker.clients_count,
-            'working_governorates': broker.working_governorates.split(',') if broker.working_governorates else [],
-        })
+            # Calculate property count
+            prop_count = Property.objects.filter(
+                Q(owner=broker.user) | Q(broker=broker)
+            ).count()
+            
+            # Calculate total views
+            views = Property.objects.filter(
+                Q(owner=broker.user) | Q(broker=broker)
+            ).aggregate(total=Sum('views_count'))['total'] or 0
+            
+            # Get channel info if exists
+            channel_info = None
+            try:
+                channel = broker.channel
+                channel_info = {
+                    'id': channel.id,
+                    'name': channel.name,
+                    'followers': channel.followers_count,
+                    'views': channel.views_count,
+                    'rating': channel.rating,
+                    'is_verified': channel.is_verified,
+                }
+            except BrokerChannel.DoesNotExist:
+                pass
+            
+            broker_data.append({
+                'broker': broker,
+                'property_count': prop_count,
+                'total_views': views,
+                'is_verified': broker.is_verified,
+                'channel': channel_info,
+                'governorate': broker.governorate,
+                'subscription_plan': broker.subscription_plan.name if broker.subscription_plan else 'غير مشترك',
+                'services_offered': broker.services_offered if hasattr(broker, 'services_offered') and broker.services_offered else [],
+                'specialties': broker.specialties if hasattr(broker, 'specialties') and broker.specialties else [],
+                'company_name': broker.company_name if hasattr(broker, 'company_name') else broker.office_name,
+                'bio': broker.bio,
+                'years_of_experience': broker.years_of_experience,
+                'clients_count': broker.clients_count,
+                'working_governorates': broker.working_governorates.split(',') if broker.working_governorates else [],
+            })
+        except Exception as e:
+            # Skip brokers with missing fields
+            logger.error(f"Error processing broker {broker.id}: {e}")
+            continue
     
     # Apply sorting
     if sort_by == 'properties':
