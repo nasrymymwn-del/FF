@@ -1443,93 +1443,6 @@
   {% endif %}
 
   <!-- Advanced Analytics Charts -->
-  <div class="charts-section" style="margin-bottom: 2rem;">
-    <div class="chart-row">
-      <div class="chart-card">
-        <div class="chart-header">
-          <h3>📈 نمو المنشورات</h3>
-          <select class="chart-filter" onchange="updateGrowthChart(this.value)">
-            <option value="7">آخر 7 أيام</option>
-            <option value="30" selected>آخر 30 يوم</option>
-            <option value="90">آخر 90 يوم</option>
-            <option value="365">آخر سنة</option>
-          </select>
-        </div>
-        <div class="chart-container">
-          <canvas id="growthChart"></canvas>
-        </div>
-      </div>
-      <div class="chart-card">
-        <div class="chart-header">
-          <h3>🏠 توزيع العقارات</h3>
-          <select class="chart-filter" onchange="updatePropertyDistributionChart(this.value)">
-            <option value="type" selected>حسب النوع</option>
-            <option value="location">حسب الموقع</option>
-            <option value="price">حسب السعر</option>
-          </select>
-        </div>
-        <div class="chart-container">
-          <canvas id="propertyDistributionChart"></canvas>
-        </div>
-      </div>
-    </div>
-    <div class="chart-row">
-      <div class="chart-card">
-        <div class="chart-header">
-          <h3>👥 أداء الدلالين</h3>
-          <select class="chart-filter" onchange="updateBrokerPerformanceChart(this.value)">
-            <option value="all" selected>الكل</option>
-            <option value="top">الأفضل أداءً</option>
-            <option value="bottom">الأقل أداءً</option>
-          </select>
-        </div>
-        <div class="chart-container">
-          <canvas id="brokerPerformanceChart"></canvas>
-        </div>
-      </div>
-      <div class="chart-card">
-        <div class="chart-header">
-          <h3>💰 الإيرادات</h3>
-          <select class="chart-filter" onchange="updateRevenueChart(this.value)">
-            <option value="monthly" selected>شهري</option>
-            <option value="quarterly">ربع سنوي</option>
-            <option value="yearly">سنوي</option>
-          </select>
-        </div>
-        <div class="chart-container">
-          <canvas id="revenueChart"></canvas>
-        </div>
-      </div>
-    </div>
-    <div class="chart-row">
-      <div class="chart-card">
-        <div class="chart-header">
-          <h3>🌍 التوزيع الجغرافي</h3>
-          <select class="chart-filter" onchange="updateGeographicChart(this.value)">
-            <option value="all" selected>الكل</option>
-            <option value="active">النشطين</option>
-            <option value="verified">الموثقين</option>
-          </select>
-        </div>
-        <div class="chart-container">
-          <canvas id="geographicChart"></canvas>
-        </div>
-      </div>
-      <div class="chart-card">
-        <div class="chart-header">
-          <h3>📊 نشاط المستخدمين</h3>
-          <select class="chart-filter" onchange="updateUserActivityChart(this.value)">
-            <option value="daily" selected>يومي</option>
-            <option value="weekly">أسبوعي</option>
-            <option value="monthly">شهري</option>
-          </select>
-        </div>
-        <div class="chart-container">
-          <canvas id="userActivityChart"></canvas>
-        </div>
-      </div>
-    </div>
-  </div>
 
   <div class="dashboard-tabs">
     <button type="button" class="tab-btn active" data-tab="properties">
@@ -2486,36 +2399,6 @@
         <span>الإحصائيات</span>
       </div>
       <h2>إحصائيات شاملة للمنصة</h2>
-    </div>
-    
-    <div class="chart-row">
-      <div class="chart-container">
-        <h3>نمو المستخدمين</h3>
-        <div class="chart-wrapper">
-          <canvas id="usersChart"></canvas>
-        </div>
-      </div>
-      <div class="chart-container">
-        <h3>المحادثات والرسائل</h3>
-        <div class="chart-wrapper">
-          <canvas id="messagesChart"></canvas>
-        </div>
-      </div>
-    </div>
-    
-    <div class="chart-row">
-      <div class="chart-container">
-        <h3>توزيع العقارات</h3>
-        <div class="chart-wrapper">
-          <canvas id="propertiesChart"></canvas>
-        </div>
-      </div>
-      <div class="chart-container">
-        <h3>الإيرادات الشهرية</h3>
-        <div class="chart-wrapper">
-          <canvas id="revenueChart"></canvas>
-        </div>
-      </div>
     </div>
     
     <div class="dashboard-stats">
