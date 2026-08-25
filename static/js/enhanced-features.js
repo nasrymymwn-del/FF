@@ -599,7 +599,6 @@ class BackToTop {
 document.addEventListener('DOMContentLoaded', () => {
   new BackToTop();
 });
-  }
 
   showError(field, message) {
     const errorElement = field.parentElement.querySelector('.error-message');

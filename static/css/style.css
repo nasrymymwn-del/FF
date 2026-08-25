@@ -3128,7 +3128,14 @@ svg {
   }
 
   .hamburger {
-    display: flex;
+    display: flex !important;
+    flex-direction: column;
+    gap: 5px;
+    cursor: pointer;
+    padding: 10px;
+    background: none;
+    border: none;
+    z-index: 1001;
   }
 
   .nav-links {
