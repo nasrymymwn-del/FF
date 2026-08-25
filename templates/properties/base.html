@@ -975,9 +975,11 @@
         <span></span><span></span><span></span>
       </button>
       <ul class="nav-links">
+        <li><a href="{% url 'home' %}" data-nav="home">الرئيسية</a></li>
         {% if request.user.is_authenticated %}
         <li><a href="{% url 'dynamic_add_property' %}" data-nav="add-property" class="btn btn-primary">➕ إضافة عقار</a></li>
         {% endif %}
+        <li><a href="{% url 'contact' %}" data-nav="contact">تواصل</a></li>
         {% if request.user.is_authenticated %}
         <li><a href="{% url 'logout' %}">خروج</a></li>
         {% else %}
