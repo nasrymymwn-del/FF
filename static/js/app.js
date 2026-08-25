@@ -282,7 +282,6 @@ function initBackToTop() {
 function initMobileNav() {
   const toggle = document.querySelector('.hamburger') || document.querySelector('.nav-toggle');
   const links = document.querySelector('.nav-links');
-  const closeBtn = document.querySelector('.mobile-menu-close');
 
   if (!toggle || !links) return;
 
@@ -290,38 +289,13 @@ function initMobileNav() {
     toggle.classList.remove('active');
     links.classList.remove('active');
     toggle.setAttribute('aria-expanded', 'false');
-    document.body.style.overflow = '';
-  };
-
-  const openMenu = () => {
-    toggle.classList.add('active');
-    links.classList.add('active');
-    toggle.setAttribute('aria-expanded', 'true');
-    document.body.style.overflow = 'hidden';
   };
 
   toggle.addEventListener('click', (e) => {
     e.stopPropagation();
-    if (links.classList.contains('active')) {
-      closeMenu();
-    } else {
-      openMenu();
-    }
-  });
-
-  // Handle close button
-  if (closeBtn) {
-    closeBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      closeMenu();
-    });
-  }
-
-  // Close when clicking on backdrop overlay
-  links.addEventListener('click', (e) => {
-    if (e.target === links) {
-      closeMenu();
-    }
+    toggle.classList.toggle('active');
+    links.classList.toggle('active');
+    toggle.setAttribute('aria-expanded', links.classList.contains('active'));
   });
 
   document.addEventListener('click', (e) => {
@@ -332,13 +306,6 @@ function initMobileNav() {
 
   links.querySelectorAll('a').forEach((link) => {
     link.addEventListener('click', closeMenu);
-  });
-
-  // Close on ESC key
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && links.classList.contains('active')) {
-      closeMenu();
-    }
   });
 }
 
