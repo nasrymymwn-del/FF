@@ -6,7 +6,7 @@ import sys
 
 # Force disable WebSockets to use Gunicorn instead of Daphne
 os.environ['USE_WEBSOCKETS'] = 'false'
-# Force rebuild - 2026-08-24-16-30 - DELETE OLD DATABASE TO FIX MIGRATIONS
+# Force rebuild - 2026-08-25-03-35 - FIX BROKER SEARCH AND AI CHATBOT
 
 # Set up Django settings
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'dalal_project.settings')
