@@ -3135,9 +3135,9 @@ svg {
     position: fixed;
     top: 0;
     right: -100%;
-    width: 70%;
-    max-width: 300px;
-    height: 100vh;
+    width: 150px;
+    max-width: 150px;
+    height: 641px;
     background: var(--card-bg);
     flex-direction: column;
     padding: 80px 30px 30px;
