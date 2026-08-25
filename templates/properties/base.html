@@ -1371,17 +1371,13 @@ ${data.properties.by_governorate.slice(0, 3).map(item => `• ${item.governorate
 هل تريد البحث في محافظة معينة؟`;
           } else if (message.includes('فندق') || message.includes('hotel')) {
             botResponse = `🏨 إحصائيات الفنادق الحقيقية:
-            
-🇮🇶 فنادق داخل العراق: ${data.hotels.iraq}
-🌍 فنادق خارج العراق: ${data.hotels.foreign}
+
 📊 المجموع الكلي: ${data.hotels.total}
 
 هل تبحث عن فندق في مدينة معينة؟`;
           } else if (message.includes('منتجع') || message.includes('resort')) {
             botResponse = `🏝️ إحصائيات المنتجعات الحقيقية:
-            
-🇮🇶 منتجعات داخل العراق: ${data.resorts.iraq}
-🌍 منتجعات خارج العراق: ${data.resorts.foreign}
+
 📊 المجموع الكلي: ${data.resorts.total}
 
 هل تبحث عن منتجع في منطقة معينة؟`;
@@ -1414,10 +1410,10 @@ ${data.properties.by_governorate.slice(0, 3).map(item => `• ${item.governorate
 هل تريد البحث عن مزاد معين؟`;
           } else {
             botResponse = `📊 إحصائيات النظام الحقيقية:
-            
+
 🏠 العقارات: ${data.properties.total} (${data.properties.iraq} داخل العراق، ${data.properties.foreign} خارج العراق)
-🏨 الفنادق: ${data.hotels.total} (${data.hotels.iraq} داخل العراق، ${data.hotels.foreign} خارج العراق)
-🏝️ المنتجعات: ${data.resorts.total} (${data.resorts.iraq} داخل العراق، ${data.resorts.foreign} خارج العراق)
+🏨 الفنادق: ${data.hotels.total}
+🏝️ المنتجعات: ${data.resorts.total}
 💼 الوظائف: ${data.jobs.total}
 🔧 مقدمي الخدمات: ${data.services.providers}
 👔 الدلالين: ${data.brokers.total}

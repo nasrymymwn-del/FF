@@ -13024,7 +13024,7 @@ def delete_service_advertisement(request, ad_id):
 
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
+@permission_classes([AllowAny])
 @csrf_exempt
 def statistics_api(request):
     """API endpoint للحصول على إحصاءات حقيقية"""
