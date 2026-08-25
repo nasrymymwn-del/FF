@@ -71,7 +71,7 @@ class Migration(migrations.Migration):
             name='ResortInsideIraq',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('resort_name', models.CharField(max_length=200, verbose_name='اسم المنتجع')),
+                ('name', models.CharField(max_length=200, verbose_name='اسم المنتجع')),
                 ('description', models.TextField(blank=True, verbose_name='الوصف')),
                 ('resort_type', models.CharField(choices=[('beach', 'شاطئي'), ('mountain', 'جبلي'), ('desert', 'صحراوي'), ('lake', 'بحيرة'), ('spa', 'سبا'), ('family', 'عائلي'), ('luxury', 'فاخر'), ('adventure', 'مغامرة'), ('eco', 'بيئي'), ('cultural', 'ثقافي')], max_length=20, verbose_name='نوع المنتجع')),
                 ('governorate', models.CharField(max_length=50, verbose_name='المحافظة')),
@@ -131,7 +131,7 @@ class Migration(migrations.Migration):
             name='ResortOutsideIraq',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('resort_name', models.CharField(max_length=200, verbose_name='اسم المنتجع')),
+                ('name', models.CharField(max_length=200, verbose_name='اسم المنتجع')),
                 ('description', models.TextField(blank=True, verbose_name='الوصف')),
                 ('resort_type', models.CharField(choices=[('beach', 'شاطئي'), ('mountain', 'جبلي'), ('desert', 'صحراوي'), ('lake', 'بحيرة'), ('spa', 'سبا'), ('family', 'عائلي'), ('luxury', 'فاخر'), ('adventure', 'مغامرة'), ('eco', 'بيئي'), ('cultural', 'ثقافي')], max_length=20, verbose_name='نوع المنتجع')),
                 ('country', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='resorts_outside_iraq', to='properties.country', verbose_name='الدولة')),
