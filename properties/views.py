@@ -13024,7 +13024,6 @@ def delete_service_advertisement(request, ad_id):
 
 
 @api_view(['GET'])
-@permission_classes([AllowAny])
 @authentication_classes([])
 @csrf_exempt
 def statistics_api(request):
