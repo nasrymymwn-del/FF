@@ -357,9 +357,9 @@
       <div class="stat-label">مقروء</div>
     </div>
     <div class="stat-card">
-      <div class="stat-icon">⭐</div>
-      <div class="stat-number">{{ starred_count|default:0 }}</div>
-      <div class="stat-label">مميز</div>
+      <div class="stat-icon">📁</div>
+      <div class="stat-number">{{ archived_count|default:0 }}</div>
+      <div class="stat-label">مؤرشف</div>
     </div>
   </div>
 
@@ -375,8 +375,8 @@
       <button class="filter-btn {% if filter_type == 'read' %}active{% endif %}" onclick="filterNotifications('read')">
         مقروء
       </button>
-      <button class="filter-btn {% if filter_type == 'starred' %}active{% endif %}" onclick="filterNotifications('starred')">
-        مميز
+      <button class="filter-btn {% if filter_type == 'archived' %}active{% endif %}" onclick="filterNotifications('archived')">
+        مؤرشف
       </button>
       <input type="text" id="searchInput" placeholder="بحث في الإشعارات..." class="search-input" value="{{ search_query }}">
       <button onclick="searchNotifications()" class="filter-btn">🔍 بحث</button>
@@ -401,9 +401,6 @@
             <span>{{ recipient.notification.get_notification_type_display|default:'نظام' }}</span>
           </div>
           <div class="notification-actions">
-            <button onclick="event.stopPropagation(); toggleStar({{ recipient.notification.id }})" class="action-btn" title="تمييز">
-              {% if recipient.is_starred %}⭐{% else %}☆{% endif %}
-            </button>
             <button onclick="event.stopPropagation(); deleteNotification({{ recipient.notification.id }})" class="action-btn" title="حذف">🗑️</button>
           </div>
         </div>
@@ -478,22 +475,6 @@ function viewNotification(notificationId) {
   .then(data => {
     if (data.success) {
       window.location.href = `/notifications/${notificationId}/`;
-    }
-  });
-}
-
-function toggleStar(notificationId) {
-  fetch(`/api/notifications/${notificationId}/toggle-star/`, {
-    method: 'POST',
-    headers: {
-      'X-CSRFToken': getCSRFToken(),
-      'Content-Type': 'application/json'
-    }
-  })
-  .then(response => response.json())
-  .then(data => {
-    if (data.success) {
-      location.reload();
     }
   });
 }

@@ -15203,37 +15203,40 @@ def get_client_ip(request):
 def notification_center(request):
     """مركز الإشعارات للمستخدم"""
     from .models import Notification, NotificationRecipient
-    
+
     # Get all notifications for the user
     notifications = NotificationRecipient.objects.filter(
-        user=request.user,
-        is_archived=False
+        user=request.user
     ).select_related('notification').order_by('-created_at')
-    
+
     # Get unread count
     unread_count = notifications.filter(is_read=False).count()
-    
-    # Filter by read status
+
+    # Get archived count
+    archived_count = notifications.filter(is_archived=True).count()
+
+    # Filter by status
     filter_type = request.GET.get('filter', 'all')
     if filter_type == 'unread':
-        notifications = notifications.filter(is_read=False)
+        notifications = notifications.filter(is_read=False, is_archived=False)
     elif filter_type == 'read':
-        notifications = notifications.filter(is_read=True)
-    
+        notifications = notifications.filter(is_read=True, is_archived=False)
+    elif filter_type == 'archived':
+        notifications = notifications.filter(is_archived=True)
+    else:
+        notifications = notifications.filter(is_archived=False)
+
     # Search
     search_query = request.GET.get('search', '')
     if search_query:
         notifications = notifications.filter(
             notification__title__icontains=search_query
         )
-    
-    # Get starred count
-    starred_count = notifications.filter(is_starred=True).count()
-    
+
     context = {
         'notifications': notifications,
         'unread_count': unread_count,
-        'starred_count': starred_count,
+        'archived_count': archived_count,
         'filter_type': filter_type,
         'search_query': search_query,
     }
