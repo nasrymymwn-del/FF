@@ -3486,6 +3486,54 @@ svg {
   }
 }
 
+/* ===== Developer/Admin Features Hidden on Mobile ===== */
+
+@media (max-width: 768px) {
+  /* Hide developer and admin tabs on mobile */
+  .tab-btn[data-tab="ads-payments"],
+  .tab-btn[data-tab="subscription-requests"],
+  .tab-btn[data-tab="audit-log"],
+  .tab-btn[data-tab="developer"],
+  .tab-btn[data-tab="server-logs"],
+  .tab-btn[data-tab="subscriptions-advanced"],
+  .tab-btn[data-tab="data-analytics"],
+  .tab-btn[data-tab="media-manager"],
+  .tab-btn[data-tab="messaging-advanced"],
+  .tab-btn[data-tab="email-manager"],
+  .tab-btn[data-tab="access-control"],
+  .tab-btn[data-tab="crm"],
+  .tab-btn[data-tab="performance-reports"],
+  .tab-btn[data-tab="contracts"],
+  .tab-btn[data-tab="real-estate-properties"],
+  .tab-btn[data-tab="quick-stats"],
+  .tab-btn[data-tab="advanced-search"],
+  .tab-btn[data-tab="tasks"] {
+    display: none !important;
+  }
+
+  /* Hide corresponding panels on mobile */
+  #panel-ads-payments,
+  #panel-subscription-requests,
+  #panel-audit-log,
+  #panel-developer,
+  #panel-server-logs,
+  #panel-subscriptions-advanced,
+  #panel-data-analytics,
+  #panel-media-manager,
+  #panel-messaging-advanced,
+  #panel-email-manager,
+  #panel-access-control,
+  #panel-crm,
+  #panel-performance-reports,
+  #panel-contracts,
+  #panel-real-estate-properties,
+  #panel-quick-stats,
+  #panel-advanced-search,
+  #panel-tasks {
+    display: none !important;
+  }
+}
+
 /* ===== Ultra Responsive Design System ===== */
 
 /* Extra Large Screens (1920px+) */
