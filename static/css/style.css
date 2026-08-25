@@ -243,6 +243,7 @@ svg {
   align-items: center;
   justify-content: space-between;
   height: var(--header-height);
+  overflow: visible;
 }
 
 .logo {
@@ -317,6 +318,10 @@ svg {
   border: none;
   cursor: pointer;
   padding: var(--spacing-xs);
+  z-index: 99999;
+  position: relative;
+  visibility: visible;
+  opacity: 1;
 }
 
 .hamburger span {
@@ -378,7 +383,10 @@ svg {
   padding: 10px;
   background: none;
   border: none;
-  z-index: 1001;
+  z-index: 99999;
+  position: relative;
+  visibility: visible;
+  opacity: 1;
 }
 
 .hamburger span {
@@ -3321,7 +3329,17 @@ svg {
   }
 
   .hamburger {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    position: relative;
+    z-index: 99999;
     padding: 8px;
+    flex-direction: column;
+    gap: 5px;
+    cursor: pointer;
+    background: none;
+    border: none;
   }
 
   .hamburger span {
@@ -3372,7 +3390,17 @@ svg {
   }
 
   .hamburger {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    position: relative;
+    z-index: 99999;
     padding: 6px;
+    flex-direction: column;
+    gap: 5px;
+    cursor: pointer;
+    background: none;
+    border: none;
   }
 
   .hamburger span {
@@ -3385,9 +3413,82 @@ svg {
   }
 }
 
-  .property-price {
-    font-size: 1.4rem;
+/* Extra extra small screens - smallest phones */
+@media (max-width: 320px) {
+  .nav-container {
+    padding: 4px 8px;
+    height: 44px;
   }
+
+  .logo {
+    font-size: 0.9rem;
+  }
+
+  .logo img {
+    height: 24px !important;
+    width: auto !important;
+  }
+
+  .logo span {
+    font-size: 0.85rem;
+  }
+
+  .hamburger {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    position: relative;
+    z-index: 99999;
+    padding: 4px;
+    flex-direction: column;
+    gap: 4px;
+    cursor: pointer;
+    background: none;
+    border: none;
+  }
+
+  .hamburger span {
+    width: 16px;
+    height: 2px;
+  }
+}
+
+/* Small screens 440px and below */
+@media (max-width: 440px) {
+  .hamburger {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    position: relative;
+    z-index: 99999;
+  }
+}
+
+/* Small screens 400px and below */
+@media (max-width: 400px) {
+  .hamburger {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    position: relative;
+    z-index: 99999;
+  }
+}
+
+/* Small screens 390px and below */
+@media (max-width: 390px) {
+  .hamburger {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    position: relative;
+    z-index: 99999;
+  }
+}
+
+.property-price {
+  font-size: 1.4rem;
+}
 
   .detail-meta-grid {
     grid-template-columns: 1fr;
