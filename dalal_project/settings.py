@@ -1,7 +1,7 @@
 """
 Django settings for dalal_project — production-ready configuration.
 Supports SQLite (dev) and PostgreSQL (production) via environment variables.
-Updated: 2026-07-12-16-22 - Force Railway rebuild
+Updated: 2026-08-25-05-10 - Fix session persistence with workers=2
 """
 
 import os
@@ -104,10 +104,10 @@ if DEBUG:
         'http://127.0.0.1:53538',
         'http://127.0.0.1:59579',
         'http://127.0.0.1:59522',
-        'http://127.0.0.1:56107',
+        'http://127.0.1:56107',
         'http://127.0.0.1:59256',
-        'http://127.0.0.1:64164',
-        'http://127.0.0.1:64464',
+        'http://127.0.1:64164',
+        'http://127.0.1:64464',
         'http://127.0.0.1:49456',
         'http://127.0.0.1:49459',
         'http://127.0.0.1:49477',
@@ -127,13 +127,12 @@ if DEBUG:
         'http://127.0.0.1:55290',
         'http://127.0.0.1:55296',
         'http://127.0.0.1:55306',
-        'http://127.0.0.1:55315',
-        'http://127.0.0.1:55322',
-        'http://127.0.0.1:55331',
+        'http://127.0.1:55315',
+        'http://127.0.1:55322',
+        'http://127.0.1:55331',
         'http://127.0.0.1:55340',
         'http://127.0.0.1:58699',
         'http://127.0.0.1:59257',
-        'http://127.0.0.1:59284',
         'http://127.0.0.1:61200',
         'http://127.0.0.1:64508',
         'http://127.0.0.1:64170',
@@ -159,9 +158,9 @@ else:
         'http://127.0.0.1:59579',
         'http://127.0.0.1:59522',
         'http://127.0.0.1:56107',
-        'http://127.0.0.1:59256',
-        'http://127.0.0.1:64164',
-        'http://127.0.0.1:64464',
+        'http://127.0.1:59256',
+        'http://127.0.1:64164',
+        'http://127.0.1:64464',
         'http://127.0.0.1:49456',
         'http://127.0.0.1:49459',
         'http://127.0.0.1:49477',
@@ -173,22 +172,22 @@ else:
         'http://127.0.0.1:49552',
         'http://127.0.0.1:49564',
         'http://127.0.0.1:55238',
-        'http://127.0.0.1:55249',
-        'http://127.0.0.1:55258',
-        'http://127.0.0.1:55266',
-        'http://127.0.0.1:55274',
-        'http://127.0.0.1:55281',
-        'http://127.0.0.1:55290',
-        'http://127.0.0.1:55296',
+        'http://127.0.1:55249',
+        'http://127.0.1:55258',
+        'http://127.0.1:55266',
+        'http://127.0.1:55274',
+        'http://127.0.1:55281',
+        'http://127.0.1:55290',
+        'http://127.0.1:55296',
         'http://127.0.0.1:55306',
         'http://127.0.0.1:55315',
-        'http://127.0.0.1:55322',
-        'http://127.0.0.1:55331',
-        'http://127.0.0.1:55340',
-        'http://127.0.0.1:58699',
-        'http://127.0.0.1:59257',
-        'http://127.0.0.1:59284',
-        'http://127.0.0.1:61200',
+        'http://127.0.1:55322',
+        'http://127.0.1:55331',
+        'http://127.0.1:55340',
+        'http://127.0.1:58699',
+        'http://127.0.1:59257',
+        'http://127.0.1:59284',
+        'http://127.0.1:61200',
         'http://127.0.0.1:64508',
         'http://127.0.0.1:64170',
         'http://localhost:8000',
@@ -226,18 +225,17 @@ else:
         'http://localhost:55340',
         'http://localhost:58699',
         'http://localhost:59257',
-        'http://localhost:59284',
         'http://localhost:61200',
         'http://localhost:64508',
         'http://localhost:64170',
         'http://127.0.0.1:60850',
         'http://127.0.0.1:49782',
         'http://127.0.0.1:51705',
-        'http://127.0.0.1:61456',
+        'http://127.0.1:61456',
         'http://127.0.0.1:49633',
         'http://127.0.0.1:60289',
-        'http://127.0.0.1:49663',
-        'http://127.0.0.1:57964',
+        'http://127.0.1:49663',
+        'http://127.0.1:57964',
     ] + _parse_csv_env('CSRF_TRUSTED_ORIGINS'))
 
 print(f"CSRF_TRUSTED_ORIGINS: {CSRF_TRUSTED_ORIGINS}")
@@ -448,18 +446,25 @@ if not DEBUG:
     SECURE_SSL_REDIRECT = os.getenv('SECURE_SSL_REDIRECT', 'False').lower() == 'true'
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
+    # For Railway with HTTPS, use None for SameSite to allow cross-site cookies
+    SESSION_COOKIE_SAMESITE = None
+    CSRF_COOKIE_SAMESITE = None
 else:
     SESSION_COOKIE_SECURE = False
     CSRF_COOKIE_SECURE = False
-CSRF_COOKIE_SAMESITE = 'Lax'
+    SESSION_COOKIE_SAMESITE = 'Lax'
+    # For Railway HTTPS compatibility in debug mode
+    if railway_public_domain:
+        SESSION_COOKIE_SAMESITE = None
+        CSRF_COOKIE_SAMESITE = None
 
 CSRF_USE_SESSIONS = False
 CSRF_COOKIE_AGE = 3600 * 24 * 7  # 7 days
 SESSION_COOKIE_AGE = 3600 * 24 * 7
 
-# Use cache-based sessions to avoid django_session table issues
-SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
-SESSION_CACHE_ALIAS = 'sessions'
+# Use database-backed sessions to share sessions across multiple workers
+# LocMemCache was causing sessions to be lost with workers=2
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 
 # --- File Upload Security ---
 DATA_UPLOAD_MAX_MEMORY_SIZE = 15 * 1024 * 1024   # 15MB (for property images/videos)
@@ -619,61 +624,8 @@ CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:8000",
 ]
 if not DEBUG:
-    CORS_ALLOW_ALL_ORIGINS = False
-    cors_origins = _parse_csv_env('CORS_ALLOWED_ORIGINS')
-    if custom_domain:
-        cors_origins = _unique(cors_origins + [
-            f'https://{custom_domain}',
-            f'https://www.{custom_domain}',
-        ])
-    cors_origins = _unique(cors_origins + [
-        'https://muq.up.railway.app',
-        'https://muqq.up.railway.app',
-    ])
-    if railway_public_domain:
-        cors_origins = _unique(cors_origins + [f'https://{railway_public_domain}'])
-    if cors_origins:
-        CORS_ALLOWED_ORIGINS = cors_origins
-
-# Email Settings
-DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'noreply@daluailiraq.com')
-SERVER_EMAIL = os.getenv('SERVER_EMAIL', 'admin@daluailiraq.com')
-EMAIL_HOST = os.getenv('EMAIL_HOST', 'smtp.gmail.com')
-EMAIL_PORT = int(os.getenv('EMAIL_PORT', 587))
-EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'True').lower() == 'true'
-EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '')
-EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
-
-# --- REST Framework Settings ---
-REST_FRAMEWORK = {
-    'DEFAULT_VERSIONING_CLASS': 'rest_framework.versioning.NamespaceVersioning',
-    'DEFAULT_VERSION': 'v1',
-    'ALLOWED_VERSIONS': ['v1'],
-    'VERSION_PARAM': 'version',
-    'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.IsAuthenticatedOrReadOnly',
-    ],
-    'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework.authentication.SessionAuthentication',
-        'rest_framework.authentication.BasicAuthentication',
-    ],
-    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-    'PAGE_SIZE': 25,
-    'DEFAULT_FILTER_BACKENDS': [
-        'django_filters.rest_framework.DjangoFilterBackend',
-        'rest_framework.filters.SearchFilter',
-        'rest_framework.filters.OrderingFilter',
-    ],
-    'DEFAULT_RENDERER_CLASSES': [
-        'rest_framework.renderers.JSONRenderer',
-        'rest_framework.renderers.BrowsableAPIRenderer',
-    ],
-    'DEFAULT_THROTTLE_CLASSES': [
-        'rest_framework.throttling.AnonRateThrottle',
-        'rest_framework.throttling.UserRateThrottle'
-    ],
-    'DEFAULT_THROTTLE_RATES': {
-        'anon': '100/hour',
-        'user': '1000/hour'
-    },
-}
+    CORS_ALLOWED_ORIGINS = [
+        "https://mup.up.railway.app",
+        "https://muq.up.railway.app",
+        "https://muqq.up.railway.app",
+    ]

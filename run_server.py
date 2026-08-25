@@ -128,11 +128,9 @@ def main():
     except Exception as e:
         print(f"Error checking INSTALLED_APPS: {e}", flush=True)
 
-    # Delete old database to fix migration issues
-    db_path = os.path.join(project_root, 'db.sqlite3')
-    if os.path.exists(db_path):
-        print(f"Deleting old database at {db_path}...", flush=True)
-        os.remove(db_path)
+    # IMPORTANT: Do NOT delete the database - preserve all user data
+    # Database deletion was causing session loss and data destruction
+    print("Preserving existing database - no deletion", flush=True)
     
     # Skip makemigrations - all migrations are already in place
     # makemigrations only needed when making model changes, not for deployment
