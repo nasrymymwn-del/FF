@@ -6,7 +6,7 @@ import sys
 
 # Force disable WebSockets to use Gunicorn instead of Daphne
 os.environ['USE_WEBSOCKETS'] = 'false'
-# Force rebuild - 2026-08-25-04-30 - REMOVE MAKEMIGRATIONS FROM RUNTIME
+# Force rebuild - 2026-08-25-04-40 - FORCE RAILWAY REBUILD
 
 # Set up Django settings
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'dalal_project.settings')
@@ -34,7 +34,7 @@ def run(cmd, allow_fail=False):
 def main():
     port = os.getenv('PORT', '8080')
     print(f"=== Dalal Platform Startup (port {port}) ===", flush=True)
-    print(f"=== NEW CODE VERSION - 2026-08-25-04-30 - REMOVE MAKEMIGRATIONS FROM RUNTIME ===", flush=True)
+    print(f"=== NEW CODE VERSION - 2026-08-25-04-40 - FORCE RAILWAY REBUILD ===", flush=True)
     print(f"DEBUG={os.getenv('DEBUG', 'False')}", flush=True)
     print(f"DJANGO_SETTINGS_MODULE={os.getenv('DJANGO_SETTINGS_MODULE')}", flush=True)
     print(f"PYTHONPATH={os.getenv('PYTHONPATH')}", flush=True)

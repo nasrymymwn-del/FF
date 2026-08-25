@@ -1,4 +1,4 @@
-# RAILWAY_DB_FIX - 2026-08-25-04-30 - Remove makemigrations from build time
+# RAILWAY_DB_FIX - 2026-08-25-04-40 - Force rebuild with new cache-busting file
 # Use different base image and completely different structure
 FROM python:3.10-slim-bullseye
 
@@ -8,7 +8,7 @@ ENV PYTHONUNBUFFERED=1 \
     DJANGO_SETTINGS_MODULE=dalal_project.settings \
     USE_WEBSOCKETS=false \
     PYTHONPATH=/app \
-    FORCE_REBUILD=2026_08_25_04_30
+    FORCE_REBUILD=2026_08_25_04_40
 
 WORKDIR /app
 

@@ -14,8 +14,8 @@ import sys
 
 from properties.sitemaps import PropertySitemap, StaticViewSitemap
 
-# Force rebuild - 2026-08-25-04-30 - Remove makemigrations from runtime
-print("URLS.PY LOADED - Force rebuild 2026-08-25-04-30", file=sys.stderr)
+# Force rebuild - 2026-08-25-04-40 - Force Railway rebuild
+print("URLS.PY LOADED - Force rebuild 2026-08-25-04-40", file=sys.stderr)
 
 def health_check(request):
     try:
