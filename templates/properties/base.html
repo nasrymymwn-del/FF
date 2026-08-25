@@ -1363,7 +1363,7 @@
 📊 المجموع الكلي: ${data.properties.total}
 
 أكثر أنواع العقارات:
-${data.properties.by_type.slice(0, 3).map(item => `• ${item.property_type}: ${item.count}`).join('\n')}
+${data.properties.by_type.slice(0, 3).map(item => `• ${item.type}: ${item.count}`).join('\n')}
 
 أكثر المحافظات:
 ${data.properties.by_governorate.slice(0, 3).map(item => `• ${item.governorate}: ${item.count}`).join('\n')}

@@ -13071,7 +13071,7 @@ def statistics_api(request):
     broker_channels = BrokerChannel.objects.count()
 
     # Properties by type
-    properties_by_type = Property.objects.values('property_type').annotate(
+    properties_by_type = Property.objects.values('type').annotate(
         count=Count('id')
     ).order_by('-count')
 
