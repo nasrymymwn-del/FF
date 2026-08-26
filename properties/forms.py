@@ -16,10 +16,27 @@ def _fc(placeholder=''):
     return attrs
 
 
-class MessageForm(forms.ModelForm):
-    class Meta:
-        model = Message
-        fields = '__all__'
+class MessageForm(forms.Form):
+    """نموذج رسالة التواصل البسيط"""
+    name = forms.CharField(
+        max_length=100,
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'الاسم الكامل'}),
+        label='الاسم'
+    )
+    email = forms.EmailField(
+        widget=forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'البريد الإلكتروني'}),
+        label='البريد الإلكتروني'
+    )
+    phone = forms.CharField(
+        max_length=20,
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'رقم الهاتف'}),
+        label='رقم الهاتف',
+        required=False
+    )
+    message = forms.CharField(
+        widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 5, 'placeholder': 'اكتب رسالتك هنا...'}),
+        label='الرسالة'
+    )
 
 
 class SupportMessageForm(forms.ModelForm):
