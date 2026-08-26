@@ -21486,9 +21486,11 @@ def real_estate_contracts_page(request):
     try:
         from .models import RealEstateContract, Property, Broker, User
 
-        # Get all contracts
+        # Get all contracts with related data
         contracts = RealEstateContract.objects.all().select_related(
             'property', 'broker', 'client', 'created_by', 'approved_by'
+        ).prefetch_related(
+            'payments', 'documents', 'reminders'
         ).order_by('-created_at')
 
         # Get active contract if specified

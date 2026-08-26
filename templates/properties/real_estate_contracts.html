@@ -1,7 +1,7 @@
 {% extends 'properties/base.html' %}
 {% load static %}
 
-{% block title %}العقود العقارية{% endblock %}
+{% block title %}العقود العقارية المتقدمة{% endblock %}
 
 {% block content %}
 {% csrf_token %}
@@ -35,7 +35,18 @@
       </div>
     </div>
 
+    <!-- Advanced Features Tabs -->
+    <div class="contract-tabs">
+      <button class="contract-tab-btn active" data-tab="overview">📋 نظرة عامة</button>
+      <button class="contract-tab-btn" data-tab="payments">💰 الدفعات</button>
+      <button class="contract-tab-btn" data-tab="documents">📄 الوثائق</button>
+      <button class="contract-tab-btn" data-tab="reminders">🔔 التذكيرات</button>
+      <button class="contract-tab-btn" data-tab="analytics">📊 التحليلات</button>
+    </div>
+
     <div class="contract-content">
+      <!-- Overview Tab -->
+      <div class="contract-tab-content active" id="tab-overview">
       <div class="contract-section">
         <h3>معلومات العقد</h3>
         <div class="contract-details">
@@ -213,6 +224,179 @@
         </div>
       </div>
       {% endif %}
+      </div>
+
+      <!-- Payments Tab -->
+      <div class="contract-tab-content" id="tab-payments">
+        <div class="contract-section">
+          <div class="section-header">
+            <h3>💰 المدفوعات</h3>
+            <button class="btn btn-primary" onclick="openPaymentModal()">إضافة دفعة</button>
+          </div>
+          <div class="payments-summary">
+            <div class="summary-card">
+              <div class="summary-label">إجمالي المدفوعات</div>
+              <div class="summary-value">{{ active_contract.amount|intcomma }} د.ع</div>
+            </div>
+            <div class="summary-card">
+              <div class="summary-label">المدفوع</div>
+              <div class="summary-value">{{ active_contract.deposit|intcomma }} د.ع</div>
+            </div>
+            <div class="summary-card">
+              <div class="summary-label">المتبقي</div>
+              <div class="summary-value">{{ active_contract.amount|add:active_contract.deposit|intcomma }} د.ع</div>
+            </div>
+          </div>
+          <div class="payments-list">
+            {% for payment in active_contract.payments.all %}
+            <div class="payment-item">
+              <div class="payment-info">
+                <div class="payment-number">{{ payment.payment_number }}</div>
+                <div class="payment-date">{{ payment.due_date|date:"Y-m-d" }}</div>
+              </div>
+              <div class="payment-amount">
+                <div class="amount">{{ payment.amount|intcomma }} د.ع</div>
+                <div class="paid">{{ payment.paid_amount|intcomma }} د.ع</div>
+              </div>
+              <div class="payment-status {{ payment.status }}">
+                {% if payment.status == 'pending' %}قيد الانتظار
+                {% elif payment.status == 'partial' %}مدفوع جزئياً
+                {% elif payment.status == 'completed' %}مكتمل
+                {% elif payment.status == 'failed' %}فشل
+                {% elif payment.status == 'cancelled' %}ملغي{% endif %}
+              </div>
+              <div class="payment-actions">
+                <button class="action-btn" onclick="editPayment({{ payment.id }})">✏️</button>
+                <button class="action-btn" onclick="deletePayment({{ payment.id }})">🗑️</button>
+              </div>
+            </div>
+            {% empty %}
+            <div class="empty-payments">
+              <p>لا توجد مدفوعات مسجلة</p>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Documents Tab -->
+      <div class="contract-tab-content" id="tab-documents">
+        <div class="contract-section">
+          <div class="section-header">
+            <h3>📄 الوثائق</h3>
+            <button class="btn btn-primary" onclick="openDocumentModal()">رفع وثيقة</button>
+          </div>
+          <div class="documents-grid">
+            {% for document in active_contract.documents.all %}
+            <div class="document-card">
+              <div class="document-icon">
+                {% if document.document_type == 'contract' %}📄
+                {% elif document.document_type == 'addendum' %}📝
+                {% elif document.document_type == 'amendment' %}✏️
+                {% elif document.document_type == 'receipt' %}🧾
+                {% elif document.document_type == 'invoice' %}📋
+                {% elif document.document_type == 'id_copy' %}🪪
+                {% elif document.document_type == 'property_docs' %}🏠
+                {% else %}📎{% endif %}
+              </div>
+              <div class="document-info">
+                <div class="document-title">{{ document.title }}</div>
+                <div class="document-type">{{ document.get_document_type_display }}</div>
+                <div class="document-size">{{ document.file_size|filesizeformat }}</div>
+                <div class="document-date">{{ document.uploaded_at|date:"Y-m-d" }}</div>
+              </div>
+              <div class="document-actions">
+                <button class="action-btn" onclick="downloadDocument({{ document.id }})">⬇️</button>
+                <button class="action-btn" onclick="deleteDocument({{ document.id }})">🗑️</button>
+              </div>
+            </div>
+            {% empty %}
+            <div class="empty-documents">
+              <p>لا توجد وثائق مرفوعة</p>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Reminders Tab -->
+      <div class="contract-tab-content" id="tab-reminders">
+        <div class="contract-section">
+          <div class="section-header">
+            <h3>🔔 التذكيرات</h3>
+            <button class="btn btn-primary" onclick="openReminderModal()">إضافة تذكير</button>
+          </div>
+          <div class="reminders-list">
+            {% for reminder in active_contract.reminders.all %}
+            <div class="reminder-item {% if reminder.is_sent %}sent{% endif %}">
+              <div class="reminder-icon">
+                {% if reminder.reminder_type == 'renewal' %}🔄
+                {% elif reminder.reminder_type == 'expiration' %}⏰
+                {% elif reminder.reminder_type == 'payment' %}💰
+                {% elif reminder.reminder_type == 'inspection' %}🔍
+                {% else %}📌{% endif %}
+              </div>
+              <div class="reminder-info">
+                <div class="reminder-title">{{ reminder.title }}</div>
+                <div class="reminder-date">{{ reminder.reminder_date|date:"Y-m-d" }}</div>
+                <div class="reminder-days">{{ reminder.reminder_days_before }} أيام قبل</div>
+              </div>
+              <div class="reminder-status">
+                {% if reminder.is_sent %}
+                <span class="status-sent">✅ تم الإرسال</span>
+                {% else %}
+                <span class="status-pending">⏳ قيد الانتظار</span>
+                {% endif %}
+              </div>
+              <div class="reminder-actions">
+                <button class="action-btn" onclick="editReminder({{ reminder.id }})">✏️</button>
+                <button class="action-btn" onclick="deleteReminder({{ reminder.id }})">🗑️</button>
+              </div>
+            </div>
+            {% empty %}
+            <div class="empty-reminders">
+              <p>لا توجد تذكيرات</p>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Analytics Tab -->
+      <div class="contract-tab-content" id="tab-analytics">
+        <div class="contract-section">
+          <h3>📊 التحليلات</h3>
+          <div class="analytics-cards">
+            <div class="analytics-card">
+              <div class="analytics-icon">📈</div>
+              <div class="analytics-value">{{ active_contract.days_remaining|default:0 }}</div>
+              <div class="analytics-label">أيام متبقية</div>
+            </div>
+            <div class="analytics-card">
+              <div class="analytics-icon">💰</div>
+              <div class="analytics-value">{{ active_contract.commission_amount|intcomma }}</div>
+              <div class="analytics-label">قيمة العمولة</div>
+            </div>
+            <div class="analytics-card">
+              <div class="analytics-icon">📄</div>
+              <div class="analytics-value">{{ active_contract.documents.count }}</div>
+              <div class="analytics-label">الوثائق</div>
+            </div>
+            <div class="analytics-card">
+              <div class="analytics-icon">🔔</div>
+              <div class="analytics-value">{{ active_contract.reminders.count }}</div>
+              <div class="analytics-label">التذكيرات</div>
+            </div>
+          </div>
+          <div class="analytics-chart">
+            <h4>تقدم الدفعات</h4>
+            <div class="progress-bar">
+              <div class="progress-fill" style="width: 60%"></div>
+            </div>
+            <div class="progress-text">60% مكتمل</div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <div class="contract-footer">
@@ -770,6 +954,386 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+
+/* Contract Tabs */
+.contract-tabs {
+  display: flex;
+  padding: 10px 20px;
+  gap: 8px;
+  border-bottom: 1px solid #404040;
+  background: #2d2d2d;
+}
+
+.contract-tab-btn {
+  flex: 1;
+  padding: 12px 16px;
+  border: none;
+  background: transparent;
+  color: #a0a0a0;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 0.9rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.contract-tab-btn:hover {
+  background: #3d3d3d;
+  color: #ffffff;
+}
+
+.contract-tab-btn.active {
+  background: #667eea;
+  color: #ffffff;
+}
+
+.contract-tab-content {
+  display: none;
+}
+
+.contract-tab-content.active {
+  display: block;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.section-header h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+/* Payments Styles */
+.payments-summary {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.summary-card {
+  background: #1a1a1a;
+  padding: 16px;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.summary-label {
+  color: #a0a0a0;
+  font-size: 0.85rem;
+  margin-bottom: 8px;
+}
+
+.summary-value {
+  color: #667eea;
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.payments-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.payment-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  background: #1a1a1a;
+  border-radius: 8px;
+  border: 1px solid #404040;
+}
+
+.payment-info {
+  flex: 1;
+}
+
+.payment-number {
+  font-weight: 600;
+  color: #ffffff;
+  margin-bottom: 4px;
+}
+
+.payment-date {
+  font-size: 0.85rem;
+  color: #a0a0a0;
+}
+
+.payment-amount {
+  text-align: right;
+}
+
+.payment-amount .amount {
+  font-weight: 600;
+  color: #ffffff;
+  margin-bottom: 4px;
+}
+
+.payment-amount .paid {
+  font-size: 0.85rem;
+  color: #22c55e;
+}
+
+.payment-status {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.payment-status.pending {
+  background: #f59e0b;
+  color: #ffffff;
+}
+
+.payment-status.partial {
+  background: #3b82f6;
+  color: #ffffff;
+}
+
+.payment-status.completed {
+  background: #22c55e;
+  color: #ffffff;
+}
+
+.payment-status.failed {
+  background: #ef4444;
+  color: #ffffff;
+}
+
+.payment-status.cancelled {
+  background: #6b7280;
+  color: #ffffff;
+}
+
+.payment-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.empty-payments {
+  text-align: center;
+  padding: 40px;
+  color: #a0a0a0;
+}
+
+/* Documents Styles */
+.documents-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.document-card {
+  background: #1a1a1a;
+  border-radius: 8px;
+  padding: 16px;
+  border: 1px solid #404040;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.document-icon {
+  font-size: 2rem;
+  text-align: center;
+}
+
+.document-info {
+  flex: 1;
+}
+
+.document-title {
+  font-weight: 600;
+  color: #ffffff;
+  margin-bottom: 4px;
+  word-break: break-word;
+}
+
+.document-type {
+  font-size: 0.85rem;
+  color: #a0a0a0;
+  margin-bottom: 4px;
+}
+
+.document-size {
+  font-size: 0.8rem;
+  color: #808080;
+  margin-bottom: 4px;
+}
+
+.document-date {
+  font-size: 0.8rem;
+  color: #808080;
+}
+
+.document-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.empty-documents {
+  text-align: center;
+  padding: 40px;
+  color: #a0a0a0;
+}
+
+/* Reminders Styles */
+.reminders-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.reminder-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  background: #1a1a1a;
+  border-radius: 8px;
+  border: 1px solid #404040;
+}
+
+.reminder-item.sent {
+  opacity: 0.6;
+}
+
+.reminder-icon {
+  font-size: 1.5rem;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #3d3d3d;
+  border-radius: 8px;
+}
+
+.reminder-info {
+  flex: 1;
+}
+
+.reminder-title {
+  font-weight: 600;
+  color: #ffffff;
+  margin-bottom: 4px;
+}
+
+.reminder-date {
+  font-size: 0.85rem;
+  color: #a0a0a0;
+  margin-bottom: 2px;
+}
+
+.reminder-days {
+  font-size: 0.8rem;
+  color: #808080;
+}
+
+.reminder-status {
+  font-size: 0.85rem;
+}
+
+.status-sent {
+  color: #22c55e;
+}
+
+.status-pending {
+  color: #f59e0b;
+}
+
+.reminder-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.empty-reminders {
+  text-align: center;
+  padding: 40px;
+  color: #a0a0a0;
+}
+
+/* Analytics Styles */
+.analytics-cards {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.analytics-card {
+  background: #1a1a1a;
+  padding: 20px;
+  border-radius: 8px;
+  text-align: center;
+  border: 1px solid #404040;
+}
+
+.analytics-icon {
+  font-size: 2rem;
+  margin-bottom: 12px;
+}
+
+.analytics-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #667eea;
+  margin-bottom: 8px;
+}
+
+.analytics-label {
+  color: #a0a0a0;
+  font-size: 0.85rem;
+}
+
+.analytics-chart {
+  background: #1a1a1a;
+  padding: 20px;
+  border-radius: 8px;
+  border: 1px solid #404040;
+}
+
+.analytics-chart h4 {
+  margin: 0 0 16px 0;
+  font-size: 1rem;
+  color: #ffffff;
+}
+
+.progress-bar {
+  height: 20px;
+  background: #3d3d3d;
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+  border-radius: 10px;
+  transition: width 0.3s ease;
+}
+
+.progress-text {
+  text-align: center;
+  color: #a0a0a0;
+  font-size: 0.85rem;
 }
 
 .contract-info {
@@ -1383,6 +1947,189 @@ function openNewContractModal() {
 
 function closeNewContractModal() {
   document.getElementById('new-contract-modal').style.display = 'none';
+}
+
+// Tab switching
+document.querySelectorAll('.contract-tab-btn').forEach(btn => {
+  btn.addEventListener('click', function() {
+    const tabName = this.getAttribute('data-tab');
+
+    // Remove active class from all tabs
+    document.querySelectorAll('.contract-tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.contract-tab-content').forEach(c => c.classList.remove('active'));
+
+    // Add active class to clicked tab
+    this.classList.add('active');
+    document.getElementById(`tab-${tabName}`).classList.add('active');
+  });
+});
+
+// Payment functions
+function openPaymentModal() {
+  alert('سيتم فتح نافذة إضافة دفعة جديدة');
+}
+
+function editPayment(paymentId) {
+  alert(`تعديل الدفعة رقم ${paymentId}`);
+}
+
+function deletePayment(paymentId) {
+  if (confirm('هل تريد حذف هذه الدفعة؟')) {
+    alert(`تم حذف الدفعة رقم ${paymentId}`);
+  }
+}
+
+// Document functions
+function openDocumentModal() {
+  alert('سيتم فتح نافذة رفع وثيقة جديدة');
+}
+
+function downloadDocument(documentId) {
+  alert(`تحميل الوثيقة رقم ${documentId}`);
+}
+
+function deleteDocument(documentId) {
+  if (confirm('هل تريد حذف هذه الوثيقة؟')) {
+    alert(`تم حذف الوثيقة رقم ${documentId}`);
+  }
+}
+
+// Reminder functions
+function openReminderModal() {
+  alert('سيتم فتح نافذة إضافة تذكير جديد');
+}
+
+function editReminder(reminderId) {
+  alert(`تعديل التذكير رقم ${reminderId}`);
+}
+
+function deleteReminder(reminderId) {
+  if (confirm('هل تريد حذف هذا التذكير؟')) {
+    alert(`تم حذف التذكير رقم ${reminderId}`);
+  }
+}
+
+function createContract() {
+  const form = document.getElementById('new-contract-form');
+  const formData = new FormData(form);
+
+  fetch('/api/real-estate/contracts/', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+    },
+    body: JSON.stringify(Object.fromEntries(formData))
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      alert('تم إنشاء العقد بنجاح');
+      closeNewContractModal();
+      window.location.reload();
+    } else {
+      alert('حدث خطأ: ' + (data.error || 'غير معروف'));
+    }
+  })
+  .catch(error => {
+    alert('حدث خطأ في الاتصال');
+    console.error(error);
+  });
+}
+
+function printContract() {
+  window.print();
+}
+
+function exportContract() {
+  alert('جاري تصدير العقد...');
+}
+
+function shareContract() {
+  alert('جاري مشاركة العقد...');
+}
+
+function editContract() {
+  alert('جاري تحرير العقد...');
+}
+
+function toggleContractMenu() {
+  alert('القائمة الإضافية');
+}
+
+function signContract(party) {
+  alert(`جاري توقيع العقد من طرف ${party}...`);
+}
+
+function submitForApproval() {
+  if (confirm('هل تريد إرسال العقد للموافقة؟')) {
+    alert('تم إرسال العقد للموافقة');
+  }
+}
+
+function approveContract() {
+  if (confirm('هل تريد الموافقة على هذا العقد؟')) {
+    alert('تمت الموافقة على العقد');
+  }
+}
+
+function rejectContract() {
+  if (confirm('هل تريد رفض هذا العقد؟')) {
+    alert('تم رفض العقد');
+  }
+}
+
+function terminateContract() {
+  if (confirm('هل تريد إنهاء هذا العقد؟')) {
+    alert('تم إنهاء العقد');
+  }
+}
+
+function closeContract() {
+  window.location.href = '/dashboard/contracts/';
+}
+
+function showMobileSidebar() {
+  document.querySelector('.contracts-sidebar').classList.add('show');
+}
+
+function toggleContractFilters() {
+  alert('فلاتر العقود');
+}
+
+// Sidebar tabs
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', function() {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    this.classList.add('active');
+  });
+});
+
+// Search functionality
+document.getElementById('contracts-search').addEventListener('input', function(e) {
+  const searchTerm = e.target.value.toLowerCase();
+  document.querySelectorAll('.contract-item').forEach(item => {
+    const text = item.textContent.toLowerCase();
+    item.style.display = text.includes(searchTerm) ? 'flex' : 'none';
+  });
+});
+
+// Sidebar tabs
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', function() {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    this.classList.add('active');
+  });
+});
+
+// Search functionality
+document.getElementById('contracts-search').addEventListener('input', function(e) {
+  const searchTerm = e.target.value.toLowerCase();
+  document.querySelectorAll('.contract-item').forEach(item => {
+    const text = item.textContent.toLowerCase();
+    item.style.display = text.includes(searchTerm) ? 'flex' : 'none';
+  });
+});
 }
 
 function createContract() {
