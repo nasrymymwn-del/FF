@@ -11,6 +11,32 @@
       <p class="subtitle">إدارة الأرباح والعمولات والمصاريف</p>
     </div>
 
+    <!-- Date Filter Section -->
+    <div class="filter-section">
+      <form method="get" class="filter-form">
+        <div class="filter-group">
+          <label for="period">الفترة:</label>
+          <select name="period" id="period" class="form-control">
+            <option value="all" {% if period == 'all' %}selected{% endif %}>الكل</option>
+            <option value="today" {% if period == 'today' %}selected{% endif %}>اليوم</option>
+            <option value="week" {% if period == 'week' %}selected{% endif %}>آخر أسبوع</option>
+            <option value="month" {% if period == 'month' %}selected{% endif %}>هذا الشهر</option>
+            <option value="year" {% if period == 'year' %}selected{% endif %}>هذا العام</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label for="date_from">من:</label>
+          <input type="date" name="date_from" id="date_from" value="{{ date_from }}" class="form-control">
+        </div>
+        <div class="filter-group">
+          <label for="date_to">إلى:</label>
+          <input type="date" name="date_to" id="date_to" value="{{ date_to }}" class="form-control">
+        </div>
+        <button type="submit" class="btn btn-primary">تصفية</button>
+        <a href="{% url 'financial_dashboard' %}" class="btn btn-outline">إعادة تعيين</a>
+      </form>
+    </div>
+
     <!-- Statistics Cards -->
     <div class="stats-grid">
       <div class="stat-card sales">
@@ -18,7 +44,7 @@
         <div class="stat-content">
           <h3>إجمالي المبيعات</h3>
           <p class="stat-value">{{ total_sales|format_price }}</p>
-          <p class="stat-subtitle">اليوم: {{ daily_sales|format_price }}</p>
+          <p class="stat-subtitle">{{ properties_sold }} عقار مباع</p>
         </div>
       </div>
 
@@ -27,7 +53,7 @@
         <div class="stat-content">
           <h3>إجمالي العمولات</h3>
           <p class="stat-value">{{ total_commissions|format_price }}</p>
-          <p class="stat-subtitle">اليوم: {{ daily_commissions|format_price }}</p>
+          <p class="stat-subtitle">عمولة المنصة: {{ total_platform_commission|format_price }}</p>
         </div>
       </div>
 
@@ -36,7 +62,7 @@
         <div class="stat-content">
           <h3>صافي الأرباح</h3>
           <p class="stat-value">{{ net_profit|format_price }}</p>
-          <p class="stat-subtitle">الشهر: {{ monthly_commissions|format_price }}</p>
+          <p class="stat-subtitle">الأرباح الإضافية: {{ total_profits|format_price }}</p>
         </div>
       </div>
 
@@ -45,7 +71,7 @@
         <div class="stat-content">
           <h3>إجمالي المصاريف</h3>
           <p class="stat-value">{{ total_expenses|format_price }}</p>
-          <p class="stat-subtitle">الشهر: {{ monthly_expenses|format_price }}</p>
+          <p class="stat-subtitle">مصاريف التشغيل</p>
         </div>
       </div>
 
@@ -54,16 +80,63 @@
         <div class="stat-content">
           <h3>العقارات المباعة</h3>
           <p class="stat-value">{{ properties_sold }}</p>
-          <p class="stat-subtitle">صفقات مكتملة</p>
+          <p class="stat-subtitle">{{ completed_transactions }} صفقة مكتملة</p>
         </div>
       </div>
 
-      <div class="stat-card transactions">
-        <div class="stat-icon">🤝</div>
+      <div class="stat-card pending">
+        <div class="stat-icon">⏳</div>
         <div class="stat-content">
-          <h3>الصفقات المكتملة</h3>
-          <p class="stat-value">{{ completed_transactions }}</p>
-          <p class="stat-subtitle">معاملة مكتملة</p>
+          <h3>المعاملات المعلقة</h3>
+          <p class="stat-value">{{ pending_transactions }}</p>
+          <p class="stat-subtitle">بانتظار الإتمام</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Monthly Trend Chart -->
+    <div class="chart-section">
+      <div class="section-header">
+        <h2>الاتجاه الشهري للأرباح والمصاريف</h2>
+      </div>
+      <div class="chart-container">
+        <canvas id="monthlyTrendChart"></canvas>
+      </div>
+    </div>
+
+    <!-- Breakdown Sections -->
+    <div class="breakdown-grid">
+      <div class="breakdown-card">
+        <div class="section-header">
+          <h2>توزيع المعاملات حسب النوع</h2>
+        </div>
+        <div class="breakdown-list">
+          {% for item in transaction_breakdown %}
+          <div class="breakdown-item">
+            <div class="breakdown-label">{{ item.transaction_type }}</div>
+            <div class="breakdown-value">{{ item.total|format_price }}</div>
+            <div class="breakdown-count">{{ item.count }} معاملة</div>
+          </div>
+          {% empty %}
+          <p class="no-data">لا توجد بيانات</p>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="breakdown-card">
+        <div class="section-header">
+          <h2>توزيع المصاريف حسب الفئة</h2>
+        </div>
+        <div class="breakdown-list">
+          {% for item in expense_breakdown %}
+          <div class="breakdown-item">
+            <div class="breakdown-label">{{ item.category }}</div>
+            <div class="breakdown-value">{{ item.total|format_price }}</div>
+            <div class="breakdown-count">{{ item.count }} مصروف</div>
+          </div>
+          {% empty %}
+          <p class="no-data">لا توجد بيانات</p>
+          {% endfor %}
         </div>
       </div>
     </div>
@@ -199,6 +272,79 @@
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Monthly Trend Chart
+const monthlyTrendCtx = document.getElementById('monthlyTrendChart').getContext('2d');
+const monthlyTrendData = {{ monthly_trend|safe }};
+
+new Chart(monthlyTrendCtx, {
+  type: 'line',
+  data: {
+    labels: monthlyTrendData.map(item => item.month),
+    datasets: [
+      {
+        label: 'المبيعات',
+        data: monthlyTrendData.map(item => item.sales),
+        borderColor: '#10b981',
+        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+        fill: true,
+        tension: 0.4
+      },
+      {
+        label: 'العمولات',
+        data: monthlyTrendData.map(item => item.commissions),
+        borderColor: '#3b82f6',
+        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+        fill: true,
+        tension: 0.4
+      },
+      {
+        label: 'المصاريف',
+        data: monthlyTrendData.map(item => item.expenses),
+        borderColor: '#ef4444',
+        backgroundColor: 'rgba(239, 68, 68, 0.1)',
+        fill: true,
+        tension: 0.4
+      },
+      {
+        label: 'صافي الربح',
+        data: monthlyTrendData.map(item => item.profit),
+        borderColor: '#8b5cf6',
+        backgroundColor: 'rgba(139, 92, 246, 0.1)',
+        fill: true,
+        tension: 0.4
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: 'top',
+        rtl: true,
+        labels: {
+          font: {
+            family: 'Cairo, sans-serif'
+          }
+        }
+      }
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        ticks: {
+          callback: function(value) {
+            return value.toLocaleString('ar-IQ') + ' د.ع';
+          }
+        }
+      }
+    }
+  }
+});
+</script>
+
 <style>
 .financial-dashboard {
   padding: 40px 0;
@@ -221,11 +367,110 @@
   margin: 0;
 }
 
+.filter-section {
+  background: var(--bg);
+  padding: 24px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  margin-bottom: 32px;
+}
+
+.filter-form {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  align-items: flex-end;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+  min-width: 150px;
+}
+
+.filter-group label {
+  font-size: 0.9rem;
+  color: var(--text-light);
+  font-weight: 600;
+}
+
+.filter-group .form-control {
+  padding: 10px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  font-size: 0.95rem;
+  background: var(--bg-alt);
+  color: var(--text);
+}
+
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 24px;
   margin-bottom: 40px;
+}
+
+.chart-section {
+  background: var(--bg);
+  padding: 32px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  margin-bottom: 32px;
+}
+
+.chart-container {
+  height: 400px;
+  position: relative;
+}
+
+.breakdown-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 24px;
+  margin-bottom: 32px;
+}
+
+.breakdown-card {
+  background: var(--bg);
+  padding: 32px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+}
+
+.breakdown-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.breakdown-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  background: var(--bg-alt);
+  border-radius: var(--radius-md);
+  gap: 16px;
+}
+
+.breakdown-label {
+  font-weight: 600;
+  color: var(--text);
+  flex: 1;
+}
+
+.breakdown-value {
+  font-weight: 700;
+  color: var(--primary);
+  font-size: 1.1rem;
+}
+
+.breakdown-count {
+  font-size: 0.85rem;
+  color: var(--text-light);
+  white-space: nowrap;
 }
 
 .stat-card {
@@ -274,6 +519,7 @@
 .stat-card.expenses .stat-value { color: #ef4444; }
 .stat-card.properties .stat-value { color: #f59e0b; }
 .stat-card.transactions .stat-value { color: #06b6d4; }
+.stat-card.pending .stat-value { color: #f97316; }
 
 .wallet-section {
   margin-bottom: 40px;

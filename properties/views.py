@@ -5691,19 +5691,6 @@ def create_auction_advertisement(request, auction_id):
     })
 
 
-@login_required
-def financial_dashboard(request):
-    """Financial dashboard for office management"""
-    from django.db.models import Sum, Count, Q
-    from django.utils import timezone
-    from datetime import timedelta
-    
-    # Get user's transactions
-    user_transactions = FinancialTransaction.objects.filter(user=request.user)
-    
-    # Calculate statistics
-
-
 def hotels_list(request):
     """View for listing and searching hotels"""
     form = HotelSearchForm(request.GET or None)
@@ -6037,13 +6024,38 @@ def resorts_list(request):
 
 @login_required
 def financial_dashboard(request):
-    """Financial dashboard for office management"""
+    """Financial dashboard for office management with advanced filtering and reports"""
     from django.db.models import Sum, Count, Q
     from django.utils import timezone
     from datetime import timedelta
+    from django.db.models.functions import TruncMonth, TruncDay
     
-    # Get user's transactions
+    # Get date filters from request
+    date_from = request.GET.get('date_from')
+    date_to = request.GET.get('date_to')
+    period = request.GET.get('period', 'all')  # all, today, week, month, year
+    
+    # Base query for user's transactions
     user_transactions = FinancialTransaction.objects.filter(user=request.user)
+    
+    # Apply date filters
+    today = timezone.now().date()
+    
+    if date_from and date_to:
+        user_transactions = user_transactions.filter(
+            created_at__date__range=[date_from, date_to]
+        )
+    elif period == 'today':
+        user_transactions = user_transactions.filter(created_at__date=today)
+    elif period == 'week':
+        week_ago = today - timedelta(days=7)
+        user_transactions = user_transactions.filter(created_at__date__gte=week_ago)
+    elif period == 'month':
+        this_month = today.replace(day=1)
+        user_transactions = user_transactions.filter(created_at__date__gte=this_month)
+    elif period == 'year':
+        this_year = today.replace(month=1, day=1)
+        user_transactions = user_transactions.filter(created_at__date__gte=this_year)
     
     # Calculate statistics
     total_sales = user_transactions.filter(
@@ -6054,13 +6066,47 @@ def financial_dashboard(request):
         status='completed'
     ).aggregate(total=Sum('commission_amount'))['total'] or 0
     
-    total_expenses = Expense.objects.filter(user=request.user).aggregate(
-        total=Sum('amount')
-    )['total'] or 0
+    total_platform_commission = user_transactions.filter(
+        status='completed'
+    ).aggregate(total=Sum('platform_commission_amount'))['total'] or 0
     
-    total_profits = Profit.objects.filter(user=request.user).aggregate(
-        total=Sum('amount')
-    )['total'] or 0
+    total_expenses = Expense.objects.filter(user=request.user)
+    
+    # Apply same date filter to expenses
+    if date_from and date_to:
+        total_expenses = total_expenses.filter(date__range=[date_from, date_to])
+    elif period == 'today':
+        total_expenses = total_expenses.filter(date=today)
+    elif period == 'week':
+        week_ago = today - timedelta(days=7)
+        total_expenses = total_expenses.filter(date__gte=week_ago)
+    elif period == 'month':
+        this_month = today.replace(day=1)
+        total_expenses = total_expenses.filter(date__gte=this_month)
+    elif period == 'year':
+        this_year = today.replace(month=1, day=1)
+        total_expenses = total_expenses.filter(date__gte=this_year)
+    
+    total_expenses = total_expenses.aggregate(total=Sum('amount'))['total'] or 0
+    
+    total_profits = Profit.objects.filter(user=request.user)
+    
+    # Apply same date filter to profits
+    if date_from and date_to:
+        total_profits = total_profits.filter(date__range=[date_from, date_to])
+    elif period == 'today':
+        total_profits = total_profits.filter(date=today)
+    elif period == 'week':
+        week_ago = today - timedelta(days=7)
+        total_profits = total_profits.filter(date__gte=week_ago)
+    elif period == 'month':
+        this_month = today.replace(day=1)
+        total_profits = total_profits.filter(date__gte=this_month)
+    elif period == 'year':
+        this_year = today.replace(month=1, day=1)
+        total_profits = total_profits.filter(date__gte=this_year)
+    
+    total_profits = total_profits.aggregate(total=Sum('amount'))['total'] or 0
     
     net_profit = total_commissions + total_profits - total_expenses
     
@@ -6071,6 +6117,9 @@ def financial_dashboard(request):
     
     # Get completed transactions
     completed_transactions = user_transactions.filter(status='completed').count()
+    
+    # Get pending transactions
+    pending_transactions = user_transactions.filter(status='pending').count()
     
     # Get recent transactions
     recent_transactions = user_transactions.order_by('-created_at')[:10]
@@ -6084,49 +6133,78 @@ def financial_dashboard(request):
     # Get wallet info
     wallet, created = OfficeWallet.objects.get_or_create(user=request.user)
     
-    # Time-based statistics
-    today = timezone.now().date()
+    # Time-based statistics for charts
     this_month = today.replace(day=1)
     
-    # Daily stats
-    daily_sales = user_transactions.filter(
-        transaction_type='sale', status='completed', created_at__date=today
-    ).aggregate(total=Sum('sale_price'))['total'] or 0
+    # Monthly trend data (last 6 months)
+    monthly_trend = []
+    for i in range(6):
+        month_date = (this_month - timedelta(days=30*i)).replace(day=1)
+        month_end = (month_date + timedelta(days=32)).replace(day=1) - timedelta(days=1)
+        
+        month_sales = FinancialTransaction.objects.filter(
+            user=request.user,
+            transaction_type='sale',
+            status='completed',
+            created_at__date__gte=month_date,
+            created_at__date__lte=month_end
+        ).aggregate(total=Sum('sale_price'))['total'] or 0
+        
+        month_commissions = FinancialTransaction.objects.filter(
+            user=request.user,
+            status='completed',
+            created_at__date__gte=month_date,
+            created_at__date__lte=month_end
+        ).aggregate(total=Sum('commission_amount'))['total'] or 0
+        
+        month_expenses = Expense.objects.filter(
+            user=request.user,
+            date__gte=month_date,
+            date__lte=month_end
+        ).aggregate(total=Sum('amount'))['total'] or 0
+        
+        monthly_trend.append({
+            'month': month_date.strftime('%Y-%m'),
+            'sales': month_sales,
+            'commissions': month_commissions,
+            'expenses': month_expenses,
+            'profit': month_commissions - month_expenses
+        })
     
-    daily_commissions = user_transactions.filter(
-        status='completed', created_at__date=today
-    ).aggregate(total=Sum('commission_amount'))['total'] or 0
+    monthly_trend.reverse()
     
-    # Monthly stats
-    monthly_sales = user_transactions.filter(
-        transaction_type='sale', status='completed', created_at__date__gte=this_month
-    ).aggregate(total=Sum('sale_price'))['total'] or 0
+    # Transaction type breakdown
+    transaction_breakdown = user_transactions.values('transaction_type').annotate(
+        count=Count('id'),
+        total=Sum('sale_price')
+    ).order_by('-total')
     
-    monthly_commissions = user_transactions.filter(
-        status='completed', created_at__date__gte=this_month
-    ).aggregate(total=Sum('commission_amount'))['total'] or 0
-    
-    monthly_expenses = Expense.objects.filter(
-        user=request.user, date__gte=this_month
-    ).aggregate(total=Sum('amount'))['total'] or 0
+    # Expense category breakdown
+    expense_breakdown = Expense.objects.filter(user=request.user).values('category').annotate(
+        count=Count('id'),
+        total=Sum('amount')
+    ).order_by('-total')
     
     context = {
         'total_sales': total_sales,
         'total_commissions': total_commissions,
+        'total_platform_commission': total_platform_commission,
         'total_expenses': total_expenses,
         'total_profits': total_profits,
         'net_profit': net_profit,
         'properties_sold': properties_sold,
         'completed_transactions': completed_transactions,
+        'pending_transactions': pending_transactions,
         'recent_transactions': recent_transactions,
         'recent_expenses': recent_expenses,
         'recent_profits': recent_profits,
         'wallet': wallet,
-        'daily_sales': daily_sales,
-        'daily_commissions': daily_commissions,
-        'monthly_sales': monthly_sales,
-        'monthly_commissions': monthly_commissions,
-        'monthly_expenses': monthly_expenses,
+        'monthly_trend': monthly_trend,
+        'transaction_breakdown': transaction_breakdown,
+        'expense_breakdown': expense_breakdown,
+        'date_from': date_from,
+        'date_to': date_to,
+        'period': period,
     }
     
     return render(request, 'properties/financial_dashboard.html', context)
