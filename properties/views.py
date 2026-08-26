@@ -22695,6 +22695,15 @@ def platform_comprehensive_stats(request):
     from django.db.models.functions import TruncMonth, TruncDate
     from datetime import datetime, timedelta, date
 
+    # استيراد الموديلات التي قد لا تكون موجودة
+    try:
+        from .models import TravelPackage, TravelCompany, TravelPackageBooking, HotelBooking
+    except Exception:
+        TravelPackage = None
+        TravelCompany = None
+        TravelPackageBooking = None
+        HotelBooking = None
+
     # إحصائيات المستخدمين
     total_users = User.objects.count()
     active_users = User.objects.filter(is_active=True).count()
@@ -22763,8 +22772,16 @@ def platform_comprehensive_stats(request):
     total_channels = BrokerChannel.objects.count()
 
     # إحصائيات الرحلات السياحية
-    total_travel_packages = TravelPackage.objects.count()
-    total_travel_companies = TravelCompany.objects.count()
+    try:
+        if TravelPackage and TravelCompany:
+            total_travel_packages = TravelPackage.objects.count()
+            total_travel_companies = TravelCompany.objects.count()
+        else:
+            total_travel_packages = 0
+            total_travel_companies = 0
+    except Exception:
+        total_travel_packages = 0
+        total_travel_companies = 0
 
     # إحصائيات المحادثات والرسائل
     try:
@@ -22826,8 +22843,12 @@ def platform_comprehensive_stats(request):
 
     # إحصائيات الحجوزات
     try:
-        total_bookings = TravelPackageBooking.objects.count()
-        total_hotel_bookings = HotelBooking.objects.count()
+        if TravelPackageBooking and HotelBooking:
+            total_bookings = TravelPackageBooking.objects.count()
+            total_hotel_bookings = HotelBooking.objects.count()
+        else:
+            total_bookings = 0
+            total_hotel_bookings = 0
     except Exception:
         total_bookings = 0
         total_hotel_bookings = 0
