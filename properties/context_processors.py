@@ -1,6 +1,7 @@
 import json
 import os
 
+from django.conf import settings
 from .constants import GOVERNORATE_CITIES, IRAQ_GOVERNORATES
 from .models import SiteSettings
 from .permissions import can_access_dashboard, can_access_admin_panel, can_manage_brokers, get_broker
@@ -8,11 +9,10 @@ from .permissions import can_access_dashboard, can_access_admin_panel, can_manag
 
 def oauth_context(request):
     """Context processor to check OAuth configuration status."""
-    google_configured = bool(os.getenv('SOCIAL_AUTH_GOOGLE_OAUTH2_KEY', '').strip() and 
-                            os.getenv('SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET', '').strip())
-    facebook_configured = bool(os.getenv('SOCIAL_AUTH_FACEBOOK_KEY', '').strip() and 
-                               os.getenv('SOCIAL_AUTH_FACEBOOK_SECRET', '').strip())
-    
+    # استخدم المتغيرات من settings بدلاً من التحقق المباشر من متغيرات البيئة
+    google_configured = getattr(settings, 'GOOGLE_AUTH_AVAILABLE', False)
+    facebook_configured = getattr(settings, 'FACEBOOK_AUTH_AVAILABLE', False)
+
     return {
         'google_oauth_configured': google_configured,
         'facebook_oauth_configured': facebook_configured,
