@@ -6338,7 +6338,7 @@ def wallet_details(request):
 def add_profit(request):
     """Add a profit record"""
     if request.method == 'POST':
-        form = ProfitForm(request.POST, user=request.user)
+        form = ProfitForm(request.POST)
         if form.is_valid():
             profit = form.save(commit=False)
             profit.user = request.user
@@ -6347,7 +6347,7 @@ def add_profit(request):
             messages.success(request, 'تم إضافة الربح بنجاح')
             return redirect('financial_dashboard')
     else:
-        form = ProfitForm(user=request.user)
+        form = ProfitForm()
     
     return render(request, 'properties/add_profit.html', {'form': form})
 
