@@ -22685,3 +22685,258 @@ def broker_message_detail(request, conversation_id):
         'messages': messages_list,
         'form': form,
     })
+
+
+@login_required
+@user_passes_test(lambda u: u.is_superuser or u.is_staff)
+def platform_comprehensive_stats(request):
+    """إحصائيات شاملة للمنصة"""
+    from django.db.models import Count, Sum, Avg
+    from django.db.models.functions import TruncMonth, TruncDate
+    from datetime import datetime, timedelta, date
+
+    # إحصائيات المستخدمين
+    total_users = User.objects.count()
+    active_users = User.objects.filter(is_active=True).count()
+    total_brokers = Broker.objects.count()
+    total_admins = User.objects.filter(is_superuser=True).count()
+    total_staff = User.objects.filter(is_staff=True).count()
+
+    # نمو المستخدمين خلال 6 أشهر
+    monthly_users = []
+    months_arabic = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو',
+                     'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر']
+
+    for i in range(5, -1, -1):
+        month_date = datetime.now() - timedelta(days=30*i)
+        month_start = month_date.replace(day=1)
+        month_end = (month_start + timedelta(days=32)).replace(day=1) - timedelta(days=1)
+
+        users_in_month = User.objects.filter(
+            date_joined__gte=month_start,
+            date_joined__lte=month_end
+        ).count()
+
+        monthly_users.append({
+            'month': months_arabic[month_start.month - 1],
+            'year': month_start.year,
+            'count': users_in_month
+        })
+
+    # إحصائيات العقارات
+    total_properties = Property.objects.count()
+    published_properties = Property.objects.filter(status='published').count()
+    pending_properties = Property.objects.filter(status='pending').count()
+    sold_properties = Property.objects.filter(status='sold').count()
+    rented_properties = Property.objects.filter(status='rented').count()
+    featured_properties = Property.objects.filter(is_featured=True).count()
+    verified_properties = Property.objects.filter(is_verified=True).count()
+
+    # عقارات حسب النوع
+    properties_by_type = Property.objects.values('type').annotate(
+        count=Count('id')
+    ).order_by('-count')
+
+    # عقارات حسب المحافظة
+    properties_by_governorate = Property.objects.values('governorate').annotate(
+        count=Count('id')
+    ).order_by('-count')[:15]
+
+    # إحصائيات الفنادق والمنتجعات
+    total_hotels = Hotel.objects.count()
+    total_resorts = Resort.objects.count()
+
+    # إحصائيات الوظائف
+    total_jobs = Job.objects.count()
+    active_jobs = Job.objects.filter(status='active').count()
+
+    # إحصائيات مقدمي الخدمات
+    total_service_providers = ServiceProvider.objects.count()
+    total_service_advertisements = ServiceAdvertisement.objects.count()
+
+    # إحصائيات المزادات
+    total_auctions = Auction.objects.count()
+    active_auctions = Auction.objects.filter(status='active').count()
+    completed_auctions = Auction.objects.filter(status='completed').count()
+
+    # إحصائيات القنوات
+    total_channels = BrokerChannel.objects.count()
+
+    # إحصائيات الرحلات السياحية
+    total_travel_packages = TravelPackage.objects.count()
+    total_travel_companies = TravelCompany.objects.count()
+
+    # إحصائيات المحادثات والرسائل
+    try:
+        total_conversations = Conversation.objects.count()
+        total_messages = Message.objects.count()
+    except Exception:
+        total_conversations = 0
+        total_messages = 0
+
+    # إحصائيات التقارير
+    try:
+        total_reports = MessageReport.objects.count()
+    except Exception:
+        total_reports = 0
+
+    # إحصائيات الاشتراكات
+    try:
+        active_subscriptions = BrokerPlanSubscription.objects.filter(status='active').count()
+        total_subscriptions = BrokerPlanSubscription.objects.count()
+    except Exception:
+        active_subscriptions = 0
+        total_subscriptions = 0
+
+    # إحصائيات المعاملات المالية
+    try:
+        total_revenue = sum(t.amount or 0 for t in FinancialTransaction.objects.filter(status='completed'))
+        pending_revenue = sum(t.amount or 0 for t in FinancialTransaction.objects.filter(status='pending'))
+        total_transactions = FinancialTransaction.objects.count()
+    except Exception:
+        total_revenue = 0
+        pending_revenue = 0
+        total_transactions = 0
+
+    # إحصائيات المصاريف والأرباح
+    try:
+        total_expenses = Expense.objects.aggregate(total=Sum('amount'))['total'] or 0
+        total_profits = Profit.objects.aggregate(total=Sum('amount'))['total'] or 0
+    except Exception:
+        total_expenses = 0
+        total_profits = 0
+
+    # إحصائيات المشاهدات
+    try:
+        total_views = Property.objects.aggregate(total=Sum('view_count'))['total'] or 0
+    except Exception:
+        total_views = 0
+
+    # عقارات مشطورة ومحمية
+    shared_properties = Property.objects.filter(is_shared=True).count()
+    protected_properties = Property.objects.filter(is_protected=True).count()
+
+    # إحصائيات الملفات المرفقة
+    try:
+        total_images = PropertyImage.objects.count()
+        total_videos = PropertyVideo.objects.count()
+    except Exception:
+        total_images = 0
+        total_videos = 0
+
+    # إحصائيات الحجوزات
+    try:
+        total_bookings = TravelPackageBooking.objects.count()
+        total_hotel_bookings = HotelBooking.objects.count()
+    except Exception:
+        total_bookings = 0
+        total_hotel_bookings = 0
+
+    # نشاط اليوم
+    today = date.today()
+    today_users = User.objects.filter(date_joined__date=today).count()
+    today_properties = Property.objects.filter(created_at__date=today).count()
+    today_messages = 0
+    try:
+        today_messages = Message.objects.filter(created_at__date=today).count()
+    except Exception:
+        pass
+
+    # نشاط الأسبوع
+    week_ago = today - timedelta(days=7)
+    week_users = User.objects.filter(date_joined__date__gte=week_ago).count()
+    week_properties = Property.objects.filter(created_at__date__gte=week_ago).count()
+
+    # نشاط الشهر
+    month_ago = today - timedelta(days=30)
+    month_users = User.objects.filter(date_joined__date__gte=month_ago).count()
+    month_properties = Property.objects.filter(created_at__date__gte=month_ago).count()
+
+    context = {
+        'users': {
+            'total': total_users,
+            'active': active_users,
+            'brokers': total_brokers,
+            'admins': total_admins,
+            'staff': total_staff,
+            'regular': total_users - total_brokers - total_admins,
+            'monthly_growth': monthly_users,
+            'today': today_users,
+            'week': week_users,
+            'month': month_users,
+        },
+        'properties': {
+            'total': total_properties,
+            'published': published_properties,
+            'pending': pending_properties,
+            'sold': sold_properties,
+            'rented': rented_properties,
+            'featured': featured_properties,
+            'verified': verified_properties,
+            'shared': shared_properties,
+            'protected': protected_properties,
+            'by_type': list(properties_by_type),
+            'by_governorate': list(properties_by_governorate),
+            'today': today_properties,
+            'week': week_properties,
+            'month': month_properties,
+        },
+        'hotels': {
+            'total': total_hotels,
+        },
+        'resorts': {
+            'total': total_resorts,
+        },
+        'jobs': {
+            'total': total_jobs,
+            'active': active_jobs,
+        },
+        'services': {
+            'providers': total_service_providers,
+            'advertisements': total_service_advertisements,
+        },
+        'auctions': {
+            'total': total_auctions,
+            'active': active_auctions,
+            'completed': completed_auctions,
+        },
+        'channels': {
+            'total': total_channels,
+        },
+        'travel': {
+            'packages': total_travel_packages,
+            'companies': total_travel_companies,
+            'bookings': total_bookings,
+        },
+        'conversations': {
+            'total': total_conversations,
+        },
+        'messages': {
+            'total': total_messages,
+            'today': today_messages,
+        },
+        'reports': {
+            'total': total_reports,
+        },
+        'subscriptions': {
+            'total': total_subscriptions,
+            'active': active_subscriptions,
+        },
+        'financial': {
+            'total_revenue': total_revenue,
+            'pending_revenue': pending_revenue,
+            'total_transactions': total_transactions,
+            'total_expenses': total_expenses,
+            'total_profits': total_profits,
+            'net_profit': total_profits - total_expenses,
+        },
+        'media': {
+            'images': total_images,
+            'videos': total_videos,
+        },
+        'views': {
+            'total': total_views,
+        },
+    }
+
+    return render(request, 'properties/platform_stats.html', context)

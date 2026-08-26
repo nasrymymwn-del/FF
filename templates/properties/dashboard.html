@@ -33,6 +33,7 @@
 {% endif %}
 {% if request.user.is_superuser %}
 <a href="{% url 'admin_create_notification' %}" class="btn btn-primary btn-sm">📤 إرسال إشعار</a>
+<a href="{% url 'platform_comprehensive_stats' %}" class="btn btn-primary btn-sm">📊 إحصائيات شاملة</a>
 {% endif %}
 {% if broker and broker.role == 'main' %}
 <a href="{% url 'main_broker_panel' %}" class="btn btn-outline btn-sm">لوحة الدلال الرئيسي</a>

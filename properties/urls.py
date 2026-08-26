@@ -166,6 +166,7 @@ urlpatterns = [
     path('dashboard/', views.dashboard, name='dashboard'),
     path('dashboard/my-posts/', views.my_posts, name='my_posts'),
     path('dashboard/advanced-reports/', views.advanced_reports, name='advanced_reports'),
+    path('dashboard/platform-stats/', views.platform_comprehensive_stats, name='platform_comprehensive_stats'),
     path('api/property/<int:property_id>/toggle-featured/', views.toggle_property_featured, name='toggle_property_featured'),
     path('api/property/<int:property_id>/toggle-promoted/', views.toggle_property_promoted, name='toggle_property_promoted'),
     path('dashboard/settings/', views.update_site_settings, name='update_site_settings'),
