@@ -22829,9 +22829,9 @@ def platform_comprehensive_stats(request):
     except Exception:
         total_views = 0
 
-    # عقارات مشطورة ومحمية
-    shared_properties = Property.objects.filter(is_shared=True).count()
-    protected_properties = Property.objects.filter(is_protected=True).count()
+    # عقارات مشطورة ومحمية (حقول غير موجودة - تعيين قيم افتراضية)
+    shared_properties = 0
+    protected_properties = 0
 
     # إحصائيات الملفات المرفقة
     try:
@@ -22894,8 +22894,6 @@ def platform_comprehensive_stats(request):
             'rented': rented_properties,
             'featured': featured_properties,
             'verified': verified_properties,
-            'shared': shared_properties,
-            'protected': protected_properties,
             'by_type': list(properties_by_type),
             'by_governorate': list(properties_by_governorate),
             'today': today_properties,
