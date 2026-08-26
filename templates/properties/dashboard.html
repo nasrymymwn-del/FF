@@ -1536,10 +1536,10 @@
       <span class="tab-icon">📋</span>
       <span>الطلبات</span>
     </button>
-    <button type="button" class="tab-btn" data-tab="analytics">
+    <a href="{% url 'platform_comprehensive_stats' %}" class="tab-btn" style="text-decoration: none; background: var(--card-bg); border: 2px solid var(--border); border-radius: var(--radius-md); padding: 12px 16px; display: flex; align-items: center; gap: 8px; color: var(--text); transition: all 0.3s ease; cursor: pointer;" target="_blank" onmouseover="this.style.borderColor='var(--primary)'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(255, 107, 53, 0.2)';" onmouseout="this.style.borderColor='var(--border)'; this.style.transform='translateY(0)'; this.style.boxShadow='none';">
       <span class="tab-icon">📊</span>
       <span>الإحصائيات</span>
-    </button>
+    </a>
     <button type="button" class="tab-btn" data-tab="permissions">
       <span class="tab-icon">🔐</span>
       <span>الصلاحيات</span>
@@ -2377,62 +2377,6 @@
           {% endfor %}
         </tbody>
       </table>
-    </div>
-  </div>
-
-  <!-- Analytics Panel -->
-  <div id="panel-analytics" class="panel">
-    <div class="panel-header">
-      <div class="panel-badge">
-        <span class="badge-icon">📊</span>
-        <span>الإحصائيات</span>
-      </div>
-      <h2>إحصائيات شاملة للمنصة</h2>
-    </div>
-    
-    <div class="dashboard-stats">
-      <div class="stat-card">
-        <div class="stat-icon">👥</div>
-        <div class="stat-content">
-          <div class="stat-number">{{ platform_stats.total_users|default:0 }}</div>
-          <div class="stat-label">إجمالي المستخدمين</div>
-        </div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-icon">💬</div>
-        <div class="stat-content">
-          <div class="stat-number">{{ platform_stats.total_conversations|default:0 }}</div>
-          <div class="stat-label">المحادثات</div>
-        </div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-icon">✉️</div>
-        <div class="stat-content">
-          <div class="stat-number">{{ platform_stats.total_messages|default:0 }}</div>
-          <div class="stat-label">الرسائل</div>
-        </div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-icon">🚨</div>
-        <div class="stat-content">
-          <div class="stat-number">{{ platform_stats.total_reports|default:0 }}</div>
-          <div class="stat-label">البلاغات</div>
-        </div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-icon">👑</div>
-        <div class="stat-content">
-          <div class="stat-number">{{ platform_stats.total_brokers|default:0 }}</div>
-          <div class="stat-label">الدلالين</div>
-        </div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-icon">💳</div>
-        <div class="stat-content">
-          <div class="stat-number">{{ platform_stats.active_subscriptions|default:0 }}</div>
-          <div class="stat-label">اشتراكات نشطة</div>
-        </div>
-      </div>
     </div>
   </div>
 
