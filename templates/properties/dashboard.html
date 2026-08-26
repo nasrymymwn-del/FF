@@ -1561,14 +1561,6 @@
       <span class="tab-icon">📈</span>
       <span>الأداء</span>
     </button>
-    <button type="button" class="tab-btn" data-tab="financial-reports">
-      <span class="tab-icon">💰</span>
-      <span>التقارير المالية</span>
-    </button>
-    <button type="button" class="tab-btn" data-tab="support-tickets">
-      <span class="tab-icon">🎫</span>
-      <span>تذاكر الدعم</span>
-    </button>
     <button type="button" class="tab-btn" data-tab="advanced-search">
       <span class="tab-icon">🔍</span>
       <span>بحث متقدم</span>
@@ -1589,10 +1581,6 @@
     <button type="button" class="tab-btn" data-tab="messaging-advanced">
       <span class="tab-icon">💬</span>
       <span>الرسائل المتقدمة</span>
-    </button>
-    <button type="button" class="tab-btn" data-tab="email-manager">
-      <span class="tab-icon">📧</span>
-      <span>إدارة البريد</span>
     </button>
     <button type="button" class="tab-btn" data-tab="access-control">
       <span class="tab-icon">🔐</span>
@@ -2549,130 +2537,6 @@
     </div>
   </div>
 
-  <!-- System Settings Panel -->
-  <div id="panel-system-settings" class="panel">
-    <div class="panel-header">
-      <div class="panel-badge">
-        <span class="badge-icon">⚙️</span>
-        <span>إعدادات النظام</span>
-      </div>
-      <h2>إعدادات النظام المتقدمة</h2>
-    </div>
-    
-    <!-- System Status -->
-    <div class="form-card" style="margin-bottom: 20px;">
-      <h3>حالة النظام</h3>
-      <div class="dashboard-stats">
-        <div class="stat-card">
-          <div class="stat-icon">🟢</div>
-          <div class="stat-content">
-            <div class="stat-number">نشط</div>
-            <div class="stat-label">حالة السيرفر</div>
-          </div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-icon">💾</div>
-          <div class="stat-content">
-            <div class="stat-number">{{ platform_stats.total_backups|default:0 }}</div>
-            <div class="stat-label">النسخ الاحتياطية</div>
-          </div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-icon">👥</div>
-          <div class="stat-content">
-            <div class="stat-number">{{ platform_stats.active_users|default:0 }}</div>
-            <div class="stat-label">مستخدمين نشطين</div>
-          </div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-icon">🏠</div>
-          <div class="stat-content">
-            <div class="stat-number">{{ platform_stats.active_properties|default:0 }}</div>
-            <div class="stat-label">عقارات نشطة</div>
-          </div>
-        </div>
-      </div>
-    </div>
-    
-    <!-- Main Settings -->
-    <div class="form-card">
-      <h3>إعدادات عامة</h3>
-      <div class="form-group">
-        <label>وضع الصيانة</label>
-        <select class="form-control" id="maintenanceMode">
-          <option value="false">نشط (الموقع متاح)</option>
-          <option value="true">صيانة (الموقع مغلق)</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label>رسالة الصيانة</label>
-        <textarea class="form-control" id="maintenanceMessage" rows="3">الموقع قيد الصيانة مؤقتاً. يرجى العودة لاحقاً.</textarea>
-      </div>
-      <div class="form-group">
-        <label>حد رفع الملفات (MB)</label>
-        <input type="number" class="form-control" id="maxFileSize" value="10">
-      </div>
-      <div class="form-group">
-        <label>تفعيل التسجيل الجديد</label>
-        <select class="form-control" id="enableRegistration">
-          <option value="true">مفعل</option>
-          <option value="false">معطل</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label>تفعيل WebSocket</label>
-        <select class="form-control" id="enableWebSocket">
-          <option value="true">مفعل</option>
-          <option value="false">معطل</option>
-        </select>
-      </div>
-      <button class="btn btn-primary" onclick="saveSystemSettings()">حفظ الإعدادات</button>
-    </div>
-    
-    <!-- Advanced Settings -->
-    <div class="form-card" style="margin-top: 20px;">
-      <h3>إعدادات متقدمة</h3>
-      <div class="form-group">
-        <label>وضع تصحيح الأخطاء (Debug Mode)</label>
-        <select class="form-control" id="debugMode">
-          <option value="false">معطل</option>
-          <option value="true">مفعل</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label>حد الطلبات في الدقيقة (Rate Limit)</label>
-        <input type="number" class="form-control" id="rateLimit" value="100">
-      </div>
-      <div class="form-group">
-        <label>تخزين الملفات</label>
-        <select class="form-control" id="storageBackend">
-          <option value="local">محلي (Local)</option>
-          <option value="s3">Amazon S3</option>
-          <option value="cloudinary">Cloudinary</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label>تفعيل سجل الأنشطة</label>
-        <select class="form-control" id="enableActivityLog">
-          <option value="true">مفعل</option>
-          <option value="false">معطل</option>
-        </select>
-      </div>
-      <button class="btn btn-warning" onclick="saveAdvancedSettings()">حفظ الإعدادات المتقدمة</button>
-    </div>
-    
-    <!-- System Actions -->
-    <div class="form-card" style="margin-top: 20px;">
-      <h3>إجراءات النظام</h3>
-      <div style="display: flex; gap: 15px; flex-wrap: wrap;">
-        <button class="btn btn-secondary" onclick="clearCache()">مسح الذاكرة المؤقتة</button>
-        <button class="btn btn-info" onclick="runSystemDiagnostics()">تشخيص النظام</button>
-        <button class="btn btn-danger" onclick="restartServer()">إعادة تشغيل السيرفر</button>
-        <button class="btn btn-danger" onclick="emergencyShutdown()">إيقاف طوارئ</button>
-      </div>
-    </div>
-  </div>
-
   <!-- Quick Stats Panel -->
   {% if request.user.is_superuser %}
   <div id="panel-quick-stats" class="panel">
@@ -2907,108 +2771,6 @@
     <div style="margin-top: 20px;">
       <button class="btn btn-primary" onclick="refreshPerformance()">تحديث البيانات</button>
       <button class="btn btn-warning" onclick="runDiagnostics()">تشخيص النظام</button>
-    </div>
-  </div>
-  {% endif %}
-
-  <!-- Financial Reports Panel -->
-  {% if request.user.is_superuser %}
-  <div id="panel-financial-reports" class="panel">
-    <div class="panel-header">
-      <div class="panel-badge">
-        <span class="badge-icon">💰</span>
-        <span>التقارير المالية</span>
-      </div>
-      <h2>نظام التقارير المالية المتقدم</h2>
-    </div>
-    
-    <!-- Report Type Selector -->
-    <div class="form-card" style="margin-bottom: 20px;">
-      <div class="form-row">
-        <div class="form-group">
-          <label>نوع التقرير</label>
-          <select class="form-control" id="reportType" onchange="loadFinancialReport()">
-            <option value="overview">نظرة عامة</option>
-            <option value="revenue">الإيرادات</option>
-            <option value="expenses">المصاريف</option>
-            <option value="profit">الأرباح</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>الفترة</label>
-          <select class="form-control" id="reportPeriod" onchange="loadFinancialReport()">
-            <option value="monthly">شهري</option>
-            <option value="quarterly">ربع سنوي</option>
-            <option value="yearly">سنوي</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>&nbsp;</label>
-          <button class="btn btn-primary" onclick="exportFinancialReport()">تصدير التقرير</button>
-        </div>
-      </div>
-    </div>
-    
-    <!-- Report Content -->
-    <div id="financial-report-content">
-      <div style="text-align: center; padding: 20px; color: #888;">جاري تحميل التقرير...</div>
-    </div>
-  </div>
-  {% endif %}
-
-  <!-- Support Tickets Panel -->
-  {% if request.user.is_superuser %}
-  <div id="panel-support-tickets" class="panel">
-    <div class="panel-header">
-      <div class="panel-badge">
-        <span class="badge-icon">🎫</span>
-        <span>تذاكر الدعم</span>
-      </div>
-      <h2>نظام تذاكر الدعم الفني</h2>
-    </div>
-    
-    <!-- Ticket Statistics -->
-    <div class="dashboard-stats">
-      <div class="stat-card">
-        <div class="stat-icon">📋</div>
-        <div class="stat-content">
-          <div class="stat-number" id="totalTickets">0</div>
-          <div class="stat-label">إجمالي التذاكر</div>
-        </div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-icon">🟢</div>
-        <div class="stat-content">
-          <div class="stat-number" id="openTickets">0</div>
-          <div class="stat-label">مفتوحة</div>
-        </div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-icon">🔄</div>
-        <div class="stat-content">
-          <div class="stat-number" id="inProgressTickets">0</div>
-          <div class="stat-label">قيد المعالجة</div>
-        </div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-icon">✅</div>
-        <div class="stat-content">
-          <div class="stat-number" id="resolvedTickets">0</div>
-          <div class="stat-label">محلولة</div>
-        </div>
-      </div>
-    </div>
-    
-    <!-- Tickets List -->
-    <div class="form-card" style="margin-top: 20px;">
-      <h3>قائمة التذاكر</h3>
-      <div id="tickets-list" style="max-height: 400px; overflow-y: auto;">
-        <div style="text-align: center; padding: 20px; color: #888;">جاري تحميل التذاكر...</div>
-      </div>
-    </div>
-    
-    <div style="margin-top: 20px;">
-      <button class="btn btn-primary" onclick="createTicket()">إنشاء تذكرة جديدة</button>
     </div>
   </div>
   {% endif %}
@@ -3299,66 +3061,6 @@
     </div>
   </div>
   {% endif %}
-
-  <!-- Email Management Panel -->
-  {% if request.user.is_superuser %}
-  <div id="panel-email-manager" class="panel">
-    <div class="panel-header">
-      <div class="panel-badge">
-        <span class="badge-icon">📧</span>
-        <span>إدارة البريد</span>
-      </div>
-      <h2>نظام إدارة البريد الإلكتروني</h2>
-    </div>
-    
-    <!-- Email Statistics -->
-    <div class="dashboard-stats">
-      <div class="stat-card">
-        <div class="stat-icon">📨</div>
-        <div class="stat-content">
-          <div class="stat-number" id="totalEmails">0</div>
-          <div class="stat-label">إجمالي الإيميلات</div>
-        </div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-icon">✅</div>
-        <div class="stat-content">
-          <div class="stat-number" id="deliveredEmails">0</div>
-          <div class="stat-label">تم التسليم</div>
-        </div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-icon">👁️</div>
-        <div class="stat-content">
-          <div class="stat-number" id="openedEmails">0</div>
-          <div class="stat-label">تم الفتح</div>
-        </div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-icon">🔙</div>
-        <div class="stat-content">
-          <div class="stat-number" id="bouncedEmails">0</div>
-          <div class="stat-label">تم الارتداد</div>
-        </div>
-      </div>
-    </div>
-    
-    <!-- Email Actions -->
-    <div class="form-card" style="margin-top: 20px;">
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
-        <button class="btn btn-primary" onclick="sendEmail()">إرسال إيميل</button>
-        <button class="btn btn-secondary" onclick="manageTemplates()">إدارة القوالب</button>
-        <button class="btn btn-warning" onclick="testSMTP()">اختبار SMTP</button>
-      </div>
-    </div>
-    
-    <!-- Emails List -->
-    <div id="emails-list" style="max-height: 400px; overflow-y: auto; margin-top: 20px;">
-      <div style="text-align: center; padding: 20px; color: #888;">جاري تحميل الإيميلات...</div>
-    </div>
-  </div>
-  {% endif %}
-
   <!-- Access Control Panel -->
   {% if request.user.is_superuser %}
   <div id="panel-access-control" class="panel">
