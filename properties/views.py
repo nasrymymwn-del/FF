@@ -19217,49 +19217,6 @@ def performance_monitoring(request):
 
 
 @login_required
-def financial_reports(request):
-    """نظام تقارير مالية متقدم"""
-    if not request.user.is_superuser:
-        return JsonResponse({'success': False, 'error': 'غير مصرح'}, status=403)
-    
-    try:
-        report_type = request.GET.get('type', 'overview')
-        period = request.GET.get('period', 'monthly')
-        
-        # محاكاة بيانات مالية
-        if report_type == 'overview':
-            data = {
-                'total_revenue': 1250000,
-                'total_expenses': 320000,
-                'net_profit': 930000,
-                'monthly_growth': 15.5,
-                'active_subscriptions': 156,
-                'pending_payments': 23,
-                'completed_transactions': 1234
-            }
-        elif report_type == 'revenue':
-            data = {
-                'labels': ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو'],
-                'revenue': [120000, 150000, 180000, 220000, 250000, 280000],
-                'subscriptions': [120, 135, 142, 155, 160, 156]
-            }
-        elif report_type == 'expenses':
-            data = {
-                'categories': ['خوادم', 'تسويق', 'دعم فني', 'رواتب', 'أخرى'],
-                'amounts': [120000, 80000, 60000, 40000, 20000]
-            }
-        
-        return JsonResponse({
-            'success': True,
-            'report_type': report_type,
-            'period': period,
-            'data': data
-        })
-    except Exception as e:
-        return JsonResponse({'success': False, 'error': str(e)}, status=500)
-
-
-@login_required
 def support_tickets(request):
     """نظام تذاكر دعم فني"""
     if not request.user.is_superuser:

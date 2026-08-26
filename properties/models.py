@@ -5745,7 +5745,7 @@ class Expense(models.Model):
     category = models.CharField(max_length=20, choices=EXPENSE_CATEGORIES, verbose_name='فئة المصروف')
     title = models.CharField(max_length=200, blank=True, verbose_name='العنوان')
     amount = models.DecimalField(max_digits=15, decimal_places=0, null=True, blank=True, verbose_name='المبلغ')
-    date = models.DateField(null=True, blank=True, verbose_name='التاريخ')
+    date = models.DateField(default=timezone.now, verbose_name='التاريخ')
     notes = models.TextField(blank=True, verbose_name='ملاحظات')
     receipt_image = models.ImageField(upload_to=property_image_path, null=True, blank=True, verbose_name='صورة الإيصال')
     
