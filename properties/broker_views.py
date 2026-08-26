@@ -374,15 +374,85 @@ def public_broker_search(request):
 
 def broker_list(request):
     from django.db.models import Q
+    from django.core.paginator import Paginator
+    from django.utils import timezone
 
     filter_type = request.GET.get('filter', 'all')
+    search_query = request.GET.get('search', '')
+    status_filter = request.GET.get('status', '')
+    verified_filter = request.GET.get('verified', '')
+    role_filter = request.GET.get('role', '')
+    subscription_filter = request.GET.get('subscription', '')
+    governorate_filter = request.GET.get('governorate', '')
+    sort_by = request.GET.get('sort', 'newest')
+
     brokers = get_managed_brokers(request.user)
-    
+
     # Filter to show only brokers created by current user
     if filter_type == 'my_brokers':
         current_broker = get_broker(request.user)
         if current_broker and current_broker.role == Broker.ROLE_MAIN:
             brokers = brokers.filter(parent=current_broker)
+
+    # Search functionality
+    if search_query:
+        brokers = brokers.filter(
+            Q(display_name__icontains=search_query) |
+            Q(user__username__icontains=search_query) |
+            Q(user__email__icontains=search_query) |
+            Q(phone__icontains=search_query)
+        )
+
+    # Status filter
+    if status_filter == 'active':
+        brokers = brokers.filter(is_active=True)
+    elif status_filter == 'inactive':
+        brokers = brokers.filter(is_active=False)
+    elif status_filter == 'expired':
+        brokers = brokers.filter(subscription_end_date__lt=timezone.now().date())
+
+    # Verified filter
+    if verified_filter == 'verified':
+        brokers = brokers.filter(is_verified=True)
+    elif verified_filter == 'unverified':
+        brokers = brokers.filter(is_verified=False)
+
+    # Role filter
+    if role_filter == 'admin':
+        brokers = brokers.filter(role=Broker.ROLE_ADMIN)
+    elif role_filter == 'main':
+        brokers = brokers.filter(role=Broker.ROLE_MAIN)
+    elif role_filter == 'sub':
+        brokers = brokers.filter(role=Broker.ROLE_SUB)
+
+    # Subscription filter
+    if subscription_filter:
+        brokers = brokers.filter(subscription_plan__name__icontains=subscription_filter)
+
+    # Governorate filter
+    if governorate_filter:
+        brokers = brokers.filter(governorate=governorate_filter)
+
+    # Sorting
+    if sort_by == 'newest':
+        brokers = brokers.order_by('-created_at')
+    elif sort_by == 'oldest':
+        brokers = brokers.order_by('created_at')
+    elif sort_by == 'name':
+        brokers = brokers.order_by('display_name')
+    elif sort_by == 'properties':
+        brokers = brokers.annotate(prop_count=Count('property')).order_by('-prop_count')
+    elif sort_by == 'performance':
+        brokers = brokers.order_by('-performance_score')
+    elif sort_by == 'revenue':
+        brokers = brokers.order_by('-total_revenue')
+    else:
+        brokers = brokers.order_by('-created_at')
+
+    # Pagination
+    paginator = Paginator(brokers, 20)
+    page_number = request.GET.get('page', 1)
+    brokers = paginator.get_page(page_number)
     
     broker_data = []
     for b in brokers:
@@ -390,14 +460,14 @@ def broker_list(request):
         views = Property.objects.filter(Q(owner=b.user) | Q(broker=b)).aggregate(
             t=Sum('views_count')
         )['t'] or 0
-        
+
         # Get individual stats
         from .models import BrokerIndividualStats
         individual_stats, _ = BrokerIndividualStats.objects.get_or_create(broker=b)
-        
+
         # Calculate performance score
         individual_stats.calculate_performance_score()
-        
+
         # Get channel info if exists
         channel_info = None
         try:
@@ -413,7 +483,7 @@ def broker_list(request):
             }
         except BrokerChannel.DoesNotExist:
             pass
-        
+
         broker_data.append({
             'broker': b,
             'property_count': prop_count,
@@ -433,8 +503,8 @@ def broker_list(request):
             'performance_score': individual_stats.performance_score,
             'channel': channel_info,
         })
-    
-    # Apply sorting
+
+    # Apply sorting to broker_data
     sort_by = request.GET.get('sort', 'newest')
     if sort_by == 'oldest':
         broker_data.sort(key=lambda x: x['broker'].created_at)
@@ -483,6 +553,13 @@ def broker_list(request):
     return render(request, 'properties/broker_list.html', {
         'broker_data': broker_data,
         'filter_type': filter_type,
+        'search_query': search_query,
+        'status_filter': status_filter,
+        'verified_filter': verified_filter,
+        'role_filter': role_filter,
+        'subscription_filter': subscription_filter,
+        'governorate_filter': governorate_filter,
+        'sort_by': sort_by,
         'total_brokers': total_brokers,
         'verified_brokers': verified_brokers,
         'total_properties': total_properties,
@@ -494,6 +571,7 @@ def broker_list(request):
         'expired_subscriptions': expired_subscriptions,
         'total_revenue': total_revenue,
         'plans': SubscriptionPlan.objects.filter(is_active=True),
+        'brokers': brokers,  # Pass paginated brokers object
     })
 
 
@@ -503,7 +581,7 @@ def export_brokers(request):
     """Export broker data to CSV"""
     import csv
     from django.http import HttpResponse
-    
+
     brokers = get_managed_brokers(request.user)
     
     response = HttpResponse(content_type='text/csv')
