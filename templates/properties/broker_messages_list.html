@@ -6,88 +6,7 @@
 {% block content %}
 {% csrf_token %}
 <div class="messenger-app">
-  <!-- Sidebar - Conversations List -->
-  <div class="messenger-sidebar">
-    <div class="sidebar-header">
-      <div class="user-profile">
-        <div class="user-avatar">
-          {% if request.user.user_profile.avatar %}
-            <img src="{{ request.user.user_profile.avatar.url }}" alt="{{ request.user.username }}">
-          {% else %}
-            <div class="avatar-placeholder">{{ request.user.username|slice:":1"|upper }}</div>
-          {% endif %}
-        </div>
-        <div class="user-info">
-          <span class="user-name">{{ request.user.get_full_name|default:request.user.username }}</span>
-          <span class="user-status">متصل</span>
-        </div>
-      </div>
-      <div class="sidebar-actions">
-        <button class="action-btn" onclick="openNewMessageModal()" title="محادثة جديدة">
-          <span>✏️</span>
-        </button>
-        <button class="action-btn" onclick="toggleSettings()" title="الإعدادات">
-          <span>⚙️</span>
-        </button>
-      </div>
-    </div>
-    
-    <div class="sidebar-search">
-      <div class="search-input-wrapper">
-        <span class="search-icon">🔍</span>
-        <input type="text" id="conversations-search" placeholder="البحث في المحادثات..." autocomplete="off">
-      </div>
-    </div>
-    
-    <div class="conversations-tabs">
-      <button class="tab-btn active" data-tab="conversations">💬 المحادثات</button>
-      <button class="tab-btn" data-tab="brokers">🏘 الدلالين</button>
-      <button class="tab-btn" data-tab="admin">👨‍💼 الإدارة</button>
-      <button class="tab-btn" data-tab="users">👥 المستخدمين</button>
-    </div>
-    
-    <div class="conversations-list" id="conversations-list">
-      {% if conversations %}
-        {% for conversation in conversations %}
-        <div class="conversation-item {% if conversation.id == active_conversation_id %}active{% endif %}" 
-             data-conversation-id="{{ conversation.id }}"
-             onclick="openConversation('{{ conversation.id }}')">
-          <div class="conversation-avatar">
-            {% if conversation.other_user.user_profile.avatar %}
-              <img src="{{ conversation.other_user.user_profile.avatar.url }}" alt="{{ conversation.other_user.username }}">
-            {% else %}
-              <div class="avatar-placeholder">{{ conversation.other_user.username|slice:":1"|upper }}</div>
-            {% endif %}
-            <div class="online-status {% if conversation.other_user.is_online %}online{% else %}offline{% endif %}"></div>
-            {% if conversation.unread_count > 0 %}
-            <div class="unread-badge">{{ conversation.unread_count }}</div>
-            {% endif %}
-          </div>
-          <div class="conversation-content">
-            <div class="conversation-header">
-              <span class="conversation-name">{{ conversation.other_user.get_full_name|default:conversation.other_user.username }}</span>
-              <span class="conversation-time">{{ conversation.last_message_time|timesince }}</span>
-            </div>
-            <div class="conversation-preview">
-              <span class="message-text">{{ conversation.last_message|truncatechars:40 }}</span>
-              {% if conversation.last_message_is_from_me %}
-              <span class="message-status">✓✓</span>
-              {% endif %}
-            </div>
-          </div>
-        </div>
-        {% endfor %}
-      {% else %}
-        <div class="empty-conversations">
-          <div class="empty-icon">💬</div>
-          <p>لا توجد محادثات</p>
-          <button class="btn btn-primary" onclick="openNewMessageModal()">ابدأ محادثة جديدة</button>
-        </div>
-      {% endif %}
-    </div>
-  </div>
-  
-  <!-- Main Chat Area -->
+  <!-- Main Content Area -->
   <div class="messenger-main">
     {% if active_conversation %}
     <input type="hidden" id="current-conversation-id" value="{{ active_conversation.id }}">
@@ -132,7 +51,7 @@
         </button>
       </div>
     </div>
-    
+
     <div class="chat-messages" id="chat-messages">
       {% for message in messages %}
       <div class="message-wrapper {% if message.sender == request.user %}sent{% else %}received{% endif %}">
@@ -155,7 +74,7 @@
       </div>
       {% endfor %}
     </div>
-    
+
     <div class="chat-input-area">
       <div class="input-toolbar">
         <button class="toolbar-btn" onclick="toggleEmojiPicker()" title="إيموجي">
@@ -210,84 +129,102 @@
     </div>
     {% endif %}
   </div>
-  
-  <!-- Right Sidebar - Contact Info -->
-  {% if active_conversation %}
-  <div class="messenger-right-sidebar" id="contact-info-sidebar" style="display: none;">
-    <div class="right-sidebar-header">
-      <h3>معلومات الاتصال</h3>
-      <button class="close-btn" onclick="closeContactInfo()">✕</button>
+
+  <!-- Right Sidebar - Conversations List -->
+  <div class="messenger-sidebar">
+    <div class="sidebar-header">
+      <div class="user-profile">
+        <div class="user-avatar">
+          {% if request.user.user_profile.avatar %}
+            <img src="{{ request.user.user_profile.avatar.url }}" alt="{{ request.user.username }}">
+          {% else %}
+            <div class="avatar-placeholder">{{ request.user.username|slice:":1"|upper }}</div>
+          {% endif %}
+        </div>
+        <div class="user-info">
+          <span class="user-name">{{ request.user.get_full_name|default:request.user.username }}</span>
+          <span class="user-status">متصل</span>
+        </div>
+      </div>
+      <div class="sidebar-actions">
+        <button class="action-btn" onclick="openNewMessageModal()" title="محادثة جديدة">
+          <span>✏️</span>
+        </button>
+        <button class="action-btn" onclick="toggleSettings()" title="الإعدادات">
+          <span>⚙️</span>
+        </button>
+      </div>
     </div>
-    <div class="contact-profile">
-      <div class="contact-avatar-large">
-        {% if active_conversation.other_user.avatar %}
-        <img src="{{ active_conversation.other_user.avatar.url }}" alt="{{ active_conversation.other_user.username }}">
-        {% else %}
-        <div class="avatar-placeholder-large">{{ active_conversation.other_user.username|slice:":1"|upper }}</div>
-        {% endif %}
+
+    <div class="sidebar-search">
+      <div class="search-input-wrapper">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="conversations-search" placeholder="البحث في المحادثات..." autocomplete="off">
       </div>
-      <h4 class="contact-name">{{ active_conversation.other_user.get_full_name|default:active_conversation.other_user.username }}</h4>
-      <p class="contact-status">
-        {% if active_conversation.other_user.is_online %}متصل حالياً{% else %}غير متصل{% endif %}
-      </p>
     </div>
-    
-    <div class="contact-details">
-      <div class="detail-section">
-        <h5>معلومات الاتصال</h5>
-        <div class="detail-item">
-          <span class="detail-icon">📧</span>
-          <span class="detail-value">{{ active_conversation.other_user.email|default:'غير متوفر' }}</span>
-        </div>
-        {% if active_conversation.other_user.phone %}
-        <div class="detail-item">
-          <span class="detail-icon">📱</span>
-          <span class="detail-value">{{ active_conversation.other_user.phone }}</span>
-        </div>
-        {% endif %}
-      </div>
-      
-      <div class="detail-section">
-        <h5>الوسائط المشتركة</h5>
-        <div class="shared-media">
-          <div class="media-item">
-            <div class="media-placeholder">📷</div>
+
+    <div class="conversations-tabs">
+      <button class="tab-btn active" data-tab="conversations">💬 المحادثات</button>
+      <button class="tab-btn" data-tab="brokers">🏘 الدلالين</button>
+      <button class="tab-btn" data-tab="admin">👨‍💼 الإدارة</button>
+    </div>
+
+    <div class="conversations-list" id="conversations-list">
+      {% if conversations %}
+        {% for conversation in conversations %}
+        <div class="conversation-item {% if conversation.id == active_conversation_id %}active{% endif %}"
+             data-conversation-id="{{ conversation.id }}"
+             onclick="openConversation('{{ conversation.id }}')">
+          <div class="conversation-avatar">
+            {% if conversation.other_user.user_profile.avatar %}
+              <img src="{{ conversation.other_user.user_profile.avatar.url }}" alt="{{ conversation.other_user.username }}">
+            {% else %}
+              <div class="avatar-placeholder">{{ conversation.other_user.username|slice:":1"|upper }}</div>
+            {% endif %}
+            <div class="online-status {% if conversation.other_user.is_online %}online{% else %}offline{% endif %}"></div>
+            {% if conversation.unread_count > 0 %}
+            <div class="unread-badge">{{ conversation.unread_count }}</div>
+            {% endif %}
           </div>
-          <div class="media-item">
-            <div class="media-placeholder">📹</div>
-          </div>
-          <div class="media-item">
-            <div class="media-placeholder">📎</div>
+          <div class="conversation-content">
+            <div class="conversation-header">
+              <span class="conversation-name">{{ conversation.other_user.get_full_name|default:conversation.other_user.username }}</span>
+              <span class="conversation-time">{{ conversation.last_message_time|timesince }}</span>
+            </div>
+            <div class="conversation-preview">
+              <span class="message-text">{{ conversation.last_message|truncatechars:40 }}</span>
+              {% if conversation.last_message_is_from_me %}
+              <span class="message-status">✓✓</span>
+              {% endif %}
+            </div>
           </div>
         </div>
-      </div>
-      
-      <div class="detail-section">
-        <h5>الإجراءات</h5>
-        <button class="action-btn-full" onclick="toggleRatingModal({{ active_conversation.other_user.id }}, 'user')">
-          <span>⭐</span>
-          <span>تقييم المستخدم</span>
-        </button>
-        <button class="action-btn-full" onclick="toggleAppointmentModal({{ active_conversation.other_user.id }}, 'meeting')">
-          <span>📅</span>
-          <span>جدولة موعد</span>
-        </button>
-        <button class="action-btn-full" onclick="blockUser()">
-          <span>🚫</span>
-          <span>حظر المستخدم</span>
-        </button>
-        <button class="action-btn-full" onclick="reportUser()">
-          <span>⚠️</span>
-          <span>إبلاغ عن المستخدم</span>
-        </button>
-        <button class="action-btn-full danger" onclick="deleteConversation()">
-          <span>🗑️</span>
-          <span>حذف المحادثة</span>
-        </button>
-      </div>
+        {% endfor %}
+      {% else %}
+        <div class="empty-conversations">
+          <div class="empty-icon">💬</div>
+          <p>لا توجد محادثات</p>
+          <button class="btn btn-primary" onclick="openNewMessageModal()">ابدأ محادثة جديدة</button>
+        </div>
+      {% endif %}
     </div>
   </div>
-  {% endif %}
+
+  <!-- Bottom Navigation Bar -->
+  <div class="messenger-bottom-nav">
+    <a href="{% url 'contact_us' %}" class="bottom-nav-item">
+      <span class="nav-icon">📞</span>
+      <span class="nav-label">اتصل بنا</span>
+    </a>
+    <a href="{% url 'user_settings' %}" class="bottom-nav-item">
+      <span class="nav-icon">⚙️</span>
+      <span class="nav-label">الإعدادات</span>
+    </a>
+    <a href="{% url 'dashboard' %}" class="bottom-nav-item">
+      <span class="nav-icon">📊</span>
+      <span class="nav-label">لوحة التحكم</span>
+    </a>
+  </div>
 </div>
 
 <!-- New Message Modal -->
@@ -658,17 +595,28 @@
   color: #ffffff;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
   margin-bottom: 60px; /* Space for bottom navigation */
+  position: relative;
+}
+
+/* Main Chat Area */
+.messenger-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: #1a1a1a;
+  overflow: hidden;
 }
 
 /* Sidebar Styles */
 .messenger-sidebar {
   width: 400px;
   background: #2d2d2d;
-  border-right: 1px solid #404040;
+  border-left: 1px solid #404040;
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
   overflow: hidden;
+  order: 2; /* Move sidebar to the right */
 }
 
 .sidebar-header {
@@ -1878,6 +1826,48 @@
 
 .action-btn-full.danger:hover {
   background: #4d2020;
+}
+
+/* Bottom Navigation Styles */
+.messenger-bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #2d2d2d;
+  border-top: 1px solid #404040;
+  display: flex;
+  justify-content: space-around;
+  padding: 10px 0;
+  z-index: 100;
+}
+
+.bottom-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-decoration: none;
+  color: #a0a0a0;
+  transition: color 0.3s ease;
+  padding: 8px 16px;
+}
+
+.bottom-nav-item:hover {
+  color: #667eea;
+}
+
+.bottom-nav-item.active {
+  color: #667eea;
+}
+
+.nav-icon {
+  font-size: 1.5rem;
+  margin-bottom: 4px;
+}
+
+.nav-label {
+  font-size: 0.75rem;
+  font-weight: 500;
 }
 
 /* Modal Styles */
