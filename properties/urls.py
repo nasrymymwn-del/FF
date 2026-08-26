@@ -666,6 +666,9 @@ urlpatterns = [
     path('api/real-estate/maps/', views.geographic_maps, name='geographic_maps'),
     path('api/advanced/reports/', views.advanced_reports_management, name='advanced_reports_management'),
 
+    # Real Estate Contracts Page
+    path('dashboard/contracts/', views.real_estate_contracts_page, name='real_estate_contracts'),
+
     # Dallal system routes
     path('dashboard/dallal/settings/', dallal_views.dallal_settings, name='dallal_settings'),
     path('dashboard/dallal/subscriptions/', dallal_views.dallal_subscriptions_list, name='dallal_subscriptions_list'),

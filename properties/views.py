@@ -21464,20 +21464,66 @@ def contract_approve(request, contract_id):
     """موافقة على عقد وتفعيله"""
     if not request.user.is_superuser:
         return JsonResponse({'success': False, 'error': 'غير مصرح'}, status=403)
-    
+
     try:
         contract = get_object_or_404(RealEstateContract, id=contract_id)
-        
+
         if request.method == 'POST':
             contract.mark_as_active()
             return JsonResponse({
                 'success': True,
                 'message': 'تم تفعيل العقد بنجاح'
             })
-    
+
     except Exception as e:
         logger.error(f"Error in contract_approve: {e}")
         return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+
+@login_required
+def real_estate_contracts_page(request):
+    """صفحة العقود العقارية"""
+    try:
+        from .models import RealEstateContract, Property, Broker, User
+
+        # Get all contracts
+        contracts = RealEstateContract.objects.all().select_related(
+            'property', 'broker', 'client', 'created_by', 'approved_by'
+        ).order_by('-created_at')
+
+        # Get active contract if specified
+        active_contract = None
+        active_contract_id = request.GET.get('contract_id')
+        if active_contract_id:
+            try:
+                active_contract = contracts.get(id=active_contract_id)
+            except RealEstateContract.DoesNotExist:
+                pass
+
+        # Get data for form
+        properties = Property.objects.filter(status='published')[:100]
+        brokers = Broker.objects.filter(is_active=True)[:50]
+        users = User.objects.filter(is_active=True)[:100]
+
+        return render(request, 'properties/real_estate_contracts.html', {
+            'contracts': contracts,
+            'active_contract': active_contract,
+            'active_contract_id': active_contract_id,
+            'properties': properties,
+            'brokers': brokers,
+            'users': users,
+        })
+
+    except Exception as e:
+        logger.error(f"Error in real_estate_contracts_page: {e}")
+        return render(request, 'properties/real_estate_contracts.html', {
+            'contracts': [],
+            'active_contract': None,
+            'active_contract_id': None,
+            'properties': [],
+            'brokers': [],
+            'users': [],
+        })
 
 
 @login_required
