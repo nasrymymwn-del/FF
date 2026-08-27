@@ -3,6 +3,75 @@
 ## المشكلة الحالية
 Google Login غير متاح لأن مفاتيح OAuth غير معينة في متغيرات البيئة.
 
+## حل سريع: تفعيل Google Login
+
+### الخطوة 1: إنشاء مشروع Google Cloud (5 دقائق)
+
+1. اذهب إلى [Google Cloud Console](https://console.cloud.google.com/)
+2. سجل الدخول بحساب Google
+3. انقر على **Select a project** > **NEW PROJECT**
+4. اسم المشروع: `Dalal Platform`
+5. انقر **CREATE**
+
+### الخطوة 2: تفعيل Google+ API (2 دقيقة)
+
+1. من القائمة، اختر **APIs & Services** > **Library**
+2. ابحث عن `Google+ API API`
+3. انقر عليه ثم **ENABLE**
+
+### الخطوة 3: تكوين شاشة الموافقة (3 دقائق)
+
+1. من القائمة، اختر **APIs & Services** > **OAuth consent screen**
+2. اختر **External** ثم **CREATE**
+3. أدخل المعلومات:
+   - **App name**: دلال
+   - **User support email**: بريدك الإلكتروني
+   - **Developer contact**: بريدك الإلكتروني
+4. انقر **SAVE AND CONTINUE** حتى النهاية
+5. انقر **BACK TO DASHBOARD**
+
+### الخطوة 4: إنشاء بيانات الاعتماد (3 دقائق)
+
+1. من القائمة، اختر **APIs & Services** > **Credentials**
+2. انقر **CREATE CREDENTIALS** > **OAuth client ID**
+3. اختر **Web application**
+4. **Name**: Dalal Web App
+5. **Authorized redirect URIs** (أضف جميع هذه):
+   ```
+   https://muqq.up.railway.app/social/complete/google-oauth2/
+   https://ff-production-38a4.up.railway.app/social/complete/google-oauth2/
+   https://mup.up.railway.app/social/complete/google-oauth2/
+   https://muq.up.railway.app/social/complete/google-oauth2/
+   https://daluailiraq.com/social/complete/google-oauth2/
+   https://www.daluailiraq.com/social/complete/google-oauth2/
+   http://localhost:8000/social/complete/google-oauth2/
+   http://127.0.0.1:8000/social/complete/google-oauth2/
+   ```
+6. انقر **CREATE**
+
+### الخطوة 5: نسخ المفاتيح
+
+بعد الإنشاء، ستحصل على:
+- **Client ID**: انسخه (مثل: `123456789-abc123.apps.googleusercontent.com`)
+- **Client Secret**: انسخه (مثل: `GOCSPX-abc123`)
+
+### الخطوة 6: إضافة المفاتيح إلى Railway (2 دقيقة)
+
+1. اذهب إلى [Railway](https://railway.app/)
+2. اختر مشروعك
+3. انتقل إلى **Variables**
+4. أضف متغيرين جديدين:
+
+   **المتغير الأول:**
+   - Name: `SOCIAL_AUTH_GOOGLE_OAUTH2_KEY`
+   - Value: `your-client-id-here` (استبدل بالـ Client ID الحقيقي)
+
+   **المتغير الثاني:**
+   - Name: `SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET`
+   - Value: `your-client-secret-here` (استبدل بالـ Client Secret الحقيقي)
+
+5. انقر **Deploy** لإعادة النشر
+
 ## الحل: إعداد Google OAuth
 
 ### الخطوة 1: إنشاء مشروع في Google Cloud Console
@@ -92,3 +161,37 @@ Google Login غير متاح لأن مفاتيح OAuth غير معينة في م
 إذا واجهت أي مشاكل، راجع:
 - [Google OAuth 2.0 Documentation](https://developers.google.com/identity/protocols/oauth2)
 - [Python Social Auth Documentation](https://python-social-auth.readthedocs.io/)
+
+## تشخيص المشاكل
+
+### كيفية التحقق من الإعداد:
+
+1. **فحص متغيرات البيئة:**
+   ```bash
+   # في Railway، انتقل إلى Variables tab وتحقق من وجود:
+   # - SOCIAL_AUTH_GOOGLE_OAUTH2_KEY
+   # - SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET
+   ```
+
+2. **فحص حالة المصادقة:**
+   - اذهب إلى `/social/diagnostics/` في المتصفح
+   - هذا سيعرض حالة جميع مزودي المصادقة
+
+3. **فحص سجلات الأخطاء:**
+   - في Railway، انتقل إلى Logs tab
+   - ابحث عن أخطاء تتعلق بـ Google OAuth
+
+### الحلول الشائعة:
+
+1. **زر Google Login لا يظهر:**
+   - تأكد من إضافة المتغيرات في Railway
+   - تأكد من إعادة نشر التطبيق
+   - تحقق من أن `GOOGLE_AUTH_AVAILABLE = True` في settings
+
+2. **خطأ redirect_uri_mismatch:**
+   - تأكد من إضافة جميع النطاقات في Google Console
+   - تأكد من وجود الشرطة المائلة النهائية `/`
+
+3. **خطأ invalid_client:**
+   - تأكد من صحة Client ID
+   - تأكد من أن المشروع نشط في Google Console
